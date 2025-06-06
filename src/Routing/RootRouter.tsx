@@ -8,7 +8,7 @@ import { MasterPage } from "./MasterPage";
 import {DashboardScreen} from "@modules/Home/Screens/Dashboard.screen";
 
 export const RootRouter = () => {
-    return <BrowserRouter basename="/my-recipes">
+    return <BrowserRouter basename="/cassette-store">
         <Routes>
             <Route path={RootRoutes.AuthorizedRoutes.Root()} element={<MasterPage />}>
                 <Route index element={<DashboardScreen />} />
