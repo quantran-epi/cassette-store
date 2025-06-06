@@ -1,10 +1,13 @@
 import {
+    UserOutlined,
     DeleteOutlined,
     EditOutlined,
     PlusOutlined,
     PhoneOutlined,
     CheckCircleTwoTone,
-    CloseCircleTwoTone
+    CloseCircleTwoTone,
+    EnvironmentOutlined,
+    DropboxOutlined
 } from "@ant-design/icons";
 import {Button} from "@components/Button";
 import {Input} from "@components/Form/Input";
@@ -26,17 +29,22 @@ import {useDispatch, useSelector} from "react-redux";
 import VegetablesIcon from "../../../../assets/icons/vegetable.png";
 import {CustomerAddWidget} from "./CustomerAdd.widget";
 import {CustomerEditWidget} from "./CustomerEdit.widget";
+import {COLORS} from "@common/Constants/AppConstants";
+import {Tag} from "@components/Tag";
+import {useMessage} from "@components/Message";
+import {CustomerItemWidget} from "@modules/Customer/Screens/CustomerItem.widget";
 
 export const CustomerListScreen = () => {
-    const Customers = useSelector((state: RootState) => state.customer.customers);
+    const customers = useSelector((state: RootState) => state.customer.customers);
     const toggleAddModal = useToggle({defaultValue: false});
     const dispatch = useDispatch();
     const {} = useScreenTitle({value: "Khách hàng", deps: []});
     const [searchText, setSearchText] = useState("");
 
     const filteredCustomers = useMemo(() => {
-        return sortBy(Customers.filter(e => e.name.trim().toLowerCase().includes(searchText.trim().toLowerCase())), "name");
-    }, [Customers, searchText])
+        return sortBy(customers.filter(e => e.name.trim().toLowerCase().includes(searchText.trim().toLowerCase())
+            || e.mobile.includes(searchText.trim().toLowerCase())), "name");
+    }, [customers, searchText])
 
     const _onAdd = () => {
         toggleAddModal.show();
@@ -57,11 +65,11 @@ export const CustomerListScreen = () => {
             }}
             itemLayout="horizontal"
             dataSource={filteredCustomers}
-            renderItem={(item) => <CustomerItem item={item} onDelete={_onDelete}/>}
+            renderItem={(item) => <CustomerItemWidget item={item} onDelete={_onDelete}/>}
         />
         <Modal open={toggleAddModal.value} title={
             <Space>
-                <Image src={VegetablesIcon} preview={false} width={24} style={{marginBottom: 3}}/>
+                <UserOutlined />
                 Thêm khách hàng
             </Space>
         } destroyOnClose={true} onCancel={toggleAddModal.hide} footer={null}>
@@ -70,72 +78,3 @@ export const CustomerListScreen = () => {
     </React.Fragment>
 }
 
-type CustomerItemProps = {
-    item: Customer;
-    onDelete: (item: Customer) => void;
-}
-
-export const CustomerItem: React.FunctionComponent<CustomerItemProps> = (props) => {
-    const toggleEdit = useToggle({defaultValue: false});
-
-    const _onEdit = () => {
-        toggleEdit.show();
-    }
-
-    const _renderCustomerIcon = () => {
-        if (props.item.isInBlacklist) return <CloseCircleTwoTone twoToneColor={"#FF0000"}/>;
-        if (props.item.isVIP) return <CheckCircleTwoTone twoToneColor={"#FFD700"}/>;
-        return <CheckCircleTwoTone twoToneColor={"#FFD700"}/>;
-    }
-
-    return <React.Fragment>
-        <List.Item
-            actions={
-                [
-                    <Button size="small" onClick={_onEdit} icon={<EditOutlined/>}/>,
-                    <Popconfirm title="Xóa?" onConfirm={() => props.onDelete(props.item)}>
-                        <Button size="small" danger icon={<DeleteOutlined/>}/>
-                    </Popconfirm>
-                ]
-            }>
-            <List.Item.Meta
-                title={<Stack>
-                    <Tooltip title={props.item.name}>
-                        <Button onClick={() => null}
-                                danger={props.item.isInBlacklist}
-                                type="text"
-                                size="small"
-                                style={{paddingLeft: 0}}
-                                icon={_renderCustomerIcon()}>
-                            {props.item.name}
-                        </Button>
-                    </Tooltip>
-                </Stack>}
-                description={<Stack direction={"column"} align={"flex-start"} gap={0}>
-                    <Tooltip title={props.item.mobile}>
-                        <Button onClick={() => null}
-                                type="text"
-                                size="small"
-                                style={{paddingLeft: 0}}
-                                icon={<PhoneOutlined/>}>
-                            {props.item.mobile}
-                        </Button>
-                    </Tooltip>
-                    <Tooltip title={props.item.address}>
-                        <Typography.Paragraph ellipsis style={{
-                            width: 300,
-                            marginBottom: 0
-                        }}>{props.item.address}</Typography.Paragraph>
-                    </Tooltip>
-                </Stack>}/>
-        </List.Item>
-        <Modal open={toggleEdit.value} title={
-            <Space>
-                <Image src={VegetablesIcon} preview={false} width={24} style={{marginBottom: 3}}/>
-                Chỉnh sửa khách hàng
-            </Space>
-        } destroyOnClose={true} onCancel={toggleEdit.hide} footer={null}>
-            <CustomerEditWidget item={props.item} onDone={() => toggleEdit.hide()}/>
-        </Modal>
-    </React.Fragment>
-}

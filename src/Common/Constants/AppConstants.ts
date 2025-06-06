@@ -14,3 +14,36 @@ export const CUSTOMER_PROVINCES = [
     "TP. Hồ Chí Minh", "Trà Vinh", "Tuyên Quang", "Vĩnh Long", "Vĩnh Phúc",
     "Yên Bái"
 ];
+
+export const ORDER_RETURN_REASON = {
+    REFUSE_TO_RECEIVE: "T",
+    BROKEN_ITEMS: "BROKEN_ITEMS"
+}
+
+export const ORDER_PAYMENT_METHOD = {
+    CASH_COD: "COD",
+    BANK_TRANSFER_IN_ADVANCE: "Chuyển khoản trước",
+    BANK_TRANSFER_COD: "Chuyển khoản khi nhận hàng"
+}
+
+export const ORDER_SHIPPING_PARTNER = {
+    VNPOST: "VNPost",
+    VIETTEL_POST: "Viettel Post"
+}
+
+export const ORDER_STATUS = {
+    PLACED: "Chưa vận chuyển",
+    SHIPPED: "Đã giao thành công",
+    WAITING_FOR_RETURNED: "Chờ chuyển hoàn",
+    RETURNED: "Đã chuyển hoàn",
+}
+
+export const ORDER_DEFAULT_SHIPPING_COST = 20520;
+
+export const COLORS = {
+    CUSTOMER: {
+        VIP: "#FFD700",
+        BLACK_LIST: "#FF0000",
+        CONFIRMED: "#1877F2"
+    }
+}

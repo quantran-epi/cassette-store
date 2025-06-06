@@ -1,33 +1,40 @@
-import { CloudDownloadOutlined, ExportOutlined, ImportOutlined, MenuOutlined } from "@ant-design/icons";
-import { ObjectPropertyHelper } from "@common/Helpers/ObjectProperty";
-import { Button } from "@components/Button";
-import { TextArea } from "@components/Form/Input";
-import { Image } from "@components/Image";
-import { Box } from "@components/Layout/Box";
-import { Content } from "@components/Layout/Content";
-import { Header } from "@components/Layout/Header";
-import { Space } from "@components/Layout/Space";
-import { Stack } from "@components/Layout/Stack";
-import { Menu } from "@components/Menu";
-import { useMessage } from "@components/Message";
-import { Modal } from "@components/Modal";
-import { SmartForm, useSmartForm } from "@components/SmartForm";
-import { Tooltip } from "@components/Tootip";
-import { Typography } from "@components/Typography";
-import { useTheme, useToggle } from "@hooks";
-import { addCustomer, resetCustomer } from "@store/Reducers/CustomerReducer";
-import { RootState } from "@store/Store";
-import { Drawer, Flex, Layout } from "antd";
-import React, { useState } from "react";
-import { CopyToClipboard } from 'react-copy-to-clipboard';
-import { useDispatch, useSelector } from "react-redux";
-import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import {
+    CloudDownloadOutlined,
+    ExportOutlined,
+    ImportOutlined,
+    MenuOutlined,
+    UserOutlined,
+    TruckOutlined
+} from "@ant-design/icons";
+import {ObjectPropertyHelper} from "@common/Helpers/ObjectProperty";
+import {Button} from "@components/Button";
+import {TextArea} from "@components/Form/Input";
+import {Image} from "@components/Image";
+import {Box} from "@components/Layout/Box";
+import {Content} from "@components/Layout/Content";
+import {Header} from "@components/Layout/Header";
+import {Space} from "@components/Layout/Space";
+import {Stack} from "@components/Layout/Stack";
+import {Menu} from "@components/Menu";
+import {useMessage} from "@components/Message";
+import {Modal} from "@components/Modal";
+import {SmartForm, useSmartForm} from "@components/SmartForm";
+import {Tooltip} from "@components/Tootip";
+import {Typography} from "@components/Typography";
+import {useTheme, useToggle} from "@hooks";
+import {addCustomer, resetCustomer} from "@store/Reducers/CustomerReducer";
+import {RootState} from "@store/Store";
+import {Drawer, Flex, Layout} from "antd";
+import React, {useState} from "react";
+import {CopyToClipboard} from 'react-copy-to-clipboard';
+import {useDispatch, useSelector} from "react-redux";
+import {Outlet, useLocation, useNavigate} from "react-router-dom";
 import LogoIcon from "../../assets/icons/logo.png";
 import MealsIcon from "../../assets/icons/meals.png";
 import DishesIcon from "../../assets/icons/noodles.png";
 import ShoppingListIcon from "../../assets/icons/shoppingList.png";
 import IngredientIcon from "../../assets/icons/vegetable.png";
-import { RootRoutes } from "./RootRoutes";
+import {RootRoutes} from "./RootRoutes";
 
 const layoutStyles: React.CSSProperties = {
     height: "100%"
@@ -39,10 +46,14 @@ export const MasterPage = () => {
 
     const _featureIcon = () => {
         switch (currentFeatureName) {
-            case "Khách hàng": return DishesIcon;
-            case "Đơn hàng": return MealsIcon;
-            case "Thống kê": return ShoppingListIcon;
-            default: return null;
+            case "Khách hàng":
+                return <UserOutlined style={{fontSize: "1.5em"}}/>;
+            case "Đơn hàng":
+                return <TruckOutlined style={{fontSize: "1.5em"}}/>;
+            case "Thống kê":
+                return ShoppingListIcon;
+            default:
+                return null;
         }
     }
 
@@ -56,18 +67,20 @@ export const MasterPage = () => {
         }}>
             <Stack justify="space-between" align="center">
                 <Stack>
-                    <SidebarDrawer />
+                    <SidebarDrawer/>
                     <Tooltip title={currentFeatureName}>
-                        <Typography.Paragraph style={{ fontFamily: "kanit", fontSize: 24, fontWeight: "500", marginBottom: 0, width: 230 }} ellipsis>{currentFeatureName}</Typography.Paragraph>
+                        <Typography.Paragraph
+                            style={{fontFamily: "kanit", fontSize: 24, fontWeight: "500", marginBottom: 0, width: 230}}
+                            ellipsis>{currentFeatureName}</Typography.Paragraph>
                     </Tooltip>
                 </Stack>
-                {_featureIcon() && <Image preview={false} src={_featureIcon()} width={36} style={{ marginBottom: 5 }} />}
+                {_featureIcon()}
             </Stack>
         </Header>
         <Content>
-            <Outlet />
+            <Outlet/>
         </Content>
-        {/*<BottomTabNavigator />*/}
+        <BottomTabNavigator/>
     </Layout>
 }
 
@@ -90,21 +103,28 @@ const SidebarDrawer = () => {
 
     return (
         <React.Fragment>
-            <Button type="primary" onClick={showDrawer} icon={<MenuOutlined />} />
-            <Drawer placement="left" title={<Typography.Text style={{ fontFamily: "kanit", fontSize: 24 }}>Cửa hàng Cassette</Typography.Text>} onClose={onClose} open={open} styles={{ body: { padding: 0 } }}>
-                <Flex vertical justify="space-between" style={{ height: "100%" }}>
+            <Button type="primary" onClick={showDrawer} icon={<MenuOutlined/>}/>
+            <Drawer placement="left" title={<Typography.Text style={{fontFamily: "kanit", fontSize: 24}}>Cửa hàng
+                Cassette</Typography.Text>} onClose={onClose} open={open} styles={{body: {padding: 0}}}>
+                <Flex vertical justify="space-between" style={{height: "100%"}}>
                     <Menu
                         items={[
                             {
-                                key: "customers", label: <Flex align="center">
-                                    <img src={IngredientIcon} width={32} style={{ marginRight: 10 }} />
-                                    {"Customer"}
+                                key: "customers", label: <Flex align="center" gap={5}>
+                                    <UserOutlined style={{fontSize: "1.2em"}}/>
+                                    {"Khách hàng"}
                                 </Flex>, onClick: () => onNavigate(RootRoutes.AuthorizedRoutes.CustomerRoutes.List())
+                            },
+                            {
+                                key: "orders", label: <Flex align="center" gap={5}>
+                                    <TruckOutlined style={{fontSize: "1.2em"}}/>
+                                    {"Đơn hàng"}
+                                </Flex>, onClick: () => onNavigate(RootRoutes.AuthorizedRoutes.OrderRoutes.List())
                             },
                         ]}
                     />
-                    <Box style={{ overflow: "hidden" }}>
-                        <Image src={LogoIcon} width={350} preview={false} style={{ marginLeft: 90, opacity: 0.4 }} />
+                    <Box style={{overflow: "hidden"}}>
+                        <Image src={LogoIcon} width={350} preview={false} style={{marginLeft: 90, opacity: 0.4}}/>
                     </Box>
                 </Flex>
             </Drawer>
@@ -153,15 +173,20 @@ const BottomTabNavigator = () => {
         navigate(href);
     }
 
-    // return <Stack justify="space-evenly" style={_containerStyles()}>
-    //     <Button type="text" style={_buttonStyles()} icon={<Image src={DishesIcon} preview={false} width={28} style={{ marginLeft: 2 }} />} onClick={() => onNavigate(RootRoutes.AuthorizedRoutes.DishesRoutes.List())}>
-    //         <Typography.Text style={_textStyles(RootRoutes.AuthorizedRoutes.DishesRoutes.List())}>Món ăn</Typography.Text>
-    //     </Button>
-    //     <Button type="text" style={_buttonStyles()} icon={<Image src={ShoppingListIcon} preview={false} width={28} style={{ marginLeft: 3 }} />} onClick={() => onNavigate(RootRoutes.AuthorizedRoutes.ShoppingListRoutes.List())}>
-    //         <Typography.Text style={_textStyles(RootRoutes.AuthorizedRoutes.ShoppingListRoutes.List())}>Mua sắm</Typography.Text>
-    //     </Button>
-    //     <Button type="text" style={_buttonStyles()} icon={<Image src={MealsIcon} preview={false} width={28} style={{ marginLeft: 2 }} />} onClick={() => onNavigate(RootRoutes.AuthorizedRoutes.ScheduledMealRoutes.List())}>
-    //         <Typography.Text style={_textStyles(RootRoutes.AuthorizedRoutes.ScheduledMealRoutes.List())}>Thực đơn</Typography.Text>
-    //     </Button>
-    // </Stack>
+    return <Stack justify="space-evenly" style={_containerStyles()}>
+        <Button type="text" style={_buttonStyles()} icon={<UserOutlined style={{fontSize: "1.2em"}}/>}
+                onClick={() => onNavigate(RootRoutes.AuthorizedRoutes.CustomerRoutes.List())}>
+            <Typography.Text style={_textStyles(RootRoutes.AuthorizedRoutes.CustomerRoutes.List())}>Khách
+                hàng</Typography.Text>
+        </Button>
+        <Button type="text" style={_buttonStyles()}
+                icon={<TruckOutlined style={{fontSize: "1.2em"}}/>}
+                onClick={() => onNavigate(RootRoutes.AuthorizedRoutes.OrderRoutes.List())}>
+            <Typography.Text style={_textStyles(RootRoutes.AuthorizedRoutes.OrderRoutes.List())}>Đơn
+                hàng</Typography.Text>
+        </Button>
+        {/*<Button type="text" style={_buttonStyles()} icon={<Image src={MealsIcon} preview={false} width={28} style={{ marginLeft: 2 }} />} onClick={() => onNavigate(RootRoutes.AuthorizedRoutes.ScheduledMealRoutes.List())}>*/}
+        {/*    <Typography.Text style={_textStyles(RootRoutes.AuthorizedRoutes.ScheduledMealRoutes.List())}>Thực đơn</Typography.Text>*/}
+        {/*</Button>*/}
+    </Stack>
 }

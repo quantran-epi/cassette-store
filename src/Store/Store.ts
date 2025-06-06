@@ -2,11 +2,13 @@ import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import storage from 'redux-persist/lib/storage';
 import { persistReducer, persistStore } from 'redux-persist';
 import CustomerReducer from "./Reducers/CustomerReducer";
+import OrderReducer from "./Reducers/OrderReducer";
 import AppContextReducer from "./Reducers/AppContextReducer";
 
 const combinedReducer = combineReducers({
     appContext: AppContextReducer,
     customer: CustomerReducer,
+    order: OrderReducer,
 })
 
 const persistConfig = {
