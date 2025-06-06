@@ -1,0 +1,38 @@
+import { createSlice } from '@reduxjs/toolkit'
+import type { PayloadAction } from '@reduxjs/toolkit'
+import { Customer } from '@store/Models/Customer'
+
+export interface CustomerState {
+    customers: Customer[];
+}
+
+const initialState: CustomerState = {
+    customers: []
+}
+
+export const customerSlice = createSlice({
+    name: 'customer',
+    initialState,
+    reducers: {
+        add: (state, action: PayloadAction<Customer>) => {
+            state.customers.push(action.payload);
+        },
+        edit: (state, action: PayloadAction<Customer>) => {
+            state.customers = state.customers.map(e => {
+                if (e.id === action.payload.id) return action.payload;
+                return e;
+            })
+        },
+        remove: (state, action: PayloadAction<string[]>) => {
+            state.customers = state.customers.filter(ingre => !action.payload.includes(ingre.id));
+        },
+        reset: (state) => {
+            state.customers = [];
+        }
+    },
+})
+
+// Action creators are generated for each case reducer function
+export const { add: addCustomer, edit: editCustomer, remove: removeCustomer, reset: resetCustomer } = customerSlice.actions
+
+export default customerSlice.reducer

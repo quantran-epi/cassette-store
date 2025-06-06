@@ -1,14 +1,8 @@
-import IngredientRoutes from '@modules/Ingredient/Routing/IngredientRouteConfig';
-import DishesRoutes from '@modules/Dishes/Routing/DishesRouteConfig';
-import ShoppingListRoutes from '@modules/ShoppingList/Routing/ShoppingListRouteConfig';
-import ScheduledMealRoutes from '@modules/ScheduledMeal/Routing/ScheduledMealRouteConfig';
+import CustomerRoutes from '@modules/Customer/Routing/CustomerRouteConfig';
 
 const AuthorizedRoutes = {
     Root: () => "/",
-    IngredientRoutes,
-    DishesRoutes,
-    ShoppingListRoutes,
-    ScheduledMealRoutes
+    CustomerRoutes,
 }
 
 export const RootRoutes = {
