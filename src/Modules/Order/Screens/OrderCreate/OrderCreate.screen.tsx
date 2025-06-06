@@ -38,6 +38,7 @@ import {addCustomer} from "@store/Reducers/CustomerReducer";
 import {ObjectPropertyHelper} from "@common/Helpers/ObjectProperty";
 import {nanoid} from "@reduxjs/toolkit";
 import {CustomerSearchWidget} from "@modules/Order/Screens/OrderCreate/CustomerSearch.widget";
+import {Divider} from "@components/Layout/Divider";
 
 export const OrderCreateScreen = () => {
     const orders = useSelector((state: RootState) => state.order.orders);
@@ -46,6 +47,7 @@ export const OrderCreateScreen = () => {
     const message = useMessage();
     const {} = useScreenTitle({value: "Tạo đơn hàng", deps: []});
     const [searchMobile, setSearchMobile] = useState<string>();
+    const [orderCustomer, setOrderCustomer] = useState<Customer>();
 
     const addOrderForm = useSmartForm<Order>({
         defaultValues: {
@@ -103,7 +105,8 @@ export const OrderCreateScreen = () => {
     })
 
     const _onCreateExistedCustomer = (customer: Customer) => {
-
+        addOrderForm.form.setFieldsValue({customerId: customer.id});
+        setOrderCustomer(customer);
     }
 
     const _onCreateNewCustomer = (customer: Customer) => {
@@ -111,10 +114,27 @@ export const OrderCreateScreen = () => {
     }
 
     return <React.Fragment>
-        <CustomerSearchWidget onCreateOrderFromExistedCustomer={_onCreateExistedCustomer} onCreateOrderFromNewCustomer={_onCreateNewCustomer} />
-
+        <CustomerSearchWidget onCreateOrderFromExistedCustomer={_onCreateExistedCustomer}
+                              onCreateOrderFromNewCustomer={_onCreateNewCustomer}/>
         <SmartForm {...addOrderForm.defaultProps}>
-
+            {Boolean(orderCustomer) && <React.Fragment>
+                <Divider orientation="left">Thông tin khách hàng</Divider>
+                <Stack direction={"column"} align={"flex-start"}>
+                    <Space>
+                        <Typography.Text strong>Tên khách hàng:</Typography.Text>
+                        <Typography.Text>{orderCustomer.name}</Typography.Text>
+                    </Space>
+                    <Space>
+                        <Typography.Text strong>Số điện thoại:</Typography.Text>
+                        <Typography.Text>{orderCustomer.mobile}</Typography.Text>
+                    </Space>
+                    <Space>
+                        <Typography.Text strong>Địa chỉ:</Typography.Text>
+                        <Typography.Text>{orderCustomer.address}</Typography.Text>
+                    </Space>
+                </Stack>
+                <Divider orientation="left">Thông tin đơn hàng</Divider>
+            </React.Fragment>}
         </SmartForm>
     </React.Fragment>
 }

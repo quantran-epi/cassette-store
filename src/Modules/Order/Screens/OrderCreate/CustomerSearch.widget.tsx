@@ -8,6 +8,7 @@ import {RootState} from "@store/Store";
 import {Customer} from "@store/Models/Customer";
 import {List} from "@components/List";
 import {CustomerItemWidget} from "@modules/Customer/Screens/CustomerItem.widget";
+import {useToggle} from "@hooks";
 
 type CustomerSearchWidgetProps = {
     onCreateOrderFromExistedCustomer: (customer: Customer) => void;
@@ -15,25 +16,35 @@ type CustomerSearchWidgetProps = {
 }
 export const CustomerSearchWidget: FunctionComponent<CustomerSearchWidgetProps> = (props) => {
     const customers = useSelector((state: RootState) => state.customer.customers);
-    const [searchMobile, setSearchMobile] = useState<string>();
+    const [searchMobile, setSearchMobile] = useState<string>("");
     const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
+    const toggleListCustomer = useToggle();
 
     const _onSearch = () => {
-        setFilteredCustomers(customers.filter(e => e.mobile.includes(searchMobile.trim())));
+        toggleListCustomer.show();
+        if (Boolean(searchMobile)) setFilteredCustomers(customers.filter(e => e.mobile.includes(searchMobile.trim())));
+        else setFilteredCustomers([]);
     }
 
     const _onCreateOrder = (customer: Customer, isNew: boolean) => {
+        _reset();
         if (isNew) props.onCreateOrderFromNewCustomer(customer);
         else props.onCreateOrderFromExistedCustomer(customer);
     }
 
+    const _reset = () => {
+        toggleListCustomer.hide();
+        setFilteredCustomers([]);
+        setSearchMobile("");
+    }
+
     return <React.Fragment>
         <Stack.Compact>
-            <Input allowClear placeholder="sdt" onChange={(e) => setSearchMobile(e.target.value)}/>
+            <Input allowClear placeholder="Nhập số điện thoại" onChange={(e) => setSearchMobile(e.target.value)} value={searchMobile}/>
             <Button onClick={_onSearch} icon={<SearchOutlined/>}/>
         </Stack.Compact>
 
-        <List
+        {toggleListCustomer.value && <List
             pagination={{
                 position: "bottom", align: "center", pageSize: 10
             }}
@@ -41,6 +52,6 @@ export const CustomerSearchWidget: FunctionComponent<CustomerSearchWidgetProps> 
             dataSource={filteredCustomers}
             renderItem={(item) => <CustomerItemWidget item={item} readonly
                                                       onCreateOrder={customer => _onCreateOrder(customer, false)}/>}
-        />
+        />}
     </React.Fragment>
 }
