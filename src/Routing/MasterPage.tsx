@@ -110,17 +110,18 @@ const SidebarDrawer = () => {
                     <Menu
                         items={[
                             {
-                                key: "customers", label: <Flex align="center" gap={5}>
-                                    <UserOutlined style={{fontSize: "1.2em"}}/>
-                                    {"Khách hàng"}
-                                </Flex>, onClick: () => onNavigate(RootRoutes.AuthorizedRoutes.CustomerRoutes.List())
-                            },
-                            {
                                 key: "orders", label: <Flex align="center" gap={5}>
                                     <TruckOutlined style={{fontSize: "1.2em"}}/>
                                     {"Đơn hàng"}
                                 </Flex>, onClick: () => onNavigate(RootRoutes.AuthorizedRoutes.OrderRoutes.List())
                             },
+                            {
+                                key: "customers", label: <Flex align="center" gap={5}>
+                                    <UserOutlined style={{fontSize: "1.2em"}}/>
+                                    {"Khách hàng"}
+                                </Flex>, onClick: () => onNavigate(RootRoutes.AuthorizedRoutes.CustomerRoutes.List())
+                            },
+
                         ]}
                     />
                     <Box style={{overflow: "hidden"}}>
@@ -174,15 +175,15 @@ const BottomTabNavigator = () => {
     }
 
     return <Stack justify="space-evenly" style={_containerStyles()}>
-        <Button type="text" style={_buttonStyles()} icon={<UserOutlined style={{fontSize: "1.2em"}}/>}
-                onClick={() => onNavigate(RootRoutes.AuthorizedRoutes.CustomerRoutes.List())}>
-            <Typography.Text style={_textStyles(RootRoutes.AuthorizedRoutes.CustomerRoutes.List())}>Khách
-                hàng</Typography.Text>
-        </Button>
         <Button type="text" style={_buttonStyles()}
                 icon={<TruckOutlined style={{fontSize: "1.2em"}}/>}
                 onClick={() => onNavigate(RootRoutes.AuthorizedRoutes.OrderRoutes.List())}>
             <Typography.Text style={_textStyles(RootRoutes.AuthorizedRoutes.OrderRoutes.List())}>Đơn
+                hàng</Typography.Text>
+        </Button>
+        <Button type="text" style={_buttonStyles()} icon={<UserOutlined style={{fontSize: "1.2em"}}/>}
+                onClick={() => onNavigate(RootRoutes.AuthorizedRoutes.CustomerRoutes.List())}>
+            <Typography.Text style={_textStyles(RootRoutes.AuthorizedRoutes.CustomerRoutes.List())}>Khách
                 hàng</Typography.Text>
         </Button>
         {/*<Button type="text" style={_buttonStyles()} icon={<Image src={MealsIcon} preview={false} width={28} style={{ marginLeft: 2 }} />} onClick={() => onNavigate(RootRoutes.AuthorizedRoutes.ScheduledMealRoutes.List())}>*/}

@@ -60,9 +60,9 @@ export const CustomerListScreen = () => {
             <Button onClick={_onAdd} icon={<PlusOutlined/>}/>
         </Stack.Compact>
         <List
-            pagination={{
+            pagination={filteredCustomers.length > 0 ? {
                 position: "bottom", align: "center", pageSize: 10
-            }}
+            } : false}
             itemLayout="horizontal"
             dataSource={filteredCustomers}
             renderItem={(item) => <CustomerItemWidget item={item} onDelete={_onDelete}/>}

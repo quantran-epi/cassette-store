@@ -60,9 +60,9 @@ export const OrderListScreen = () => {
             <Button onClick={_onAdd} icon={<PlusOutlined/>}/>
         </Stack.Compact>
         <List
-            pagination={{
+            pagination={filteredOrders.length > 0 ? {
                 position: "bottom", align: "center", pageSize: 10
-            }}
+            } : false}
             itemLayout="horizontal"
             dataSource={filteredOrders}
             renderItem={(item) => <Ordertem item={item} onDelete={_onDelete}/>}

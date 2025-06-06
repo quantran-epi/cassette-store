@@ -14,12 +14,12 @@ export const RootRouter = () => {
         <Routes>
             <Route path={RootRoutes.AuthorizedRoutes.Root()} element={<MasterPage />}>
                 <Route index element={<DashboardScreen />} />
-                <Route path={RootRoutes.AuthorizedRoutes.CustomerRoutes.Root()} element={<CustomerRouter />}>
-                    <Route path={RootRoutes.AuthorizedRoutes.CustomerRoutes.List()} element={<CustomerListScreen />} />
-                </Route>
                 <Route path={RootRoutes.AuthorizedRoutes.OrderRoutes.Root()} element={<CustomerRouter />}>
                     <Route path={RootRoutes.AuthorizedRoutes.OrderRoutes.List()} element={<OrderListScreen />} />
                     <Route path={RootRoutes.AuthorizedRoutes.OrderRoutes.Create()} element={<OrderCreateScreen />} />
+                </Route>
+                <Route path={RootRoutes.AuthorizedRoutes.CustomerRoutes.Root()} element={<CustomerRouter />}>
+                    <Route path={RootRoutes.AuthorizedRoutes.CustomerRoutes.List()} element={<CustomerListScreen />} />
                 </Route>
             </Route>
         </Routes>

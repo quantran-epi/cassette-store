@@ -2,6 +2,7 @@ import {OrderItem} from "@store/Models/OrderItem";
 
 export type Order = {
     id: string;
+    sequence: number;
     createdDate: Date;
     name: string;
     placedItems: OrderItem[];

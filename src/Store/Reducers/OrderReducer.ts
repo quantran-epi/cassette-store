@@ -4,10 +4,12 @@ import { Order } from '@store/Models/Order'
 
 export interface OrderState {
     orders: Order[];
+    lastSequence: number;
 }
 
 const initialState: OrderState = {
-    orders: []
+    orders: [],
+    lastSequence: 0
 }
 
 export const orderSlice = createSlice({
@@ -15,6 +17,7 @@ export const orderSlice = createSlice({
     initialState,
     reducers: {
         add: (state, action: PayloadAction<Order>) => {
+            state.lastSequence = action.payload.sequence + 1;
             state.orders.push(action.payload);
         },
         edit: (state, action: PayloadAction<Order>) => {
@@ -24,7 +27,7 @@ export const orderSlice = createSlice({
             })
         },
         remove: (state, action: PayloadAction<string[]>) => {
-            state.orders = state.orders.filter(ingre => !action.payload.includes(ingre.id));
+            state.orders = state.orders.filter(o => !action.payload.includes(o.id));
         },
         reset: (state) => {
             state.orders = [];
