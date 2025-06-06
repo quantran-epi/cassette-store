@@ -1,0 +1,26 @@
+{
+  "short_name": "Cassette Store",
+  "name": "Cassette Store",
+  "description": "App to manage cassette orders and customers",
+  "icons": [
+    {
+      "src": "logo.png",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "logo.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "logo.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#3d4195",
+  "background_color": "#ffffff"
+}
