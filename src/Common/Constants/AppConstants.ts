@@ -22,8 +22,7 @@ export const ORDER_RETURN_REASON = {
 
 export const ORDER_PAYMENT_METHOD = {
     CASH_COD: "COD",
-    BANK_TRANSFER_IN_ADVANCE: "Chuyển khoản trước",
-    BANK_TRANSFER_COD: "Chuyển khoản khi nhận hàng"
+    BANK_TRANSFER_IN_ADVANCE: "Chuyển khoản trước"
 }
 
 export const ORDER_SHIPPING_PARTNER = {
@@ -42,23 +41,16 @@ export const ORDER_DEFAULT_SHIPPING_COST = 20520;
 
 export const ORDER_PRIORITY_STATUS = {
     NONE:"Bình thường",
-    PRIORITY: "Ưu tiên làm trước",
+    PRIORITY: "Ưu tiên",
     URGENT: "Gấp"
 }
 
 export const ORDER_ITEM_TYPE  = {
-    SONY: "Sony",
-    MAXELL: "Maxell"
-}
-
-export const ORDER_ITEM_UNIT_PRICE  = {
-    "50K": 50000,
-    "70K": 70000,
-    "80K": 80000,
-    "100K": 100000,
-    "120K": 120000,
-    "140K": 140000,
-    "200K": 200000
+    "SONY-50K": 50000,
+    "MAXELL-70K": 70000,
+    "MAXELL-80K": 80000,
+    "MAXELL-140K": 140000,
+    "MAXELL-200K": 200000
 }
 
 export const COLORS = {

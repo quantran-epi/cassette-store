@@ -47,6 +47,7 @@ import { InputNumber } from "@components/Form/InputNumber";
 import { OrderItem } from "@store/Models/OrderItem";
 import { OrderHelper } from "@common/Helpers/OrderHelper";
 import { OrderPlacedItem } from "./OrderPlacedItem.widget";
+import { RadioChangeEvent } from "antd";
 
 export const OrderCreateScreen = () => {
     const location = useLocation();
@@ -135,27 +136,32 @@ export const OrderCreateScreen = () => {
     }
 
     const _onAddPlaceItems = () => {
-        let newOrder = OrderHelper.createNewEmptyOrderItem(addOrderForm.form.getFieldValue("name"));
+        let newOrder = OrderHelper.createNewEmptyOrderItem(addOrderForm.form.getFieldValue("name"), placedItems.length == 0 ? true : false);
         addOrderForm.form.setFieldsValue({ placedItems: [newOrder, ...addOrderForm.form.getFieldValue("placedItems")] });
+    }
+
+    const _onChangePaymentMethod = (e: RadioChangeEvent) => {
+        if (e.target.value === ORDER_PAYMENT_METHOD.BANK_TRANSFER_IN_ADVANCE) addOrderForm.form.setFieldsValue({ codAmount: 0 });
+        else addOrderForm.form.setFieldsValue({ codAmount: null })
     }
 
     return <React.Fragment>
         <SmartForm {...addOrderForm.defaultProps}>
             {Boolean(orderCustomer) && <React.Fragment>
                 <Divider orientation="left">Thông tin khách hàng</Divider>
-                <Stack direction={"column"} align={"flex-start"}>
-                    <Space>
-                        <Typography.Text strong>Tên khách hàng:</Typography.Text>
+                <Stack direction={"column"} align={"flex-start"} gap={3}>
+                    <Typography.Text>
+                        <Typography.Text strong style={{ marginRight: 5 }}>Tên khách hàng:</Typography.Text>
                         <Typography.Text>{orderCustomer.name}</Typography.Text>
-                    </Space>
-                    <Space>
-                        <Typography.Text strong>Số điện thoại:</Typography.Text>
+                    </Typography.Text>
+                    <Typography.Text>
+                        <Typography.Text strong style={{ marginRight: 5 }}>Số điện thoại:</Typography.Text>
                         <Typography.Text>{orderCustomer.mobile}</Typography.Text>
-                    </Space>
-                    <Space>
-                        <Typography.Text strong>Địa chỉ:</Typography.Text>
+                    </Typography.Text>
+                    <Typography.Text>
+                        <Typography.Text strong style={{ marginRight: 5 }}>Địa chỉ:</Typography.Text>
                         <Typography.Text>{orderCustomer.address}</Typography.Text>
-                    </Space>
+                    </Typography.Text>
                 </Stack>
                 <Divider orientation="left">Thông tin đơn hàng</Divider>
                 <SmartForm.Item {...addOrderForm.itemDefinitions.name}>
@@ -180,10 +186,10 @@ export const OrderCreateScreen = () => {
                 </SmartForm.Item>
                 <SmartForm.Item {...addOrderForm.itemDefinitions.paymentMethod}>
                     <Radio.Group
+                        onChange={_onChangePaymentMethod}
                         options={[
                             { value: ORDER_PAYMENT_METHOD.CASH_COD, label: ORDER_PAYMENT_METHOD.CASH_COD },
                             { value: ORDER_PAYMENT_METHOD.BANK_TRANSFER_IN_ADVANCE, label: ORDER_PAYMENT_METHOD.BANK_TRANSFER_IN_ADVANCE },
-                            { value: ORDER_PAYMENT_METHOD.BANK_TRANSFER_COD, label: ORDER_PAYMENT_METHOD.BANK_TRANSFER_COD }
                         ]}
                     />
                 </SmartForm.Item>

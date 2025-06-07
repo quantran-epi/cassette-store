@@ -1,4 +1,4 @@
-import { ORDER_ITEM_TYPE, ORDER_ITEM_UNIT_PRICE } from "@common/Constants/AppConstants";
+import { ORDER_ITEM_TYPE } from "@common/Constants/AppConstants";
 import { Button } from "@components/Button";
 import { Option, Select } from "@components/Form/Select";
 import { Col, Row } from "@components/Grid";
@@ -19,6 +19,8 @@ import {
     SearchOutlined
 } from "@ant-design/icons";
 import { ObjectPropertyHelper } from "@common/Helpers/ObjectProperty";
+import { Typography } from "@components/Typography";
+import { Space } from "antd";
 
 type OrderPlacedItemProps = {
     item: OrderItem;
@@ -37,29 +39,28 @@ export const OrderPlacedItem: FunctionComponent<OrderPlacedItemProps> = (props) 
         })
     })
 
+    const _onChangeType = (value: string) => {
+        placedItemForm.form.setFieldsValue({ unitPrice: ORDER_ITEM_TYPE[value] });
+    }
+
     return <SmartForm {...placedItemForm.defaultProps}>
         <Row gutter={10}>
-            <Col span={21}>
+            <Col span={19}>
                 <Row gutter={10}>
-                    <Col span={8}>
+                    <Col span={15}>
                         <SmartForm.Item {...placedItemForm.itemDefinitions.type}>
                             <Select
+                                onChange={_onChangeType}
+                                popupMatchSelectWidth={200}
                                 style={{ width: '100%' }}>
-                                {Object.keys(ORDER_ITEM_TYPE).map(k => <Option key={ORDER_ITEM_TYPE[k]} value={k}>{k}</Option>)}
+                                {Object.keys(ORDER_ITEM_TYPE).map(k => <Option key={k} value={k}>{k}</Option>)}
                             </Select>
                         </SmartForm.Item>
                     </Col>
-                    <Col span={8}>
-                        <SmartForm.Item {...placedItemForm.itemDefinitions.unitPrice}>
-                            <Select
-                                style={{ width: '100%' }}>
-                                {Object.keys(ORDER_ITEM_UNIT_PRICE).map(k => <Option key={ORDER_ITEM_UNIT_PRICE[k]} value={ORDER_ITEM_UNIT_PRICE[k]}>{k}</Option>)}
-                            </Select>
-                        </SmartForm.Item>
-                    </Col>
-                    <Col span={8}>
+                    <Col span={9}>
                         <SmartForm.Item {...placedItemForm.itemDefinitions.count}>
                             <Select
+                                popupMatchSelectWidth={100}
                                 style={{ width: '100%' }}>
                                 {new Array(10).fill(1).map((v, i) => <Option key={i + 1} value={i + 1}>{i + 1} băng</Option>)}
                             </Select>
@@ -67,8 +68,11 @@ export const OrderPlacedItem: FunctionComponent<OrderPlacedItemProps> = (props) 
                     </Col>
                 </Row>
             </Col>
-            <Col span={3}>
-                <Button danger icon={<DeleteOutlined />} />
+            <Col span={5}>
+                <Space>
+                    <Button icon={<EditOutlined />} onClick={() => props.onDelete(props.item.id)} />
+                    <Button danger icon={<DeleteOutlined />} onClick={() => props.onDelete(props.item.id)} />
+                </Space>
             </Col>
         </Row>
     </SmartForm>;
