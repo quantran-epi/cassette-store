@@ -45,6 +45,8 @@ import { Radio } from "@components/Form/Radio";
 import { Form } from "@components/Form";
 import { InputNumber } from "@components/Form/InputNumber";
 import { OrderItem } from "@store/Models/OrderItem";
+import { OrderHelper } from "@common/Helpers/OrderHelper";
+import { OrderPlacedItem } from "./OrderPlacedItem.widget";
 
 export const OrderCreateScreen = () => {
     const location = useLocation();
@@ -132,6 +134,11 @@ export const OrderCreateScreen = () => {
         addOrderForm.form.setFieldsValue({ placedItems: (addOrderForm.form.getFieldValue("placedItems") as OrderItem[]).filter(e => e.id !== id) });
     }
 
+    const _onAddPlaceItems = () => {
+        let newOrder = OrderHelper.createNewEmptyOrderItem(addOrderForm.form.getFieldValue("name"));
+        addOrderForm.form.setFieldsValue({ placedItems: [newOrder, ...addOrderForm.form.getFieldValue("placedItems")] });
+    }
+
     return <React.Fragment>
         <SmartForm {...addOrderForm.defaultProps}>
             {Boolean(orderCustomer) && <React.Fragment>
@@ -191,13 +198,11 @@ export const OrderCreateScreen = () => {
                 </SmartForm.Item>
                 <Divider orientation="left"><Space>
                     <Typography.Text>Danh sách hàng hoá</Typography.Text>
-                    <Button icon={<PlusOutlined />} size="small" />
+                    <Button icon={<PlusOutlined />} size="small" onClick={_onAddPlaceItems} />
                 </Space></Divider>
                 <SmartForm.Item>
                     <List
-                        pagination={placedItems?.length > 0 ? {
-                            position: "bottom", align: "center", pageSize: 10
-                        } : false}
+                        pagination={false}
                         itemLayout="horizontal"
                         dataSource={placedItems}
                         locale={{ emptyText: "Chưa có danh sách hàng hoá" }}
@@ -210,13 +215,4 @@ export const OrderCreateScreen = () => {
             </React.Fragment>}
         </SmartForm>
     </React.Fragment>
-}
-
-type OrderPlacedItemProps = {
-    item: OrderItem;
-    onDelete: (id: string) => void;
-}
-
-const OrderPlacedItem: FunctionComponent<OrderPlacedItemProps> = (props) => {
-    return null;
 }

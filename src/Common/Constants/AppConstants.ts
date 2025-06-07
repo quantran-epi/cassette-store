@@ -46,6 +46,21 @@ export const ORDER_PRIORITY_STATUS = {
     URGENT: "Gấp"
 }
 
+export const ORDER_ITEM_TYPE  = {
+    SONY: "Sony",
+    MAXELL: "Maxell"
+}
+
+export const ORDER_ITEM_UNIT_PRICE  = {
+    "50K": 50000,
+    "70K": 70000,
+    "80K": 80000,
+    "100K": 100000,
+    "120K": 120000,
+    "140K": 140000,
+    "200K": 200000
+}
+
 export const COLORS = {
     CUSTOMER: {
         VIP: "#FFD700",
