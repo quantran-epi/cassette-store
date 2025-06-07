@@ -9,55 +9,81 @@ import {
     EnvironmentOutlined,
     DropboxOutlined
 } from "@ant-design/icons";
-import {Button} from "@components/Button";
-import {Input} from "@components/Form/Input";
-import {Image} from "@components/Image";
-import {Space} from "@components/Layout/Space";
-import {Stack} from "@components/Layout/Stack";
-import {List} from "@components/List";
-import {Modal} from "@components/Modal";
-import {Popconfirm} from "@components/Popconfirm";
-import {Tooltip} from "@components/Tootip";
-import {Typography} from "@components/Typography";
-import {useScreenTitle, useToggle} from "@hooks";
-import {Customer} from "@store/Models/Customer";
-import {removeOrder} from "@store/Reducers/OrderReducer";
-import {RootState} from "@store/Store";
-import {debounce, sortBy} from "lodash";
-import React, {useMemo, useState} from "react";
-import {useDispatch, useSelector} from "react-redux";
+import { Button } from "@components/Button";
+import { Input } from "@components/Form/Input";
+import { Image } from "@components/Image";
+import { Space } from "@components/Layout/Space";
+import { Stack } from "@components/Layout/Stack";
+import { List } from "@components/List";
+import { Modal } from "@components/Modal";
+import { Popconfirm } from "@components/Popconfirm";
+import { Tooltip } from "@components/Tootip";
+import { Typography } from "@components/Typography";
+import { useScreenTitle, useToggle } from "@hooks";
+import { Customer } from "@store/Models/Customer";
+import { removeOrder } from "@store/Reducers/OrderReducer";
+import { RootState } from "@store/Store";
+import { debounce, sortBy } from "lodash";
+import React, { useMemo, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import VegetablesIcon from "../../../../assets/icons/vegetable.png";
-import {COLORS} from "@common/Constants/AppConstants";
-import {Tag} from "@components/Tag";
-import {CopyToClipboard} from 'react-copy-to-clipboard';
-import {useMessage} from "@components/Message";
-import {Order} from "@store/Models/Order";
-import {useNavigate} from "react-router-dom";
-import {RootRoutes} from "@routing/RootRoutes";
+import { COLORS } from "@common/Constants/AppConstants";
+import { Tag } from "@components/Tag";
+import { CopyToClipboard } from 'react-copy-to-clipboard';
+import { useMessage } from "@components/Message";
+import { Order } from "@store/Models/Order";
+import { useNavigate } from "react-router-dom";
+import { RootRoutes } from "@routing/RootRoutes";
+import { CustomerSearchWidget } from "./OrderCreate/CustomerSearch.widget";
+import { CustomerAddWidget } from "@modules/Customer/Screens/CustomerAdd.widget";
 
 export const OrderListScreen = () => {
     const orders = useSelector((state: RootState) => state.order.orders);
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const {} = useScreenTitle({value: "Đơn hàng", deps: []});
+    const toggleAddOrderModal = useToggle();
+    const toggleAddCustomerModal = useToggle();
+    const { } = useScreenTitle({ value: "Đơn hàng", deps: [] });
     const [searchText, setSearchText] = useState("");
+    const [prefilledCustomer, setPrefilledCustomer] = useState<Partial<Customer>>();
 
     const filteredOrders = useMemo(() => {
         return sortBy(orders.filter(e => e.name.trim().toLowerCase().includes(searchText.trim().toLowerCase())), "name");
     }, [orders, searchText])
 
-    const _onAdd = () => {
-        navigate(RootRoutes.AuthorizedRoutes.OrderRoutes.Create());
+    const _onAddOrder = () => {
+        toggleAddOrderModal.show();
     }
 
     const _onDelete = (item) => {
         dispatch(removeOrder([item.id]));
     }
 
+    const _onCreateExistedCustomer = (customer: Partial<Customer>) => {
+        navigate(RootRoutes.AuthorizedRoutes.OrderRoutes.Create(), {
+            state: {
+                customerId: customer.id
+            }
+        });
+    }
+
+    const _onCreateNewCustomer = (customer: Partial<Customer>) => {
+        toggleAddCustomerModal.show();
+        setPrefilledCustomer(customer);
+    }
+
+    const _onCreateNewCustomerSucceed = (addedCustomer: Customer) => {
+        navigate(RootRoutes.AuthorizedRoutes.OrderRoutes.Create(), {
+            state: {
+                customerId: addedCustomer.id
+            }
+        });
+    }
+
     return <React.Fragment>
         <Stack.Compact>
-            <Input allowClear placeholder="Tìm kiếm" onChange={debounce((e) => setSearchText(e.target.value), 350)}/>
-            <Button onClick={_onAdd} icon={<PlusOutlined/>}/>
+            <Input allowClear placeholder="Tìm kiếm" onChange={debounce((e) => setSearchText(e.target.value), 350)} />
+            <Button onClick={_onAddOrder} icon={<PlusOutlined />} />
         </Stack.Compact>
         <List
             pagination={filteredOrders.length > 0 ? {
@@ -65,8 +91,28 @@ export const OrderListScreen = () => {
             } : false}
             itemLayout="horizontal"
             dataSource={filteredOrders}
-            renderItem={(item) => <Ordertem item={item} onDelete={_onDelete}/>}
+            renderItem={(item) => <Ordertem item={item} onDelete={_onDelete} />}
         />
+
+        <Modal open={toggleAddOrderModal.value} title={
+            <Space>
+                <UserOutlined />
+                Tạo đơn hàng mới
+            </Space>
+        } destroyOnClose={true} onCancel={toggleAddOrderModal.hide} footer={null}>
+            <CustomerSearchWidget onCreateOrderFromExistedCustomer={_onCreateExistedCustomer}
+                onCreateOrderFromNewCustomer={_onCreateNewCustomer} />
+        </Modal>
+
+        <Modal open={toggleAddCustomerModal.value} title={
+            <Space>
+                <UserOutlined />
+                Thêm khách hàng
+            </Space>
+        } destroyOnClose={true} onCancel={toggleAddCustomerModal.hide} footer={null}>
+            <CustomerAddWidget prefilled={prefilledCustomer} onAddSucceed={_onCreateNewCustomerSucceed}/>
+        </Modal>
+
     </React.Fragment>
 }
 
@@ -76,7 +122,7 @@ type OrderItemProps = {
 }
 
 export const Ordertem: React.FunctionComponent<OrderItemProps> = (props) => {
-    const toggleEdit = useToggle({defaultValue: false});
+    const toggleEdit = useToggle({ defaultValue: false });
     const message = useMessage();
 
     const _onEdit = () => {
@@ -94,9 +140,9 @@ export const Ordertem: React.FunctionComponent<OrderItemProps> = (props) => {
         <List.Item
             actions={
                 [
-                    <Button size="small" onClick={_onEdit} icon={<EditOutlined/>}/>,
+                    <Button size="small" onClick={_onEdit} icon={<EditOutlined />} />,
                     <Popconfirm title="Xóa?" onConfirm={() => props.onDelete(props.item)}>
-                        <Button size="small" danger icon={<DeleteOutlined/>}/>
+                        <Button size="small" danger icon={<DeleteOutlined />} />
                     </Popconfirm>
                 ]
             }>
@@ -104,9 +150,9 @@ export const Ordertem: React.FunctionComponent<OrderItemProps> = (props) => {
                 title={<Stack>
                     <Tooltip title={props.item.name}>
                         <Button onClick={() => null}
-                                type="text"
-                                size={"large"}
-                                style={{paddingLeft: 0, fontWeight: "bold"}}>
+                            type="text"
+                            size={"large"}
+                            style={{ paddingLeft: 0, fontWeight: "bold" }}>
                             <Space>
                                 <Typography.Text>{props.item.name}</Typography.Text>
                                 {_renderOrderIcon()}
@@ -134,7 +180,7 @@ export const Ordertem: React.FunctionComponent<OrderItemProps> = (props) => {
                     {/*        }}>{props.item.address}</Typography.Paragraph>*/}
                     {/*    </Space>*/}
                     {/*</Tooltip>*/}
-                </Stack>}/>
+                </Stack>} />
         </List.Item>
     </React.Fragment>
 }

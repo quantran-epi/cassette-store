@@ -17,8 +17,7 @@ export type Order = {
     shippingCode: string;
     codAmount: number;
     priorityMark: number;
-    isPriority: boolean;
-    isUrgent: boolean;
+    priorityStatus: string; //ORDER_PRIORITY_STATUS
     dueDate: Date;
     customerId: string;
 }

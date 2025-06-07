@@ -40,6 +40,12 @@ export const ORDER_STATUS = {
 
 export const ORDER_DEFAULT_SHIPPING_COST = 20520;
 
+export const ORDER_PRIORITY_STATUS = {
+    NONE:"Bình thường",
+    PRIORITY: "Ưu tiên làm trước",
+    URGENT: "Gấp"
+}
+
 export const COLORS = {
     CUSTOMER: {
         VIP: "#FFD700",

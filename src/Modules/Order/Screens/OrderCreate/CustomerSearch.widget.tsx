@@ -12,6 +12,7 @@ import { useToggle } from "@hooks";
 import { Typography } from "@components/Typography";
 import { Space } from "@components/Layout/Space";
 import { useMessage } from "@components/Message";
+import { Box } from "@components/Layout/Box";
 
 type CustomerSearchWidgetProps = {
     onCreateOrderFromExistedCustomer: (customer: Partial<Customer>) => void;
@@ -49,7 +50,7 @@ export const CustomerSearchWidget: FunctionComponent<CustomerSearchWidgetProps> 
     }
 
     return <React.Fragment>
-        <Stack.Compact>
+        <Stack.Compact style={{ width: "100%" }}>
             <Input autoFocus allowClear placeholder="Nhập số điện thoại" onChange={(e) => setSearchMobile(e.target.value)}
                 value={searchMobile} />
             <Button onClick={_onSearch} icon={<SearchOutlined />} />

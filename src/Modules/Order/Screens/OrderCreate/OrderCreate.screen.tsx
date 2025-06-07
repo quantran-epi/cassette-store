@@ -25,10 +25,10 @@ import { Customer } from "@store/Models/Customer";
 import { addOrder, removeOrder } from "@store/Reducers/OrderReducer";
 import { RootState } from "@store/Store";
 import { add, debounce, sortBy } from "lodash";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { FunctionComponent, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import VegetablesIcon from "../../../../../assets/icons/vegetable.png";
-import { COLORS, CUSTOMER_DIFFUCULTIES, ORDER_STATUS } from "@common/Constants/AppConstants";
+import { COLORS, CUSTOMER_DIFFUCULTIES, ORDER_DEFAULT_SHIPPING_COST, ORDER_PAYMENT_METHOD, ORDER_PRIORITY_STATUS, ORDER_SHIPPING_PARTNER, ORDER_STATUS } from "@common/Constants/AppConstants";
 import { Tag } from "@components/Tag";
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { useMessage } from "@components/Message";
@@ -40,15 +40,26 @@ import { nanoid } from "@reduxjs/toolkit";
 import { CustomerSearchWidget } from "@modules/Order/Screens/OrderCreate/CustomerSearch.widget";
 import { Divider } from "@components/Layout/Divider";
 import { CustomerAddWidget } from "@modules/Customer/Screens/CustomerAdd.widget";
+import { useLocation } from "react-router-dom";
+import { Radio } from "@components/Form/Radio";
+import { Form } from "@components/Form";
+import { InputNumber } from "@components/Form/InputNumber";
+import { OrderItem } from "@store/Models/OrderItem";
 
 export const OrderCreateScreen = () => {
+    const location = useLocation();
+    const { customerId } = location.state || {};
     const orders = useSelector((state: RootState) => state.order.orders);
+    const customers = useSelector((state: RootState) => state.customer.customers);
     const lastSequence = useSelector((state: RootState) => state.order.lastSequence);
     const toggleAddCustomerModal = useToggle({ defaultValue: false });
     const dispatch = useDispatch();
     const message = useMessage();
     const { } = useScreenTitle({ value: "Tạo đơn hàng", deps: [] });
-    const [orderCustomer, setOrderCustomer] = useState<Partial<Customer>>();
+
+    const orderCustomer = useMemo(() => {
+        return customers.find(e => e.id == customerId);
+    }, [customerId])
 
     const addOrderForm = useSmartForm<Order>({
         defaultValues: {
@@ -59,17 +70,16 @@ export const OrderCreateScreen = () => {
             placedItems: [],
             changeItems: [],
             status: ORDER_STATUS.PLACED,
-            shippingCost: 0,
+            shippingCost: ORDER_DEFAULT_SHIPPING_COST,
             returnReason: "",
             isRefund: false,
             refundAmount: 0,
-            paymentMethod: "",
-            shippingPartner: "",
+            paymentMethod: ORDER_PAYMENT_METHOD.CASH_COD,
+            shippingPartner: ORDER_SHIPPING_PARTNER.VNPOST,
             shippingCode: "",
-            codAmount: 0,
+            codAmount: null,
             priorityMark: 0,
-            isPriority: false,
-            isUrgent: false,
+            priorityStatus: ORDER_PRIORITY_STATUS.NONE,
             dueDate: undefined,
             customerId: "",
         },
@@ -83,24 +93,23 @@ export const OrderCreateScreen = () => {
         itemDefinitions: defaultValues => ({
             id: { name: ObjectPropertyHelper.nameof(defaultValues, e => e.id), noMarkup: true },
             sequence: { name: ObjectPropertyHelper.nameof(defaultValues, e => e.sequence), noMarkup: true },
-            name: { name: ObjectPropertyHelper.nameof(defaultValues, e => e.name) },
-            createdDate: { name: ObjectPropertyHelper.nameof(defaultValues, e => e.name), noMarkup: true },
-            placedItems: { name: ObjectPropertyHelper.nameof(defaultValues, e => e.name), noMarkup: true },
-            changeItems: { name: ObjectPropertyHelper.nameof(defaultValues, e => e.name), noMarkup: true },
-            status: { name: ObjectPropertyHelper.nameof(defaultValues, e => e.name), noMarkup: true },
-            shippingCost: { name: ObjectPropertyHelper.nameof(defaultValues, e => e.name) },
-            returnReason: { name: ObjectPropertyHelper.nameof(defaultValues, e => e.name), noMarkup: true },
-            isRefund: { name: ObjectPropertyHelper.nameof(defaultValues, e => e.name), noMarkup: true },
-            refundAmount: { name: ObjectPropertyHelper.nameof(defaultValues, e => e.name), noMarkup: true },
-            paymentMethod: { name: ObjectPropertyHelper.nameof(defaultValues, e => e.name) },
-            shippingPartner: { name: ObjectPropertyHelper.nameof(defaultValues, e => e.name) },
-            shippingCode: { name: ObjectPropertyHelper.nameof(defaultValues, e => e.name) },
-            codAmount: { name: ObjectPropertyHelper.nameof(defaultValues, e => e.name) },
-            priorityMark: { name: ObjectPropertyHelper.nameof(defaultValues, e => e.name), noMarkup: true },
-            isPriority: { name: ObjectPropertyHelper.nameof(defaultValues, e => e.name) },
-            isUrgent: { name: ObjectPropertyHelper.nameof(defaultValues, e => e.name) },
-            dueDate: { name: ObjectPropertyHelper.nameof(defaultValues, e => e.name) },
-            customerId: { name: ObjectPropertyHelper.nameof(defaultValues, e => e.name), noMarkup: true },
+            name: { label: "Tên đơn hàng", name: ObjectPropertyHelper.nameof(defaultValues, e => e.name) },
+            createdDate: { name: ObjectPropertyHelper.nameof(defaultValues, e => e.createdDate), noMarkup: true },
+            placedItems: { name: ObjectPropertyHelper.nameof(defaultValues, e => e.placedItems), noMarkup: true },//
+            changeItems: { name: ObjectPropertyHelper.nameof(defaultValues, e => e.changeItems), noMarkup: true },
+            status: { name: ObjectPropertyHelper.nameof(defaultValues, e => e.status), noMarkup: true },
+            shippingCost: { label: "Phí vận chuyển", name: ObjectPropertyHelper.nameof(defaultValues, e => e.shippingCost) },
+            returnReason: { name: ObjectPropertyHelper.nameof(defaultValues, e => e.returnReason), noMarkup: true },
+            isRefund: { name: ObjectPropertyHelper.nameof(defaultValues, e => e.isRefund), noMarkup: true },
+            refundAmount: { name: ObjectPropertyHelper.nameof(defaultValues, e => e.refundAmount), noMarkup: true },
+            paymentMethod: { label: "Phương thức thanh toán", name: ObjectPropertyHelper.nameof(defaultValues, e => e.paymentMethod) },
+            shippingPartner: { label: "Đơn vị vận chuyển", name: ObjectPropertyHelper.nameof(defaultValues, e => e.shippingPartner) },
+            shippingCode: { label: "Mã vận đơn", name: ObjectPropertyHelper.nameof(defaultValues, e => e.shippingCode) },
+            codAmount: { label: "Số tiền COD", name: ObjectPropertyHelper.nameof(defaultValues, e => e.codAmount) },
+            priorityMark: { name: ObjectPropertyHelper.nameof(defaultValues, e => e.priorityMark), noMarkup: true },
+            priorityStatus: { label: "Độ ưu tiên", name: ObjectPropertyHelper.nameof(defaultValues, e => e.priorityStatus) },
+            dueDate: { label: "", name: ObjectPropertyHelper.nameof(defaultValues, e => e.dueDate) },//
+            customerId: { name: ObjectPropertyHelper.nameof(defaultValues, e => e.customerId), noMarkup: true },
         }),
         transformFunc: (values) => ({
             ...values,
@@ -109,38 +118,21 @@ export const OrderCreateScreen = () => {
             createdDate: new Date()
         })
     })
+    const placedItems = Form.useWatch("placedItems", addOrderForm.form);
 
     useEffect(() => {
         if (orderCustomer?.name) addOrderForm.form.setFieldsValue({ name: (lastSequence + 1) + "." + orderCustomer.name + "-" + orderCustomer.province });
     }, [orderCustomer])
 
-    const _onCreateExistedCustomer = (customer: Partial<Customer>) => {
-        addOrderForm.form.setFieldsValue({ customerId: customer.id });
-        setOrderCustomer(customer);
-    }
-
-    const _onCreateNewCustomer = (customer: Partial<Customer>) => {
-        setOrderCustomer(customer);
-        toggleAddCustomerModal.show();
-    }
-
-    const _onAddCustomerSucceed = (addedCustomer: Customer) => {
-        toggleAddCustomerModal.hide();
-        setOrderCustomer(addedCustomer);
-    }
-
-    const _onCancelAddModal = () => {
-        toggleAddCustomerModal.hide();
-        setOrderCustomer(undefined);
-    }
-
     const _onSaveOrder = () => {
         addOrderForm.submit();
     }
 
+    const _onDeletePlacedItem = (id: string) => {
+        addOrderForm.form.setFieldsValue({ placedItems: (addOrderForm.form.getFieldValue("placedItems") as OrderItem[]).filter(e => e.id !== id) });
+    }
+
     return <React.Fragment>
-        <CustomerSearchWidget onCreateOrderFromExistedCustomer={_onCreateExistedCustomer}
-            onCreateOrderFromNewCustomer={_onCreateNewCustomer} />
         <SmartForm {...addOrderForm.defaultProps}>
             {Boolean(orderCustomer) && <React.Fragment>
                 <Divider orientation="left">Thông tin khách hàng</Divider>
@@ -160,20 +152,71 @@ export const OrderCreateScreen = () => {
                 </Stack>
                 <Divider orientation="left">Thông tin đơn hàng</Divider>
                 <SmartForm.Item {...addOrderForm.itemDefinitions.name}>
-                   <Input />
+                    <Input />
+                </SmartForm.Item>
+                <SmartForm.Item {...addOrderForm.itemDefinitions.priorityStatus}>
+                    <Radio.Group
+                        options={[
+                            { value: ORDER_PRIORITY_STATUS.NONE, label: ORDER_PRIORITY_STATUS.NONE },
+                            { value: ORDER_PRIORITY_STATUS.PRIORITY, label: ORDER_PRIORITY_STATUS.PRIORITY },
+                            { value: ORDER_PRIORITY_STATUS.URGENT, label: ORDER_PRIORITY_STATUS.URGENT },
+                        ]}
+                    />
+                </SmartForm.Item>
+                <SmartForm.Item {...addOrderForm.itemDefinitions.shippingPartner}>
+                    <Radio.Group
+                        options={[
+                            { value: ORDER_SHIPPING_PARTNER.VNPOST, label: ORDER_SHIPPING_PARTNER.VNPOST },
+                            { value: ORDER_SHIPPING_PARTNER.VIETTEL_POST, label: ORDER_SHIPPING_PARTNER.VIETTEL_POST }
+                        ]}
+                    />
+                </SmartForm.Item>
+                <SmartForm.Item {...addOrderForm.itemDefinitions.paymentMethod}>
+                    <Radio.Group
+                        options={[
+                            { value: ORDER_PAYMENT_METHOD.CASH_COD, label: ORDER_PAYMENT_METHOD.CASH_COD },
+                            { value: ORDER_PAYMENT_METHOD.BANK_TRANSFER_IN_ADVANCE, label: ORDER_PAYMENT_METHOD.BANK_TRANSFER_IN_ADVANCE },
+                            { value: ORDER_PAYMENT_METHOD.BANK_TRANSFER_COD, label: ORDER_PAYMENT_METHOD.BANK_TRANSFER_COD }
+                        ]}
+                    />
+                </SmartForm.Item>
+                <SmartForm.Item {...addOrderForm.itemDefinitions.codAmount}>
+                    <InputNumber style={{ width: "100%" }} placeholder="Nhập số tiền COD" formatter={(value) => `đ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} />
+                </SmartForm.Item>
+                <SmartForm.Item {...addOrderForm.itemDefinitions.shippingCost}>
+                    <InputNumber style={{ width: "100%" }} placeholder="Nhập phí vận chuyển" formatter={(value) => `đ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} />
+                </SmartForm.Item>
+                <SmartForm.Item {...addOrderForm.itemDefinitions.shippingCode}>
+                    <Input placeholder="Nhập mã vận đơn" />
+                </SmartForm.Item>
+                <Divider orientation="left"><Space>
+                    <Typography.Text>Danh sách hàng hoá</Typography.Text>
+                    <Button icon={<PlusOutlined />} size="small" />
+                </Space></Divider>
+                <SmartForm.Item>
+                    <List
+                        pagination={placedItems?.length > 0 ? {
+                            position: "bottom", align: "center", pageSize: 10
+                        } : false}
+                        itemLayout="horizontal"
+                        dataSource={placedItems}
+                        locale={{ emptyText: "Chưa có danh sách hàng hoá" }}
+                        renderItem={(item) => <OrderPlacedItem item={item} onDelete={_onDeletePlacedItem} />}
+                    />
                 </SmartForm.Item>
                 <SmartForm.Item>
                     <Button type="primary" fullwidth onClick={_onSaveOrder}>Lưu đơn hàng</Button>
                 </SmartForm.Item>
             </React.Fragment>}
         </SmartForm>
-        <Modal open={toggleAddCustomerModal.value} title={
-            <Space>
-                <UserOutlined />
-                Thêm khách hàng
-            </Space>
-        } destroyOnClose={true} onCancel={_onCancelAddModal} footer={null}>
-            <CustomerAddWidget prefilled={orderCustomer} onAddSucceed={_onAddCustomerSucceed} />
-        </Modal>
     </React.Fragment>
+}
+
+type OrderPlacedItemProps = {
+    item: OrderItem;
+    onDelete: (id: string) => void;
+}
+
+const OrderPlacedItem: FunctionComponent<OrderPlacedItemProps> = (props) => {
+    return null;
 }

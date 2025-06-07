@@ -40,7 +40,7 @@ export const CustomerAddWidget: FunctionComponent<CustomerAddWidgetProps> = (pro
         },
         onSubmit: (values) => {
             dispatch(addCustomer(values.transformValues));
-            message.success();
+            message.success("Thêm khách hàng mới thành công");
             addCustomerForm.reset();
             if (props.onAddSucceed) props.onAddSucceed(values.transformValues);
         },
