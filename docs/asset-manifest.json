@@ -1,18 +1,18 @@
 {
   "files": {
-    "main.css": "/cassette-store/static/css/main.e6d404b6.css",
-    "main.js": "/cassette-store/static/js/main.5dbcb860.js",
+    "main.css": "/cassette-store/static/css/main.b73f0f08.css",
+    "main.js": "/cassette-store/static/js/main.c395ae4b.js",
     "static/js/453.0063fc75.chunk.js": "/cassette-store/static/js/453.0063fc75.chunk.js",
     "static/media/logo.png": "/cassette-store/static/media/logo.343efc60b8b70dd39875.png",
     "static/media/shoppingList.png": "/cassette-store/static/media/shoppingList.8e9a35171bf2cea2583f.png",
     "service-worker.js": "/cassette-store/service-worker.js",
     "index.html": "/cassette-store/index.html",
-    "main.e6d404b6.css.map": "/cassette-store/static/css/main.e6d404b6.css.map",
-    "main.5dbcb860.js.map": "/cassette-store/static/js/main.5dbcb860.js.map",
+    "main.b73f0f08.css.map": "/cassette-store/static/css/main.b73f0f08.css.map",
+    "main.c395ae4b.js.map": "/cassette-store/static/js/main.c395ae4b.js.map",
     "453.0063fc75.chunk.js.map": "/cassette-store/static/js/453.0063fc75.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.e6d404b6.css",
-    "static/js/main.5dbcb860.js"
+    "static/css/main.b73f0f08.css",
+    "static/js/main.c395ae4b.js"
   ]
 }

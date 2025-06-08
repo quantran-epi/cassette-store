@@ -44,3 +44,7 @@
 .ant-list-pagination {
   margin-inline: -5px;
 }
+
+.ant-list-item-meta-title {
+  margin-bottom: 0 !important;
+}

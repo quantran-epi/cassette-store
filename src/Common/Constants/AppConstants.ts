@@ -16,8 +16,8 @@ export const CUSTOMER_PROVINCES = [
 ];
 
 export const ORDER_RETURN_REASON = {
-    REFUSE_TO_RECEIVE: "T",
-    BROKEN_ITEMS: "BROKEN_ITEMS"
+    REFUSE_TO_RECEIVE: "Bom hàng",
+    BROKEN_ITEMS: "Hàng lỗi"
 }
 
 export const ORDER_PAYMENT_METHOD = {
@@ -32,6 +32,8 @@ export const ORDER_SHIPPING_PARTNER = {
 
 export const ORDER_STATUS = {
     PLACED: "Chưa vận chuyển",
+    CREATE_DELIVERY: "Đã tạo đơn",
+    NEED_RETURN: "Cần chuyển hoàn",
     SHIPPED: "Đã giao thành công",
     WAITING_FOR_RETURNED: "Chờ chuyển hoàn",
     RETURNED: "Đã chuyển hoàn",
@@ -56,12 +58,15 @@ export const ORDER_ITEM_TYPE  = {
 export const COLORS = {
     CUSTOMER: {
         VIP: "#FFD700",
-        BLACK_LIST: "#FF0000",
+        BLACK_LIST: "#990505",
         CONFIRMED: "#1877F2"
     },
     ORDER_STATUS: {
-        SHIPPED: "#1877F2",
-        RETURNED: "#FF0000",
-        WAITING_FOR_RETURN: "#f79a72"
-    }
+        SHIPPED: "#2aa345",
+        RETURNED: "#3f50eb",
+        NEED_RETURN: "#cfbe04",
+        CREATE_DELIVERY: "#16ab31",
+        WAITING_FOR_RETURNED: "#f79a72"
+    },
+    RETURN_REASON: "#990505"
 }

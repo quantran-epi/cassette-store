@@ -68,7 +68,6 @@ export const CustomerItemWidget: React.FunctionComponent<CustomerItemProps> = (p
                         <Button onClick={() => null}
                                 danger={props.item.isInBlacklist}
                                 type="text"
-                                size={"large"}
                                 style={{paddingLeft: 0, fontWeight: "bold"}}>
                             <Space>
                                 <Typography.Text>{props.item.name}</Typography.Text>
