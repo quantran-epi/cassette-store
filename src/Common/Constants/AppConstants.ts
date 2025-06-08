@@ -58,5 +58,10 @@ export const COLORS = {
         VIP: "#FFD700",
         BLACK_LIST: "#FF0000",
         CONFIRMED: "#1877F2"
+    },
+    ORDER_STATUS: {
+        SHIPPED: "#1877F2",
+        RETURNED: "#FF0000",
+        WAITING_FOR_RETURN: "#f79a72"
     }
 }

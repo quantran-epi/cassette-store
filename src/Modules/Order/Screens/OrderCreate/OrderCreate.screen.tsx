@@ -1,63 +1,42 @@
 import {
-    UserOutlined,
-    DeleteOutlined,
-    EditOutlined,
-    PlusOutlined,
-    PhoneOutlined,
-    CheckCircleTwoTone,
-    CloseCircleTwoTone,
-    EnvironmentOutlined,
-    DropboxOutlined,
-    SearchOutlined
+    PlusOutlined
 } from "@ant-design/icons";
+import { ORDER_DEFAULT_SHIPPING_COST, ORDER_PAYMENT_METHOD, ORDER_PRIORITY_STATUS, ORDER_SHIPPING_PARTNER, ORDER_STATUS } from "@common/Constants/AppConstants";
+import { ObjectPropertyHelper } from "@common/Helpers/ObjectProperty";
+import { OrderHelper } from "@common/Helpers/OrderHelper";
 import { Button } from "@components/Button";
+import { Form } from "@components/Form";
 import { Input } from "@components/Form/Input";
-import { Image } from "@components/Image";
+import { InputNumber } from "@components/Form/InputNumber";
+import { Radio } from "@components/Form/Radio";
+import { Divider } from "@components/Layout/Divider";
 import { Space } from "@components/Layout/Space";
 import { Stack } from "@components/Layout/Stack";
 import { List } from "@components/List";
-import { Modal } from "@components/Modal";
-import { Popconfirm } from "@components/Popconfirm";
-import { Tooltip } from "@components/Tootip";
-import { Typography } from "@components/Typography";
-import { useScreenTitle, useToggle } from "@hooks";
-import { Customer } from "@store/Models/Customer";
-import { addOrder, removeOrder } from "@store/Reducers/OrderReducer";
-import { RootState } from "@store/Store";
-import { add, debounce, sortBy } from "lodash";
-import React, { FunctionComponent, useEffect, useMemo, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import VegetablesIcon from "../../../../../assets/icons/vegetable.png";
-import { COLORS, CUSTOMER_DIFFUCULTIES, ORDER_DEFAULT_SHIPPING_COST, ORDER_PAYMENT_METHOD, ORDER_PRIORITY_STATUS, ORDER_SHIPPING_PARTNER, ORDER_STATUS } from "@common/Constants/AppConstants";
-import { Tag } from "@components/Tag";
-import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { useMessage } from "@components/Message";
-import { Order } from "@store/Models/Order";
 import { SmartForm, useSmartForm } from "@components/SmartForm";
-import { addCustomer } from "@store/Reducers/CustomerReducer";
-import { ObjectPropertyHelper } from "@common/Helpers/ObjectProperty";
+import { Typography } from "@components/Typography";
+import { useScreenTitle } from "@hooks";
 import { nanoid } from "@reduxjs/toolkit";
-import { CustomerSearchWidget } from "@modules/Order/Screens/OrderCreate/CustomerSearch.widget";
-import { Divider } from "@components/Layout/Divider";
-import { CustomerAddWidget } from "@modules/Customer/Screens/CustomerAdd.widget";
-import { useLocation } from "react-router-dom";
-import { Radio } from "@components/Form/Radio";
-import { Form } from "@components/Form";
-import { InputNumber } from "@components/Form/InputNumber";
+import { RootRoutes } from "@routing/RootRoutes";
+import { Order } from "@store/Models/Order";
 import { OrderItem } from "@store/Models/OrderItem";
-import { OrderHelper } from "@common/Helpers/OrderHelper";
-import { OrderPlacedItem } from "./OrderPlacedItem.widget";
+import { addOrder } from "@store/Reducers/OrderReducer";
+import { RootState } from "@store/Store";
 import { RadioChangeEvent } from "antd";
+import React, { useEffect, useMemo } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useLocation, useNavigate } from "react-router-dom";
+import { OrderPlacedItem } from "./OrderPlacedItem.widget";
 
 export const OrderCreateScreen = () => {
     const location = useLocation();
     const { customerId } = location.state || {};
-    const orders = useSelector((state: RootState) => state.order.orders);
     const customers = useSelector((state: RootState) => state.customer.customers);
     const lastSequence = useSelector((state: RootState) => state.order.lastSequence);
-    const toggleAddCustomerModal = useToggle({ defaultValue: false });
     const dispatch = useDispatch();
     const message = useMessage();
+    const navigate = useNavigate();
     const { } = useScreenTitle({ value: "Tạo đơn hàng", deps: [] });
 
     const orderCustomer = useMemo(() => {
@@ -87,18 +66,17 @@ export const OrderCreateScreen = () => {
             customerId: "",
         },
         onSubmit: (values) => {
-            console.log(values);
-            return;
             dispatch(addOrder(values.transformValues));
-            message.success();
+            message.success("Tạo đơn hàng thành công");
             addOrderForm.reset();
+            navigate(RootRoutes.AuthorizedRoutes.OrderRoutes.List());
         },
         itemDefinitions: defaultValues => ({
             id: { name: ObjectPropertyHelper.nameof(defaultValues, e => e.id), noMarkup: true },
             sequence: { name: ObjectPropertyHelper.nameof(defaultValues, e => e.sequence), noMarkup: true },
             name: { label: "Tên đơn hàng", name: ObjectPropertyHelper.nameof(defaultValues, e => e.name) },
             createdDate: { name: ObjectPropertyHelper.nameof(defaultValues, e => e.createdDate), noMarkup: true },
-            placedItems: { name: ObjectPropertyHelper.nameof(defaultValues, e => e.placedItems), noMarkup: true },//
+            placedItems: { name: ObjectPropertyHelper.nameof(defaultValues, e => e.placedItems), noMarkup: true },
             changeItems: { name: ObjectPropertyHelper.nameof(defaultValues, e => e.changeItems), noMarkup: true },
             status: { name: ObjectPropertyHelper.nameof(defaultValues, e => e.status), noMarkup: true },
             shippingCost: { label: "Phí vận chuyển", name: ObjectPropertyHelper.nameof(defaultValues, e => e.shippingCost) },
@@ -118,13 +96,17 @@ export const OrderCreateScreen = () => {
             ...values,
             id: values.name.concat(nanoid(10)),
             sequence: lastSequence + 1,
-            createdDate: new Date()
+            createdDate: new Date(),
+            customerId: customerId
         })
     })
     const placedItems = Form.useWatch("placedItems", addOrderForm.form);
 
     useEffect(() => {
-        if (orderCustomer?.name) addOrderForm.form.setFieldsValue({ name: (lastSequence + 1) + "." + orderCustomer.name + "-" + orderCustomer.province });
+        if (orderCustomer?.name) addOrderForm.form.setFieldsValue({
+            name: (lastSequence + 1) + "." + orderCustomer.name + "-" + orderCustomer.province,
+            placedItems: placedItems?.length > 0 ? placedItems : [OrderHelper.createNewEmptyOrderItem(addOrderForm.form.getFieldValue("name"), true)]
+        });
     }, [orderCustomer])
 
     const _onSaveOrder = () => {
@@ -137,7 +119,16 @@ export const OrderCreateScreen = () => {
 
     const _onAddPlaceItems = () => {
         let newOrder = OrderHelper.createNewEmptyOrderItem(addOrderForm.form.getFieldValue("name"), placedItems.length == 0 ? true : false);
-        addOrderForm.form.setFieldsValue({ placedItems: [newOrder, ...addOrderForm.form.getFieldValue("placedItems")] });
+        addOrderForm.form.setFieldsValue({ placedItems: [...addOrderForm.form.getFieldValue("placedItems"), newOrder] });
+    }
+
+    const _onChangePlacedItem = (placedItem: OrderItem) => {
+        addOrderForm.form.setFieldsValue({
+            placedItems: (addOrderForm.form.getFieldValue("placedItems") as OrderItem[]).map(e => {
+                if (e.id == placedItem.id) return placedItem;
+                return e;
+            })
+        })
     }
 
     const _onChangePaymentMethod = (e: RadioChangeEvent) => {
@@ -212,7 +203,7 @@ export const OrderCreateScreen = () => {
                         itemLayout="horizontal"
                         dataSource={placedItems}
                         locale={{ emptyText: "Chưa có danh sách hàng hoá" }}
-                        renderItem={(item) => <OrderPlacedItem item={item} onDelete={_onDeletePlacedItem} />}
+                        renderItem={(item) => <OrderPlacedItem item={item} onDelete={_onDeletePlacedItem} onChange={_onChangePlacedItem} allPlacedItems={placedItems} />}
                     />
                 </SmartForm.Item>
                 <SmartForm.Item>

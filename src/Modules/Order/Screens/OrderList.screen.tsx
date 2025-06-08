@@ -7,7 +7,9 @@ import {
     CheckCircleTwoTone,
     CloseCircleTwoTone,
     EnvironmentOutlined,
-    DropboxOutlined
+    DropboxOutlined,
+    DollarOutlined,
+    TruckOutlined
 } from "@ant-design/icons";
 import { Button } from "@components/Button";
 import { Input } from "@components/Form/Input";
@@ -27,7 +29,7 @@ import { debounce, sortBy } from "lodash";
 import React, { useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import VegetablesIcon from "../../../../assets/icons/vegetable.png";
-import { COLORS } from "@common/Constants/AppConstants";
+import { COLORS, ORDER_STATUS } from "@common/Constants/AppConstants";
 import { Tag } from "@components/Tag";
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { useMessage } from "@components/Message";
@@ -90,6 +92,7 @@ export const OrderListScreen = () => {
                 position: "bottom", align: "center", pageSize: 10
             } : false}
             itemLayout="horizontal"
+            locale={{ emptyText: "Chưa có đơn hàng nào" }}
             dataSource={filteredOrders}
             renderItem={(item) => <Ordertem item={item} onDelete={_onDelete} />}
         />
@@ -110,7 +113,7 @@ export const OrderListScreen = () => {
                 Thêm khách hàng
             </Space>
         } destroyOnClose={true} onCancel={toggleAddCustomerModal.hide} footer={null}>
-            <CustomerAddWidget prefilled={prefilledCustomer} onAddSucceed={_onCreateNewCustomerSucceed}/>
+            <CustomerAddWidget prefilled={prefilledCustomer} onAddSucceed={_onCreateNewCustomerSucceed} />
         </Modal>
 
     </React.Fragment>
@@ -123,17 +126,29 @@ type OrderItemProps = {
 
 export const Ordertem: React.FunctionComponent<OrderItemProps> = (props) => {
     const toggleEdit = useToggle({ defaultValue: false });
+    const customers = useSelector((state: RootState) => state.customer.customers);
     const message = useMessage();
+    const orderCustomer = useMemo(() => {
+        return customers.find(e => e.id == props.item.customerId);
+    }, [props.item.customerId])
 
     const _onEdit = () => {
         toggleEdit.show();
     }
 
     const _renderOrderIcon = () => {
-        // if (props.item.isInBlacklist) return <CloseCircleTwoTone twoToneColor={COLORS.CUSTOMER.BLACK_LIST}/>;
-        // else if (props.item.isVIP) return <Tag color={COLORS.CUSTOMER.VIP}>VIP</Tag>;
-        // else if (props.item.buyCount > 0) return <CheckCircleTwoTone twoToneColor={COLORS.CUSTOMER.CONFIRMED}/>;
+        if (orderCustomer.isVIP) return <Tag color={COLORS.CUSTOMER.VIP}>VIP</Tag>;
         return undefined;
+    }
+
+    const _renderOrderStatus = () => {
+        switch (props.item.status) {
+            case ORDER_STATUS.PLACED: return <Tag>{props.item.status}</Tag>;
+            case ORDER_STATUS.SHIPPED: return <Tag color={ORDER_STATUS.SHIPPED}>{props.item.status}</Tag>;
+            case ORDER_STATUS.RETURNED: return <Tag color={ORDER_STATUS.RETURNED}>{props.item.status}</Tag>;
+            case ORDER_STATUS.WAITING_FOR_RETURNED: return <Tag color={ORDER_STATUS.WAITING_FOR_RETURNED}>{props.item.status}</Tag>;
+            default: return undefined;
+        }
     }
 
     return <React.Fragment>
@@ -160,26 +175,32 @@ export const Ordertem: React.FunctionComponent<OrderItemProps> = (props) => {
                         </Button>
                     </Tooltip>
                 </Stack>}
-                description={<Stack direction={"column"} align={"flex-start"} gap={0}>
-                    {/*<CopyToClipboard text={props.item.mobile}*/}
-                    {/*                 onCopy={() => message.success("Đã sao chép số điện thoại")}>*/}
-                    {/*    <Space onClick={_onClickMobile}>*/}
-                    {/*        <PhoneOutlined/>*/}
-                    {/*        <Typography.Paragraph ellipsis style={{*/}
-                    {/*            width: 300,*/}
-                    {/*            marginBottom: 0*/}
-                    {/*        }}>{props.item.mobile}</Typography.Paragraph>*/}
-                    {/*    </Space>*/}
-                    {/*</CopyToClipboard>*/}
-                    {/*<Tooltip title={props.item.address}>*/}
-                    {/*    <Space>*/}
-                    {/*        <EnvironmentOutlined/>*/}
-                    {/*        <Typography.Paragraph ellipsis style={{*/}
-                    {/*            width: 300,*/}
-                    {/*            marginBottom: 0*/}
-                    {/*        }}>{props.item.address}</Typography.Paragraph>*/}
-                    {/*    </Space>*/}
-                    {/*</Tooltip>*/}
+                description={<Stack direction={"column"} align={"flex-start"} gap={2}>
+                    {_renderOrderStatus()}
+                    <Space>
+                        <DollarOutlined />
+                        <Typography.Text>{props.item.codAmount.toLocaleString()} đ</Typography.Text>
+                    </Space>
+                    {orderCustomer && <React.Fragment>
+                        <CopyToClipboard text={orderCustomer.mobile}
+                            onCopy={() => message.success("Đã sao chép số điện thoại")}>
+                            <Space>
+                                <PhoneOutlined />
+                                <Typography.Paragraph ellipsis style={{
+                                    width: 300,
+                                    marginBottom: 0
+                                }}>{orderCustomer.mobile}</Typography.Paragraph>
+                            </Space>
+                        </CopyToClipboard>
+                        <Tooltip title={orderCustomer.address}>
+                            <Space>
+                                <EnvironmentOutlined />
+                                <Typography.Paragraph ellipsis style={{
+                                    width: 300,
+                                    marginBottom: 0
+                                }}>{orderCustomer.address}</Typography.Paragraph>
+                            </Space>
+                        </Tooltip></React.Fragment>}
                 </Stack>} />
         </List.Item>
     </React.Fragment>

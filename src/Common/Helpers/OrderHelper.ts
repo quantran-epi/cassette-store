@@ -15,7 +15,7 @@ export const OrderHelper = {
             }
         return {
             id: orderName + nanoid(5),
-            count: 0,
+            count: undefined,
             type: undefined,
             unitPrice: null,
             note: ""

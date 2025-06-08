@@ -64,6 +64,7 @@ export const CustomerListScreen = () => {
                 position: "bottom", align: "center", pageSize: 10
             } : false}
             itemLayout="horizontal"
+            locale={{emptyText: "Chưa có khách hàng nào"}}
             dataSource={filteredCustomers}
             renderItem={(item) => <CustomerItemWidget item={item} onDelete={_onDelete}/>}
         />
