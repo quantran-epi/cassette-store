@@ -12,7 +12,7 @@ import {useScreenTitle, useToggle, useTrello} from "@hooks";
 import { CustomerAddWidget } from "@modules/Customer/Screens/CustomerAdd.widget";
 import { RootRoutes } from "@routing/RootRoutes";
 import { Customer } from "@store/Models/Customer";
-import { removeOrder } from "@store/Reducers/OrderReducer";
+import { removeOrder, selectSortedPendingOrders } from "@store/Reducers/OrderReducer";
 import { RootState } from "@store/Store";
 import { debounce, sortBy } from "lodash";
 import React, {useEffect, useMemo, useState} from "react";
@@ -20,6 +20,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { CustomerSearchWidget } from "./OrderCreate/CustomerSearch.widget";
 import { OrderItemWidget } from "./OrderItem/OrderItem.widget";
+import { Typography } from "@components/Typography";
 
 export const OrderListScreen = () => {
     const orders = useSelector((state: RootState) => state.order.orders);
@@ -31,6 +32,7 @@ export const OrderListScreen = () => {
     const [searchText, setSearchText] = useState("");
     const [prefilledCustomer, setPrefilledCustomer] = useState<Partial<Customer>>();
     const trello = useTrello();
+    const sortedPendingOrders = useSelector(selectSortedPendingOrders);
 
     useEffect(() => {
         trello.getCardsByList("683823d67567eff9da5c91c2").then(res => console.log(res));

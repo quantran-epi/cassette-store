@@ -27,7 +27,7 @@ export const OrderHelper = {
             note: ""
         }
     },
-    calculatePendingOrderPrioritymark: (order: Order, customer: Customer, allPendingOrders: Order[]): number => {
+    calculatePendingOrderPrioritymark: (order: Order, customer: Customer): number => {
         let markByDate = 0;
         let markByArea: number = 0;
         let markByDifficulty: number = 0;
@@ -88,7 +88,7 @@ export const OrderHelper = {
             else if (customer.buyCount >= 3 && customer.buyCount < 5) markByCustomerRank += 3;
             else if (customer.buyCount >= 5) markByCustomerRank = +4;
 
-            if (customer.buyAmount = 0) markByCustomerRank += 0;
+            if (customer.buyAmount == 0) markByCustomerRank += 0;
             else if (customer.buyAmount > 0 && customer.buyAmount <= 150000) markByCustomerRank += 0.2;
             else if (customer.buyAmount > 150000 && customer.buyAmount < 300000) markByCustomerRank += 0.3;
             else if (customer.buyCount >= 300000 && customer.buyAmount < 500000) markByCustomerRank += 0.5;

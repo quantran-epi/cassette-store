@@ -21,6 +21,7 @@ export type Order = {
     dueDate: Date;
     customerId: string;
     trelloCardId: string;
+    position: number;
 }
 
 export type ChangeItem = {

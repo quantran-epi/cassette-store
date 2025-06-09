@@ -244,6 +244,7 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                                 label: 'Mã vận đơn',
                                 key: 'input-shipping-code',
                                 icon: <BarcodeOutlined/>,
+                                disabled: !orderUtils.isPushedTrello(props.item.id)
                             },
                             {
                                 label: 'Xoá đơn hàng',
@@ -265,7 +266,7 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                                 type="text"
                                 style={{paddingLeft: 0, fontWeight: "bold"}}>
                             <Space>
-                                <Typography.Text>{props.item.name}</Typography.Text>
+                                <Typography.Text>{props.item.name}{props.item.priorityMark}{props.item.position}</Typography.Text>
                             </Space>
                         </Button>
                     </Tooltip>

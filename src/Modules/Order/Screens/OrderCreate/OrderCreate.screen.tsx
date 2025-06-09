@@ -70,7 +70,8 @@ export const OrderCreateScreen = () => {
             priorityStatus: ORDER_PRIORITY_STATUS.NONE,
             dueDate: undefined,
             customerId: "",
-            trelloCardId: null
+            trelloCardId: null,
+            position: null
         },
         onSubmit: (values) => {
             dispatch(addOrder({order: values.transformValues, customer: orderCustomer}));
@@ -111,6 +112,7 @@ export const OrderCreateScreen = () => {
             dueDate: {label: "", name: ObjectPropertyHelper.nameof(defaultValues, e => e.dueDate)},
             customerId: {name: ObjectPropertyHelper.nameof(defaultValues, e => e.customerId), noMarkup: true},
             trelloCardId: {name: ObjectPropertyHelper.nameof(defaultValues, e => e.trelloCardId), noMarkup: true},
+            position: {name: ObjectPropertyHelper.nameof(defaultValues, e => e.position), noMarkup: true},
         }),
         transformFunc: (values) => ({
             ...values,

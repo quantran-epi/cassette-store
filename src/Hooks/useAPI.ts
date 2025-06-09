@@ -48,9 +48,10 @@ export const useAPI = (props: UseAPIProps): UseAPI => {
             fetch(_buildUrl(url, replacer, params), {
                 method: 'POST',
                 headers: {
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/x-www-form-urlencoded'
                 },
-                body: body
+                body: (new URLSearchParams(body)).toString()
             })
                 .then(response => {
                     _log(`Response: ${response.status} ${response.statusText}`);
@@ -68,9 +69,10 @@ export const useAPI = (props: UseAPIProps): UseAPI => {
             fetch(_buildUrl(url, replacer, params), {
                 method: 'PUT',
                 headers: {
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/x-www-form-urlencoded'
                 },
-                body: body
+                body: (new URLSearchParams(body)).toString()
             })
                 .then(response => {
                     _log(`Response: ${response.status} ${response.statusText}`);

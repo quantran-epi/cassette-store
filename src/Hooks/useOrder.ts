@@ -1,13 +1,14 @@
-import {ORDER_RETURN_REASON, ORDER_STATUS} from "@common/Constants/AppConstants";
-import {Order} from "@store/Models/Order";
-import {editCustomer} from "@store/Reducers/CustomerReducer";
-import {editOrder} from "@store/Reducers/OrderReducer";
-import {RootState} from "@store/Store";
-import {cloneDeep} from "lodash";
-import {useDispatch, useSelector} from "react-redux";
-import {useTrello} from "./Trello/useTrello";
-import {Customer} from "@store/Models/Customer";
-import {TrelloCard} from "./Trello/Models/TrelloCard";
+import { ORDER_RETURN_REASON, ORDER_STATUS } from "@common/Constants/AppConstants";
+import { Order } from "@store/Models/Order";
+import { editCustomer } from "@store/Reducers/CustomerReducer";
+import { editOrder } from "@store/Reducers/OrderReducer";
+import { RootState } from "@store/Store";
+import { cloneDeep } from "lodash";
+import { useDispatch, useSelector } from "react-redux";
+import { useTrello } from "./Trello/useTrello";
+import { Customer } from "@store/Models/Customer";
+import { TrelloCard } from "./Trello/Models/TrelloCard";
+import { TrelloCreateCardParam } from "./Trello/Models/ApiParam";
 
 type UseOrder = {
     isShipped: (orderId: string) => boolean;
@@ -135,7 +136,7 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
             dispatch(editOrder(order));
 
             // comment on trello
-            await trello.createComment({text: code}, order.trelloCardId);
+            await trello.createComment({ text: code }, order.trelloCardId);
             return null;
         } catch (e) {
             return e;
@@ -160,13 +161,23 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
         return order.status === ORDER_STATUS.PLACED;
     }
 
-    const pushToTrelloToDoList = (orderId: string): Promise<TrelloCard> => {
-       try {
-
-       }
-       catch (e) {
-           return null;
-       }
+    const pushToTrelloToDoList =  async (orderId: string): Promise<TrelloCard> => {
+        let order = _findOrderById(orderId);
+        let customer = _findCustomerById(order.customerId);
+        try {
+            //temp
+            let newCard = await trello.createCard({
+                name: order.name,
+                desc: customer.name + "," + customer.address,
+                start: new Date(),
+                pos: order.position,
+                idList: "683ad6fb6d164af9e8f0fd32"
+            });
+            return newCard;
+        }
+        catch (e) {
+            return null;
+        }
     }
 
     return {

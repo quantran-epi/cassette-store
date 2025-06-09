@@ -4,7 +4,7 @@ export type TrelloCreateCardParam = {
     pos: number;
     start: Date;
     idList: string;
-    idLabels: string[];
+    idLabels?: string[];
 }
 
 export type TrelloCreateAttachmentParam = {
