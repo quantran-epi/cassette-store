@@ -14,29 +14,28 @@ import {
     TruckOutlined,
     ToolOutlined
 } from "@ant-design/icons";
-import { COLORS, ORDER_STATUS } from "@common/Constants/AppConstants";
-import { Button } from "@components/Button";
-import { Dropdown } from "@components/Dropdown";
-import { Space } from "@components/Layout/Space";
-import { Stack } from "@components/Layout/Stack";
-import { List } from "@components/List";
-import { useMessage } from "@components/Message";
-import { useModal } from "@components/Modal/ModalProvider";
-import { Popconfirm } from "@components/Popconfirm";
-import { Tag } from "@components/Tag";
-import { Tooltip } from "@components/Tootip";
-import { Typography } from "@components/Typography";
-import { Order } from "@store/Models/Order";
-import { removeOrder } from "@store/Reducers/OrderReducer";
-import { RootState } from "@store/Store";
-import React, { FunctionComponent, useMemo } from "react";
-import { CopyToClipboard } from 'react-copy-to-clipboard';
-import { useDispatch, useSelector } from "react-redux";
-import { useOrder } from "../../useOrder";
-import { useToggle } from "@hooks";
-import { Modal } from "@components/Modal";
-import { Input } from "@components/Form/Input";
-import { OrderChangeShippingCodeWidget } from "./OrderChangeShippingCode.widget";
+import {COLORS, ORDER_PAYMENT_METHOD, ORDER_STATUS} from "@common/Constants/AppConstants";
+import {Button} from "@components/Button";
+import {Dropdown} from "@components/Dropdown";
+import {Space} from "@components/Layout/Space";
+import {Stack} from "@components/Layout/Stack";
+import {List} from "@components/List";
+import {useMessage} from "@components/Message";
+import {useModal} from "@components/Modal/ModalProvider";
+import {Popconfirm} from "@components/Popconfirm";
+import {Tag} from "@components/Tag";
+import {Tooltip} from "@components/Tootip";
+import {Typography} from "@components/Typography";
+import {Order} from "@store/Models/Order";
+import {removeOrder} from "@store/Reducers/OrderReducer";
+import {RootState} from "@store/Store";
+import React, {FunctionComponent, useMemo} from "react";
+import {CopyToClipboard} from 'react-copy-to-clipboard';
+import {useDispatch, useSelector} from "react-redux";
+import {useToggle, useOrder} from "@hooks";
+import {Modal} from "@components/Modal";
+import {Input} from "@components/Form/Input";
+import {OrderChangeShippingCodeWidget} from "./OrderChangeShippingCode.widget";
 
 type OrderItemProps = {
     item: Order;
@@ -61,18 +60,36 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
 
     const _renderOrderStatus = () => {
         switch (props.item.status) {
-            case ORDER_STATUS.PLACED: return <Tag>{props.item.status}</Tag>;
-            case ORDER_STATUS.SHIPPED: return <Tag color={COLORS.ORDER_STATUS.SHIPPED}>{props.item.status}</Tag>;
-            case ORDER_STATUS.RETURNED: return <Tag color={COLORS.ORDER_STATUS.RETURNED}>{props.item.status}</Tag>;
-            case ORDER_STATUS.NEED_RETURN: return <Tag color={COLORS.ORDER_STATUS.NEED_RETURN}>{props.item.status}</Tag>;
-            case ORDER_STATUS.CREATE_DELIVERY: return <Tag color={COLORS.ORDER_STATUS.CREATE_DELIVERY}>{props.item.status}</Tag>;
-            case ORDER_STATUS.WAITING_FOR_RETURNED: return <Tag color={COLORS.ORDER_STATUS.WAITING_FOR_RETURNED}>{props.item.status}</Tag>;
-            default: return undefined;
+            case ORDER_STATUS.PLACED:
+                return <Tag>{props.item.status}</Tag>;
+            case ORDER_STATUS.SHIPPED:
+                return <Tag color={COLORS.ORDER_STATUS.SHIPPED}>{props.item.status}</Tag>;
+            case ORDER_STATUS.RETURNED:
+                return <Tag color={COLORS.ORDER_STATUS.RETURNED}>{props.item.status}</Tag>;
+            case ORDER_STATUS.NEED_RETURN:
+                return <Tag color={COLORS.ORDER_STATUS.NEED_RETURN}>{props.item.status}</Tag>;
+            case ORDER_STATUS.CREATE_DELIVERY:
+                return <Tag color={COLORS.ORDER_STATUS.CREATE_DELIVERY}>{props.item.status}</Tag>;
+            case ORDER_STATUS.WAITING_FOR_RETURNED:
+                return <Tag color={COLORS.ORDER_STATUS.WAITING_FOR_RETURNED}>{props.item.status}</Tag>;
+            default:
+                return undefined;
         }
     }
 
     const _renderReturnReason = () => {
         return <Tag color={COLORS.RETURN_REASON}>{props.item.returnReason}</Tag>;
+    }
+
+    const _renderCODAmount = () => {
+        switch (props.item.paymentMethod) {
+            case ORDER_PAYMENT_METHOD.CASH_COD:
+                return <Tag color={COLORS.PAYMENT_METHOD.COD}>COD</Tag>;
+            case ORDER_PAYMENT_METHOD.BANK_TRANSFER_IN_ADVANCE:
+                return <Tag color={COLORS.PAYMENT_METHOD.BANK_TRANSFER_IN_ADVANCE}>Bank</Tag>;
+            default:
+                return undefined;
+        }
     }
 
     const _removeOrder = () => {
@@ -81,9 +98,13 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
 
     const _onMoreActionClick = (e) => {
         switch (e.key) {
-            case "place-items": break;
-            case "input-shipping-code": toggleInputShippingCodeEditor.show(); break;
-            case "delivery-bill": break;
+            case "place-items":
+                break;
+            case "input-shipping-code":
+                toggleInputShippingCodeEditor.show();
+                break;
+            case "delivery-bill":
+                break;
             case "delete":
                 modal.confirm({
                     title: "Chắc chắn muốn xoá đơn hàng này?",
@@ -96,7 +117,9 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
 
     const _onDeliveryActionClick = (e) => {
         switch (e.key) {
-            case "mark-as-done": orderUtils.markOrderAsShipped(props.item.id); break;
+            case "mark-as-done":
+                orderUtils.markOrderAsShipped(props.item.id);
+                break;
             case "refuse-to-receive":
                 modal.confirm({
                     title: "Đánh dấu đơn là bị bom hàng?",
@@ -108,8 +131,12 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                     }
                 })
                 break;
-            case "waiting-return-order": orderUtils.markOrderAsWaitingForReturn(props.item.id); break;
-            case "returned-order": orderUtils.markOrderAsReturned(props.item.id); break;
+            case "waiting-return-order":
+                orderUtils.markOrderAsWaitingForReturn(props.item.id);
+                break;
+            case "returned-order":
+                orderUtils.markOrderAsReturned(props.item.id);
+                break;
             case "broken-items":
                 modal.confirm({
                     title: "Đánh dấu đơn là hàng lỗi?",
@@ -133,7 +160,7 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
         if (error) message.error(error);
         else {
             toggleInputShippingCodeEditor.hide();
-            message.success("Nhập mã vận đơn thành công");
+            message.success("Lưu mã vận đơn thành công");
         }
     }
 
@@ -146,70 +173,70 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                             {
                                 label: 'Đã giao hàng',
                                 key: 'mark-as-done',
-                                icon: <CheckCircleOutlined />,
+                                icon: <CheckCircleOutlined/>,
                                 disabled: !orderUtils.canMarkAsShipped(props.item.id)
                             },
                             {
                                 label: 'Bom hàng',
                                 key: 'refuse-to-receive',
-                                icon: <CloseOutlined />,
+                                icon: <CloseOutlined/>,
                                 danger: true,
                                 disabled: orderUtils.isRefuseToReceive(props.item.id)
                             },
                             {
                                 label: 'Hàng lỗi, hoàn về',
                                 key: 'broken-items',
-                                icon: <ToolOutlined />,
+                                icon: <ToolOutlined/>,
                                 danger: true,
                                 disabled: orderUtils.isBrokenItems(props.item.id)
                             },
                             {
                                 label: 'Chờ chuyển hoàn',
                                 key: 'waiting-return-order',
-                                icon: <ClockCircleOutlined />,
+                                icon: <ClockCircleOutlined/>,
                                 disabled: !orderUtils.canMarkAsWaitingForReturn(props.item.id)
                             },
                             {
                                 label: 'Đã chuyển hoàn',
                                 key: 'returned-order',
-                                icon: <DoubleLeftOutlined />,
+                                icon: <DoubleLeftOutlined/>,
                                 disabled: !orderUtils.canMarkAsReturned(props.item.id)
                             }
                         ],
                         onClick: _onDeliveryActionClick
                     }} placement="bottom">
-                        <Button size="small" icon={<TruckOutlined />} />
+                        <Button size="small" icon={<TruckOutlined/>}/>
                     </Dropdown>,
                     <Popconfirm title="Đẩy lên danh sách cần làm trên Trello?" onConfirm={_onPushOrderToTrello}>
-                        <Button size="small" icon={<CloudUploadOutlined />} />
+                        <Button size="small" icon={<CloudUploadOutlined/>}/>
                     </Popconfirm>,
                     <Dropdown menu={{
                         items: [
                             {
                                 label: 'Danh sách băng',
                                 key: 'place-items',
-                                icon: <FileTextOutlined />,
+                                icon: <FileTextOutlined/>,
                             },
                             {
                                 label: 'Sửa đơn vận chuyển',
                                 key: 'delivery-bill',
-                                icon: <TruckOutlined />,
+                                icon: <TruckOutlined/>,
                             },
                             {
-                                label: 'Nhập mã vận đơn',
+                                label: 'Mã vận đơn',
                                 key: 'input-shipping-code',
-                                icon: <BarcodeOutlined />,
+                                icon: <BarcodeOutlined/>,
                             },
                             {
                                 label: 'Xoá đơn hàng',
                                 key: 'delete',
-                                icon: <DeleteOutlined />,
+                                icon: <DeleteOutlined/>,
                                 danger: true
                             },
                         ],
                         onClick: _onMoreActionClick
                     }} placement="bottom">
-                        <Button size="small" icon={<MoreOutlined />} />
+                        <Button size="small" icon={<MoreOutlined/>}/>
                     </Dropdown>
                 ]
             }>
@@ -217,52 +244,57 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                 title={<Stack>
                     <Tooltip title={props.item.name}>
                         <Button onClick={() => null}
-                            type="text"
-                            style={{ paddingLeft: 0, fontWeight: "bold" }}>
+                                type="text"
+                                style={{paddingLeft: 0, fontWeight: "bold"}}>
                             <Space>
                                 <Typography.Text>{props.item.name}</Typography.Text>
                             </Space>
                         </Button>
                     </Tooltip>
                 </Stack>}
-                description={<Stack direction={"column"} align={"flex-start"} gap={2}>
+                description={<Stack direction={"column"} align={"flex-start"} gap={4}>
                     <Space size={0}>
                         {_renderOrderStatus()}
                         {_renderOrderIcon()}
                         {props.item.returnReason && _renderReturnReason()}
                     </Space>
-                    <Space>
-                        <DollarOutlined />
-                        <Typography.Text>{props.item.codAmount.toLocaleString()} đ</Typography.Text>
-                    </Space>
-                    {orderCustomer && <React.Fragment>
-                        <CopyToClipboard text={orderCustomer.mobile}
-                            onCopy={() => message.success("Đã sao chép số điện thoại")}>
+                    <Stack gap={2} direction="column" align={"flex-start"}>
+                        <Space>
+                            <DollarOutlined/>
                             <Space>
-                                <PhoneOutlined />
-                                <Typography.Paragraph ellipsis style={{
-                                    width: 300,
-                                    marginBottom: 0
-                                }}>{orderCustomer.mobile}</Typography.Paragraph>
+                                <Typography.Text>{props.item.codAmount.toLocaleString()} đ</Typography.Text>
+                                {_renderCODAmount()}
                             </Space>
-                        </CopyToClipboard>
-                        <Tooltip title={orderCustomer.address}>
-                            <Space>
-                                <EnvironmentOutlined />
-                                <Typography.Paragraph ellipsis style={{
-                                    width: 300,
-                                    marginBottom: 0
-                                }}>{orderCustomer.address}</Typography.Paragraph>
-                            </Space>
-                        </Tooltip></React.Fragment>}
-                </Stack>} />
+                        </Space>
+                        {orderCustomer && <React.Fragment>
+                            <CopyToClipboard text={orderCustomer.mobile}
+                                             onCopy={() => message.success("Đã sao chép số điện thoại")}>
+                                <Space>
+                                    <PhoneOutlined/>
+                                    <Typography.Paragraph ellipsis style={{
+                                        width: 300,
+                                        marginBottom: 0
+                                    }}>{orderCustomer.mobile}</Typography.Paragraph>
+                                </Space>
+                            </CopyToClipboard>
+                            <Tooltip title={orderCustomer.address}>
+                                <Space>
+                                    <EnvironmentOutlined/>
+                                    <Typography.Paragraph ellipsis style={{
+                                        width: 300,
+                                        marginBottom: 0
+                                    }}>{orderCustomer.address}</Typography.Paragraph>
+                                </Space>
+                            </Tooltip></React.Fragment>}
+                    </Stack>
+                </Stack>}/>
         </List.Item>
 
         <OrderChangeShippingCodeWidget
             open={toggleInputShippingCodeEditor.value}
             onClose={toggleInputShippingCodeEditor.hide}
             value={props.item.shippingCode}
-            onSave={_onChangeShippingCode} />
+            onSave={_onChangeShippingCode}/>
     </React.Fragment>
 }
 

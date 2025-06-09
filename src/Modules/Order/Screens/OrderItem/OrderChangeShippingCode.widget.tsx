@@ -38,7 +38,7 @@ export const OrderChangeShippingCodeWidget: FunctionComponent<ChangeShippingCode
     return <Modal open={props.open} title={
         <Space>
             <BarcodeOutlined />
-            Nhập mã vận đơn
+            Mã vận đơn
         </Space>
     } destroyOnClose={true} onCancel={props.onClose} footer={<Stack fullwidth justify="flex-end">
         <Button type="primary" onClick={() => props.onSave(code)}>Lưu mã</Button>

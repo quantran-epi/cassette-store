@@ -1,39 +1,82 @@
-import { TrelloCreateAttachmentParam, TrelloCreateCardParam, TrelloCreateCommentParam } from "./Models/ApiParam";
-import { TrelloAction } from "./Models/TrelloAction";
-import { TrelloAttachment } from "./Models/TrelloAttachment";
-import { TrelloCard } from "./Models/TrelloCard";
+import {TrelloCreateAttachmentParam, TrelloCreateCardParam, TrelloCreateCommentParam} from "./Models/ApiParam";
+import {TrelloAction} from "./Models/TrelloAction";
+import {TrelloAttachment} from "./Models/TrelloAttachment";
+import {TrelloCard} from "./Models/TrelloCard";
+import {useAPI} from "../useAPI";
 
 type UseTrello = {
-    getACard: (cardId: string) => TrelloCard;
-    getCardsByList: (listId: string) => TrelloCard[];
-    getAttachmentsOfCard: (cardId: string) => TrelloAttachment[];
-    getAnAttachment: (attachmentId: string) => TrelloAttachment;
-    createCard: (params: TrelloCreateCardParam) => TrelloCard;
-    createAttachment: (params: TrelloCreateAttachmentParam) => TrelloAttachment[];
-    createComment: (params: TrelloCreateCommentParam) => TrelloAction;
+    getCard: (cardId: string) => Promise<TrelloCard>;
+    getCardsByList: (listId: string) => Promise<TrelloCard[]>;
+    getAttachmentsOfCard: (cardId: string) => Promise<TrelloAttachment[]>;
+    getAttachment: (attachmentId: string, cardId: string) => Promise<TrelloAttachment>;
+    createCard: (params: TrelloCreateCardParam) => Promise<TrelloCard>;
+    createAttachment: (params: TrelloCreateAttachmentParam, idCard: string) => Promise<TrelloAttachment[]>;
+    createComment: (params: TrelloCreateCommentParam, idCard: string) => Promise<TrelloAction>;
 }
 
-type UseTrelloProps = {
-    
-}
+type UseTrelloProps = {}
 
-export const useTrello = (props: UseTrelloProps):UseTrello => {
+export const useTrello = (props?: UseTrelloProps): UseTrello => {
     const TODO_LIST_ID = "683721cc07c7a969e00ab475";
     const DELIVERY_CREATED_LIST_ID = "683823d1aa759895d6d6d32c";
     const DONE_LIST_ID = "683823d67567eff9da5c91c2";
     const NOT_DELIVERED_LIST_ID = "683ad6fb6d164af9e8f0fd32";
+    const apiKey = "b36fcca616947504a51b502d550c0799";
+    const token = "ATTA697bfbe9bd82a3b68f9fad66af4fcdf56492c460515041ea3675fa66010e5b851D18B695";
     const ENDPOINTS = {
-        GET_CARD: "",
-        GET_CARDS_BY_LIST: "",
-        GET_ATTACHMENTS_BY_CARD: "",
-        GET_ATTACHMENT: "",
-        CREATE_ATTACHMENT: "",
-        CREATE_NEW_CARD: "",
-        UPDATE_CARD: "",
-        ADD_COMMENT_ON_CARD: ""
+        ROOT: "https://api.trello.com/1",
+        GET_CARD: "/cards/{id}",
+        GET_CARDS_BY_LIST: "/lists/{id}/cards",
+        GET_ATTACHMENTS_BY_CARD: "/cards/{id}/attachments",
+        GET_ATTACHMENT: "/cards/{id}/attachments/{idAttachment}",
+        CREATE_ATTACHMENT: "/cards/{id}/attachments",
+        CREATE_NEW_CARD: "/cards?idList={idList}",
+        UPDATE_CARD: "/cards/{id}",
+        ADD_COMMENT_ON_CARD: "/cards/{id}/actions/comments?text={text}"
+    }
+    const apiUtils = useAPI({
+        root: ENDPOINTS.ROOT,
+        defaultParams: new URLSearchParams({
+            key: apiKey,
+            token: token
+        })
+    })
+
+    const getCard = async (cardId: string): Promise<TrelloCard> => {
+        return apiUtils.get<TrelloCard>(ENDPOINTS.GET_CARD, {"{id}": cardId});
+    }
+
+    const getCardsByList = (listId: string): Promise<TrelloCard[]> => {
+        return apiUtils.get(ENDPOINTS.GET_CARDS_BY_LIST, {"{id}": listId});
+    }
+
+    const getAttachmentsOfCard = (cardId: string): Promise<TrelloAttachment[]> => {
+        return apiUtils.get(ENDPOINTS.GET_ATTACHMENTS_BY_CARD, {"{id}": cardId});
+    }
+
+    const getAttachment = (attachmentId: string, cardId: string): Promise<TrelloAttachment> => {
+        return apiUtils.get(ENDPOINTS.GET_ATTACHMENT, {"{id}": cardId, "{idAttachment}": attachmentId});
+    }
+
+    const createCard = (params: TrelloCreateCardParam): Promise<TrelloCard> => {
+        return apiUtils.post(ENDPOINTS.CREATE_NEW_CARD, {"{idList}": params.idList}, params);
+    }
+
+    const createAttachment = (params: TrelloCreateAttachmentParam, idCard: string): Promise<TrelloAttachment[]> => {
+        return apiUtils.post(ENDPOINTS.CREATE_ATTACHMENT, {"{id}": idCard}, params);
+    }
+
+    const createComment = (params: TrelloCreateCommentParam, idCard: string): Promise<TrelloAction> => {
+        return apiUtils.post(ENDPOINTS.ADD_COMMENT_ON_CARD, {"{id}": idCard, "{text}": params.text}, null);
     }
 
     return {
-
+        getCard,
+        getCardsByList,
+        getAttachmentsOfCard,
+        getAttachment,
+        createComment,
+        createCard,
+        createAttachment
     }
 }

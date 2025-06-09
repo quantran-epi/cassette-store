@@ -8,14 +8,14 @@ import { Space } from "@components/Layout/Space";
 import { Stack } from "@components/Layout/Stack";
 import { List } from "@components/List";
 import { Modal } from "@components/Modal";
-import { useScreenTitle, useToggle } from "@hooks";
+import {useScreenTitle, useToggle, useTrello} from "@hooks";
 import { CustomerAddWidget } from "@modules/Customer/Screens/CustomerAdd.widget";
 import { RootRoutes } from "@routing/RootRoutes";
 import { Customer } from "@store/Models/Customer";
 import { removeOrder } from "@store/Reducers/OrderReducer";
 import { RootState } from "@store/Store";
 import { debounce, sortBy } from "lodash";
-import React, { useMemo, useState } from "react";
+import React, {useEffect, useMemo, useState} from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { CustomerSearchWidget } from "./OrderCreate/CustomerSearch.widget";
@@ -30,6 +30,13 @@ export const OrderListScreen = () => {
     const { } = useScreenTitle({ value: "Đơn hàng", deps: [] });
     const [searchText, setSearchText] = useState("");
     const [prefilledCustomer, setPrefilledCustomer] = useState<Partial<Customer>>();
+    const trello = useTrello();
+
+    useEffect(() => {
+        // trello.getCardsByList("683823d67567eff9da5c91c2").then(res => console.log(res));
+        // trello.getCard("6837aba7967282e8d951f0c8");
+        // trello.createComment({text: "testcomment"}, "6837aba7967282e8d951f0c8");
+    }, []);
 
     const filteredOrders = useMemo(() => {
         return sortBy(orders.filter(e => e.name.trim().toLowerCase().includes(searchText.trim().toLowerCase())), "name");

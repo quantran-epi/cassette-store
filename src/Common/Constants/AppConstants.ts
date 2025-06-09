@@ -68,5 +68,9 @@ export const COLORS = {
         CREATE_DELIVERY: "#16ab31",
         WAITING_FOR_RETURNED: "#f79a72"
     },
+    PAYMENT_METHOD: {
+        COD: "",
+        BANK_TRANSFER_IN_ADVANCE: "#1877F2"
+    },
     RETURN_REASON: "#990505"
 }
