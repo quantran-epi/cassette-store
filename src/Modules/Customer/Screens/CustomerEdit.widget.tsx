@@ -36,6 +36,7 @@ export const CustomerEditWidget = ({item, onDone}) => {
             mobile: {label: "Điện thoại", name: ObjectPropertyHelper.nameof(defaultValues, e => e.mobile)},
             buyCount: {name: ObjectPropertyHelper.nameof(defaultValues, e => e.buyCount), noMarkup: true},
             note: {label: "Ghi chú khác", name: ObjectPropertyHelper.nameof(defaultValues, e => e.note)},
+            buyAmount: {name: ObjectPropertyHelper.nameof(defaultValues, e => e.buyAmount), noMarkup: true},
         })
     })
     const area = Form.useWatch("area", editCustomerForm.form);

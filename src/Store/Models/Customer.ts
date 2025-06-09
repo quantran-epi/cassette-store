@@ -6,6 +6,7 @@ export type Customer = {
     address: string;
     mobile: string;
     buyCount: number;
+    buyAmount: number;
     isVIP: boolean;
     isInBlacklist: boolean;
     difficulty: string;

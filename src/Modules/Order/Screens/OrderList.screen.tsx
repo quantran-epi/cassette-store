@@ -33,7 +33,7 @@ export const OrderListScreen = () => {
     const trello = useTrello();
 
     useEffect(() => {
-        // trello.getCardsByList("683823d67567eff9da5c91c2").then(res => console.log(res));
+        trello.getCardsByList("683823d67567eff9da5c91c2").then(res => console.log(res));
         // trello.getCard("6837aba7967282e8d951f0c8");
         // trello.createComment({text: "testcomment"}, "6837aba7967282e8d951f0c8");
     }, []);

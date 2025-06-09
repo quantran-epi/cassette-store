@@ -96,8 +96,19 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
         dispatch(removeOrder([props.item.id]));
     }
 
-    const _onMoreActionClick = (e) => {
+    const _onMoreActionClick = async (e) => {
         switch (e.key) {
+            case "push-trello":
+                modal.confirm({
+                    title: "Đẩy đơn lên danh sách cần làm trên Trello?",
+                    cancelText: "Huỷ",
+                    onOk: async () => {
+                        let trelloCard = await orderUtils.pushToTrelloToDoList(props.item.id);
+                        if (!trelloCard) message.error("Lỗi đẩy đơn lên Trello");
+                        else message.success("Đã đẩy đơn lên Trello");
+                    }
+                })
+                break;
             case "place-items":
                 break;
             case "input-shipping-code":
@@ -118,7 +129,15 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
     const _onDeliveryActionClick = (e) => {
         switch (e.key) {
             case "mark-as-done":
-                orderUtils.markOrderAsShipped(props.item.id);
+                modal.confirm({
+                    title: "Đánh dấu đơn là thành công, thao tác này không thể chỉnh sửa?",
+                    cancelText: "Huỷ",
+                    onOk: () => {
+                        let error = orderUtils.markOrderAsShipped(props.item.id);
+                        if (error) message.error(error);
+                        else message.success("Đã đánh dấu đơn bom");
+                    }
+                })
                 break;
             case "refuse-to-receive":
                 modal.confirm({
@@ -151,12 +170,8 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
         }
     }
 
-    const _onPushOrderToTrello = () => {
-
-    }
-
-    const _onChangeShippingCode = (value: string) => {
-        let error = orderUtils.changeShippingCode(props.item.id, value);
+    const _onChangeShippingCode = async (value: string) => {
+        let error = await orderUtils.changeShippingCode(props.item.id, value);
         if (error) message.error(error);
         else {
             toggleInputShippingCodeEditor.hide();
@@ -168,7 +183,7 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
         <List.Item
             actions={
                 [
-                    <Dropdown menu={{
+                    orderUtils.isShipped(props.item.id) ? undefined : <Dropdown menu={{
                         items: [
                             {
                                 label: 'Đã giao hàng',
@@ -207,11 +222,14 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                     }} placement="bottom">
                         <Button size="small" icon={<TruckOutlined/>}/>
                     </Dropdown>,
-                    <Popconfirm title="Đẩy lên danh sách cần làm trên Trello?" onConfirm={_onPushOrderToTrello}>
-                        <Button size="small" icon={<CloudUploadOutlined/>}/>
-                    </Popconfirm>,
                     <Dropdown menu={{
                         items: [
+                            {
+                                label: 'Đẩy đơn lên Trello',
+                                key: 'push-trello',
+                                icon: <CloudUploadOutlined/>,
+                                disabled: !orderUtils.canPushToTrello(props.item.id)
+                            },
                             {
                                 label: 'Danh sách băng',
                                 key: 'place-items',

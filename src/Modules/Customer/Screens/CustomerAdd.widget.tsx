@@ -36,6 +36,7 @@ export const CustomerAddWidget: FunctionComponent<CustomerAddWidgetProps> = (pro
             isVIP: false,
             mobile: "",
             buyCount: 0,
+            buyAmount: 0,
             note: ""
         },
         onSubmit: (values) => {
@@ -55,6 +56,7 @@ export const CustomerAddWidget: FunctionComponent<CustomerAddWidgetProps> = (pro
             isVIP: { name: ObjectPropertyHelper.nameof(defaultValues, e => e.isVIP), noMarkup: true },
             mobile: { label: "Điện thoại", name: ObjectPropertyHelper.nameof(defaultValues, e => e.mobile) },
             buyCount: { name: ObjectPropertyHelper.nameof(defaultValues, e => e.buyCount), noMarkup: true },
+            buyAmount: { name: ObjectPropertyHelper.nameof(defaultValues, e => e.buyAmount), noMarkup: true },
             note: { label: "Ghi chú khác", name: ObjectPropertyHelper.nameof(defaultValues, e => e.note) },
         }),
         transformFunc: (values) => ({

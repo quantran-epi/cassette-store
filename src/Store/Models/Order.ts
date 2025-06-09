@@ -20,6 +20,7 @@ export type Order = {
     priorityStatus: string; //ORDER_PRIORITY_STATUS
     dueDate: Date;
     customerId: string;
+    trelloCardId: string;
 }
 
 export type ChangeItem = {
