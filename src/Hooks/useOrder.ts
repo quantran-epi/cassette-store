@@ -1,14 +1,16 @@
-import { ORDER_RETURN_REASON, ORDER_STATUS } from "@common/Constants/AppConstants";
-import { Order } from "@store/Models/Order";
-import { editCustomer } from "@store/Reducers/CustomerReducer";
-import { editOrder } from "@store/Reducers/OrderReducer";
-import { RootState } from "@store/Store";
-import { cloneDeep } from "lodash";
-import { useDispatch, useSelector } from "react-redux";
-import { useTrello } from "./Trello/useTrello";
-import { Customer } from "@store/Models/Customer";
-import { TrelloCard } from "./Trello/Models/TrelloCard";
-import { TrelloCreateCardParam } from "./Trello/Models/ApiParam";
+import {ORDER_PAYMENT_METHOD, ORDER_RETURN_REASON, ORDER_STATUS} from "@common/Constants/AppConstants";
+import {Order} from "@store/Models/Order";
+import {editCustomer} from "@store/Reducers/CustomerReducer";
+import {editOrder} from "@store/Reducers/OrderReducer";
+import {RootState} from "@store/Store";
+import {cloneDeep} from "lodash";
+import {useDispatch, useSelector} from "react-redux";
+import {useTrello} from "./Trello/useTrello";
+import {Customer} from "@store/Models/Customer";
+import {TrelloCard} from "./Trello/Models/TrelloCard";
+import {TrelloCreateCardParam} from "./Trello/Models/ApiParam";
+import {OrderHelper} from "@common/Helpers/OrderHelper";
+import {OrderItem} from "@store/Models/OrderItem";
 
 type UseOrder = {
     isShipped: (orderId: string) => boolean;
@@ -26,6 +28,9 @@ type UseOrder = {
     isPushedTrello: (orderId: string) => boolean;
     canPushToTrello: (orderId: string) => boolean;
     pushToTrelloToDoList: (orderId: string) => Promise<TrelloCard>;
+    calculateOrderPaymentAmount: (placedItems: OrderItem[], customerId: string) => number;
+    getAutoCODAmount: (paymentMethod: string, paymentAmount: number) => number;
+    assignTrelloId: (orderId: string, trelloCard: TrelloCard) => void;
 }
 
 type UseOrderProps = {}
@@ -136,7 +141,7 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
             dispatch(editOrder(order));
 
             // comment on trello
-            await trello.createComment({ text: code }, order.trelloCardId);
+            await trello.createComment({text: code}, order.trelloCardId);
             return null;
         } catch (e) {
             return e;
@@ -158,10 +163,10 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
     const canPushToTrello = (orderId: string): boolean => {
         let order = _findOrderById(orderId);
         if (order === null) return false;
-        return order.status === ORDER_STATUS.PLACED;
+        return order.status === ORDER_STATUS.PLACED && !Boolean(order.trelloCardId);
     }
 
-    const pushToTrelloToDoList =  async (orderId: string): Promise<TrelloCard> => {
+    const pushToTrelloToDoList = async (orderId: string): Promise<TrelloCard> => {
         let order = _findOrderById(orderId);
         let customer = _findCustomerById(order.customerId);
         try {
@@ -173,11 +178,26 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
                 pos: order.position,
                 idList: "683ad6fb6d164af9e8f0fd32"
             });
+            assignTrelloId(orderId, newCard);
             return newCard;
-        }
-        catch (e) {
+        } catch (e) {
             return null;
         }
+    }
+
+    const calculateOrderPaymentAmount = (placedItems: OrderItem[], customerId: string): number => {
+        let customer = _findCustomerById(customerId);
+        return OrderHelper.calculateTotalOrderItemsAmount(placedItems) + OrderHelper.getShippingAmountByArea(customer.area);
+    }
+
+    const getAutoCODAmount = (paymentMethod: string, paymentAmount: number): number => {
+        return paymentMethod === ORDER_PAYMENT_METHOD.BANK_TRANSFER_IN_ADVANCE ? 0 : paymentAmount;
+    }
+
+    const assignTrelloId = (orderId: string, trelloCard: TrelloCard): void => {
+        let order = _findOrderById(orderId);
+        order.trelloCardId = trelloCard.id;
+        dispatch(editOrder(order));
     }
 
     return {
@@ -195,6 +215,9 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
         isPushedTrello,
         isShipped,
         canPushToTrello,
-        pushToTrelloToDoList
+        pushToTrelloToDoList,
+        calculateOrderPaymentAmount,
+        getAutoCODAmount,
+        assignTrelloId
     }
 }

@@ -107,5 +107,13 @@ export const OrderHelper = {
         else if (amount >= 500000) markByOrderAmount += 1;
 
         return markByDate + markByArea + markByDifficulty + markByCustomerRank + markByPaymentMethod + markByOrderAmount;
+    },
+    calculateTotalOrderItemsAmount: (items: OrderItem[]):number => {
+        return items.reduce((prev, cur) => prev + (cur.count * cur.unitPrice), 0);
+    },
+    getShippingAmountByArea: (area: string):number => {
+        if(area === CUSTOMER_AREAS[0]) return 20000;
+        else if ([CUSTOMER_AREAS[1], CUSTOMER_AREAS[2], CUSTOMER_AREAS[3]]) return 25000;
+        else return 30000;
     }
 }

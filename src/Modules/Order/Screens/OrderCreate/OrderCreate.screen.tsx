@@ -22,7 +22,7 @@ import {List} from "@components/List";
 import {useMessage} from "@components/Message";
 import {SmartForm, useSmartForm} from "@components/SmartForm";
 import {Typography} from "@components/Typography";
-import {useScreenTitle} from "@hooks";
+import {useOrder, useScreenTitle} from "@hooks";
 import {nanoid} from "@reduxjs/toolkit";
 import {RootRoutes} from "@routing/RootRoutes";
 import {Order} from "@store/Models/Order";
@@ -44,6 +44,7 @@ export const OrderCreateScreen = () => {
     const message = useMessage();
     const navigate = useNavigate();
     const {} = useScreenTitle({value: "Tạo đơn hàng", deps: []});
+    const orderUtils = useOrder();
 
     const orderCustomer = useMemo(() => {
         return customers.find(e => e.id == customerId);
@@ -63,6 +64,7 @@ export const OrderCreateScreen = () => {
             isRefund: false,
             refundAmount: 0,
             paymentMethod: ORDER_PAYMENT_METHOD.CASH_COD,
+            paymentAmount: null,
             shippingPartner: ORDER_SHIPPING_PARTNER.VNPOST,
             shippingCode: "",
             codAmount: null,
@@ -98,6 +100,10 @@ export const OrderCreateScreen = () => {
                 label: "Phương thức thanh toán",
                 name: ObjectPropertyHelper.nameof(defaultValues, e => e.paymentMethod)
             },
+            paymentAmount: {
+                label: "Số tiền thu khách hàng",
+                name: ObjectPropertyHelper.nameof(defaultValues, e => e.paymentAmount)
+            },
             shippingPartner: {
                 label: "Đơn vị vận chuyển",
                 name: ObjectPropertyHelper.nameof(defaultValues, e => e.shippingPartner)
@@ -118,17 +124,24 @@ export const OrderCreateScreen = () => {
             ...values,
             id: values.name.concat(nanoid(10)),
             sequence: lastSequence + 1,
-            createdDate: new Date(),
-            customerId: customerId
+            createdDate: new Date()
         })
     })
     const placedItems = Form.useWatch("placedItems", addOrderForm.form);
 
     useEffect(() => {
-        if (orderCustomer?.name) addOrderForm.form.setFieldsValue({
-            name: (lastSequence + 1) + "." + orderCustomer.name + "-" + orderCustomer.province,
-            placedItems: placedItems?.length > 0 ? placedItems : [OrderHelper.createNewEmptyOrderItem(addOrderForm.form.getFieldValue("name"), true)]
-        });
+        if (orderCustomer?.name) {
+            let _placedItems = placedItems?.length > 0 ? placedItems : [OrderHelper.createNewEmptyOrderItem(addOrderForm.form.getFieldValue("name"), true)]
+            addOrderForm.form.setFieldsValue({
+                name: (lastSequence + 1) + ". " + orderCustomer.name + "-" + orderCustomer.province,
+                customerId: orderCustomer.id,
+                placedItems: _placedItems
+            });
+            addOrderForm.form.setFieldsValue({
+                paymentAmount: orderUtils.calculateOrderPaymentAmount(_placedItems, orderCustomer.id),
+                codAmount: orderUtils.getAutoCODAmount(addOrderForm.form.getFieldValue("paymentMethod"), orderUtils.calculateOrderPaymentAmount(_placedItems, orderCustomer.id))
+            });
+        }
     }, [orderCustomer])
 
     const _onSaveOrder = () => {
@@ -154,8 +167,8 @@ export const OrderCreateScreen = () => {
     }
 
     const _onChangePaymentMethod = (e: RadioChangeEvent) => {
-        if (e.target.value === ORDER_PAYMENT_METHOD.BANK_TRANSFER_IN_ADVANCE) addOrderForm.form.setFieldsValue({codAmount: 0});
-        else addOrderForm.form.setFieldsValue({codAmount: null})
+        let formValues = addOrderForm.form.getFieldsValue();
+        addOrderForm.form.setFieldsValue({codAmount: orderUtils.getAutoCODAmount(e.target.value, formValues.paymentAmount)});
     }
 
     return <React.Fragment>
@@ -208,6 +221,10 @@ export const OrderCreateScreen = () => {
                             },
                         ]}
                     />
+                </SmartForm.Item>
+                <SmartForm.Item {...addOrderForm.itemDefinitions.paymentAmount}>
+                    <InputNumber style={{width: "100%"}} placeholder="Nhập số tiền thu"
+                                 formatter={(value) => `đ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}/>
                 </SmartForm.Item>
                 <SmartForm.Item {...addOrderForm.itemDefinitions.codAmount}>
                     <InputNumber style={{width: "100%"}} placeholder="Nhập số tiền COD"

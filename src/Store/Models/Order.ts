@@ -13,6 +13,7 @@ export type Order = {
     isRefund: boolean;
     refundAmount: number;
     paymentMethod: string; //ORDER_PAYMENT_METHOD
+    paymentAmount: number;
     shippingPartner: string; //ORDER_SHIPPING_PARTNER,
     shippingCode: string;
     codAmount: number;

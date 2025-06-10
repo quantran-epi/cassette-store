@@ -12,7 +12,8 @@ import {
     MoreOutlined,
     PhoneOutlined,
     TruckOutlined,
-    ToolOutlined
+    ToolOutlined,
+    HighlightOutlined
 } from "@ant-design/icons";
 import {COLORS, ORDER_PAYMENT_METHOD, ORDER_STATUS} from "@common/Constants/AppConstants";
 import {Button} from "@components/Button";
@@ -27,7 +28,7 @@ import {Tag} from "@components/Tag";
 import {Tooltip} from "@components/Tootip";
 import {Typography} from "@components/Typography";
 import {Order} from "@store/Models/Order";
-import {removeOrder} from "@store/Reducers/OrderReducer";
+import {editOrder, removeOrder} from "@store/Reducers/OrderReducer";
 import {RootState} from "@store/Store";
 import React, {FunctionComponent, useMemo} from "react";
 import {CopyToClipboard} from 'react-copy-to-clipboard';
@@ -52,7 +53,6 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
         return customers.find(e => e.id == props.item.customerId);
     }, [props.item.customerId])
     const orderUtils = useOrder();
-
     const _renderOrderIcon = () => {
         if (orderCustomer.isVIP) return <Tag color={COLORS.CUSTOMER.VIP}>VIP</Tag>;
         return undefined;
@@ -84,7 +84,10 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
     const _renderCODAmount = () => {
         switch (props.item.paymentMethod) {
             case ORDER_PAYMENT_METHOD.CASH_COD:
-                return <Tag color={COLORS.PAYMENT_METHOD.COD}>COD</Tag>;
+                return <CopyToClipboard text={props.item.codAmount}
+                                        onCopy={() => message.success("Đã sao chép số tiền COD")}>
+                    <Tag color={COLORS.PAYMENT_METHOD.COD}>COD {props.item.codAmount.toLocaleString()}đ</Tag>
+                </CopyToClipboard>;
             case ORDER_PAYMENT_METHOD.BANK_TRANSFER_IN_ADVANCE:
                 return <Tag color={COLORS.PAYMENT_METHOD.BANK_TRANSFER_IN_ADVANCE}>Bank</Tag>;
             default:
@@ -110,6 +113,8 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                 })
                 break;
             case "place-items":
+                break;
+            case "create-delivery-bill-helpers":
                 break;
             case "input-shipping-code":
                 toggleInputShippingCodeEditor.show();
@@ -231,6 +236,11 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                                 disabled: !orderUtils.canPushToTrello(props.item.id)
                             },
                             {
+                                label: 'Hỗ trợ nhập đơn',
+                                key: 'create-delivery-bill-helpers',
+                                icon: <HighlightOutlined/>,
+                            },
+                            {
                                 label: 'Danh sách băng',
                                 key: 'place-items',
                                 icon: <FileTextOutlined/>,
@@ -266,7 +276,7 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                                 type="text"
                                 style={{paddingLeft: 0, fontWeight: "bold"}}>
                             <Space>
-                                <Typography.Text>{props.item.name}{props.item.priorityMark}{props.item.position}</Typography.Text>
+                                <Typography.Text>{props.item.name}</Typography.Text>
                             </Space>
                         </Button>
                     </Tooltip>
@@ -281,7 +291,7 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                         <Space>
                             <DollarOutlined/>
                             <Space>
-                                <Typography.Text>{props.item.codAmount.toLocaleString()} đ</Typography.Text>
+                                <Typography.Text>Thu {props.item.paymentAmount.toLocaleString()} đ</Typography.Text>
                                 {_renderCODAmount()}
                             </Space>
                         </Space>
@@ -296,15 +306,19 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                                     }}>{orderCustomer.mobile}</Typography.Paragraph>
                                 </Space>
                             </CopyToClipboard>
-                            <Tooltip title={orderCustomer.address}>
-                                <Space>
-                                    <EnvironmentOutlined/>
-                                    <Typography.Paragraph ellipsis style={{
-                                        width: 300,
-                                        marginBottom: 0
-                                    }}>{orderCustomer.address}</Typography.Paragraph>
-                                </Space>
-                            </Tooltip></React.Fragment>}
+                            <CopyToClipboard text={orderCustomer.address}
+                                             onCopy={() => message.success("Đã sao chép địa chỉ")}>
+                                <Tooltip title={orderCustomer.address}>
+                                    <Space>
+                                        <EnvironmentOutlined/>
+                                        <Typography.Paragraph ellipsis style={{
+                                            width: 300,
+                                            marginBottom: 0
+                                        }}>{orderCustomer.address}</Typography.Paragraph>
+                                    </Space>
+                                </Tooltip>
+                            </CopyToClipboard>
+                        </React.Fragment>}
                     </Stack>
                 </Stack>}/>
         </List.Item>
