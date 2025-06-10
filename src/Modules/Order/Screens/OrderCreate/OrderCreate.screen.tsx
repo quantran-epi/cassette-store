@@ -12,7 +12,7 @@ import {ObjectPropertyHelper} from "@common/Helpers/ObjectProperty";
 import {OrderHelper} from "@common/Helpers/OrderHelper";
 import {Button} from "@components/Button";
 import {Form} from "@components/Form";
-import {Input} from "@components/Form/Input";
+import {Input, TextArea} from "@components/Form/Input";
 import {InputNumber} from "@components/Form/InputNumber";
 import {Radio} from "@components/Form/Radio";
 import {Divider} from "@components/Layout/Divider";
@@ -73,7 +73,8 @@ export const OrderCreateScreen = () => {
             dueDate: undefined,
             customerId: "",
             trelloCardId: null,
-            position: null
+            position: null,
+            note: ""
         },
         onSubmit: (values) => {
             dispatch(addOrder({order: values.transformValues, customer: orderCustomer}));
@@ -119,6 +120,7 @@ export const OrderCreateScreen = () => {
             customerId: {name: ObjectPropertyHelper.nameof(defaultValues, e => e.customerId), noMarkup: true},
             trelloCardId: {name: ObjectPropertyHelper.nameof(defaultValues, e => e.trelloCardId), noMarkup: true},
             position: {name: ObjectPropertyHelper.nameof(defaultValues, e => e.position), noMarkup: true},
+            note: {label: "Ghi chú",name: ObjectPropertyHelper.nameof(defaultValues, e => e.note)},
         }),
         transformFunc: (values) => ({
             ...values,
@@ -251,6 +253,9 @@ export const OrderCreateScreen = () => {
                                                                onChange={_onChangePlacedItem}
                                                                allPlacedItems={placedItems}/>}
                     />
+                </SmartForm.Item>
+                <SmartForm.Item {...addOrderForm.itemDefinitions.note}>
+                    <TextArea rows={3} placeholder="Nhập ghi chú"/>
                 </SmartForm.Item>
                 <SmartForm.Item>
                     <Button type="primary" fullwidth onClick={_onSaveOrder}>Lưu đơn hàng</Button>

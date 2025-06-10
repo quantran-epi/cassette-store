@@ -23,6 +23,7 @@ export type Order = {
     customerId: string;
     trelloCardId: string;
     position: number;
+    note: string;
 }
 
 export type ChangeItem = {

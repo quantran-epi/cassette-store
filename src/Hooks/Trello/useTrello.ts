@@ -1,15 +1,27 @@
-import {TrelloCreateAttachmentParam, TrelloCreateCardParam, TrelloCreateCommentParam} from "./Models/ApiParam";
+import {
+    TrelloCreateAttachmentParam,
+    TrelloCreateCardParam,
+    TrelloCreateCommentParam,
+    TrelloUpdateCardParam
+} from "./Models/ApiParam";
 import {TrelloAction} from "./Models/TrelloAction";
 import {TrelloAttachment} from "./Models/TrelloAttachment";
 import {TrelloCard} from "./Models/TrelloCard";
 import {useAPI} from "../useAPI";
 
 type UseTrello = {
+    TRELLO_LIST_IDS: {
+        TODO_LIST:string;
+        DELIVERY_CREATED_LIST: string;
+        DONE_LIST: string;
+        NOT_DELIVERED_LIST: string;
+    }
     getCard: (cardId: string) => Promise<TrelloCard>;
     getCardsByList: (listId: string) => Promise<TrelloCard[]>;
     getAttachmentsOfCard: (cardId: string) => Promise<TrelloAttachment[]>;
     getAttachment: (attachmentId: string, cardId: string) => Promise<TrelloAttachment>;
     createCard: (params: TrelloCreateCardParam) => Promise<TrelloCard>;
+    updateCard: (params: TrelloUpdateCardParam) => Promise<TrelloCard>;
     createAttachment: (params: TrelloCreateAttachmentParam, idCard: string) => Promise<TrelloAttachment[]>;
     createComment: (params: TrelloCreateCommentParam, idCard: string) => Promise<TrelloAction>;
 }
@@ -17,10 +29,12 @@ type UseTrello = {
 type UseTrelloProps = {}
 
 export const useTrello = (props?: UseTrelloProps): UseTrello => {
-    const TODO_LIST_ID = "683721cc07c7a969e00ab475";
-    const DELIVERY_CREATED_LIST_ID = "683823d1aa759895d6d6d32c";
-    const DONE_LIST_ID = "683823d67567eff9da5c91c2";
-    const NOT_DELIVERED_LIST_ID = "683ad6fb6d164af9e8f0fd32";
+    const TRELLO_LIST_IDS = {
+        TODO_LIST: "683721cc07c7a969e00ab475",
+        DELIVERY_CREATED_LIST: "683823d1aa759895d6d6d32c",
+        DONE_LIST: "683823d67567eff9da5c91c2",
+        NOT_DELIVERED_LIST: "683ad6fb6d164af9e8f0fd32"
+    }
     const apiKey = "b36fcca616947504a51b502d550c0799";
     const token = "ATTA697bfbe9bd82a3b68f9fad66af4fcdf56492c460515041ea3675fa66010e5b851D18B695";
     const ENDPOINTS = {
@@ -62,6 +76,10 @@ export const useTrello = (props?: UseTrelloProps): UseTrello => {
         return apiUtils.post(ENDPOINTS.CREATE_NEW_CARD, {"{idList}": params.idList}, params);
     }
 
+    const updateCard = (params: TrelloUpdateCardParam): Promise<TrelloCard> => {
+        return apiUtils.put(ENDPOINTS.UPDATE_CARD, {"{id}": params.id}, params);
+    }
+
     const createAttachment = (params: TrelloCreateAttachmentParam, idCard: string): Promise<TrelloAttachment[]> => {
         return apiUtils.post(ENDPOINTS.CREATE_ATTACHMENT, {"{id}": idCard}, params);
     }
@@ -71,12 +89,14 @@ export const useTrello = (props?: UseTrelloProps): UseTrello => {
     }
 
     return {
+        TRELLO_LIST_IDS,
         getCard,
         getCardsByList,
         getAttachmentsOfCard,
         getAttachment,
         createComment,
         createCard,
+        updateCard,
         createAttachment
     }
 }

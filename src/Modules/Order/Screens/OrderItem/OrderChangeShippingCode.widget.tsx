@@ -22,6 +22,7 @@ import { Stack } from "@components/Layout/Stack";
 import { Button } from "@components/Button";
 
 type ChangeShippingCodeWidgetProps = {
+    loading: boolean;
     value: string;
     open: boolean;
     onClose: () => void;
@@ -41,7 +42,7 @@ export const OrderChangeShippingCodeWidget: FunctionComponent<ChangeShippingCode
             Mã vận đơn
         </Space>
     } destroyOnClose={true} onCancel={props.onClose} footer={<Stack fullwidth justify="flex-end">
-        <Button type="primary" onClick={() => props.onSave(code)}>Lưu mã</Button>
+        <Button loading={props.loading} type="primary" onClick={() => props.onSave(code)}>Lưu mã</Button>
     </Stack>}>
         <Input autoFocus value={code} onChange={e => setCode(e.target.value)} />
     </Modal>

@@ -7,6 +7,10 @@ export type TrelloCreateCardParam = {
     idLabels?: string[];
 }
 
+export type TrelloUpdateCardParam = Partial<TrelloCreateCardParam> & {
+    id: string;
+}
+
 export type TrelloCreateAttachmentParam = {
     name: string;
     file: Blob;

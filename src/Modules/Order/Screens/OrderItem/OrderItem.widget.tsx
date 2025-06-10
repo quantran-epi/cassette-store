@@ -49,10 +49,12 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
     const message = useMessage();
     const modal = useModal();
     const toggleInputShippingCodeEditor = useToggle();
+    const toggleLoadingChangeShippingCode = useToggle();
     const orderCustomer = useMemo(() => {
         return customers.find(e => e.id == props.item.customerId);
     }, [props.item.customerId])
     const orderUtils = useOrder();
+
     const _renderOrderIcon = () => {
         if (orderCustomer.isVIP) return <Tag color={COLORS.CUSTOMER.VIP}>VIP</Tag>;
         return undefined;
@@ -131,16 +133,16 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
         }
     }
 
-    const _onDeliveryActionClick = (e) => {
+    const _onDeliveryActionClick = async (e) => {
         switch (e.key) {
             case "mark-as-done":
                 modal.confirm({
                     title: "Đánh dấu đơn là thành công, thao tác này không thể chỉnh sửa?",
                     cancelText: "Huỷ",
-                    onOk: () => {
-                        let error = orderUtils.markOrderAsShipped(props.item.id);
+                    onOk: async () => {
+                        let error = await orderUtils.markOrderAsShipped(props.item.id);
                         if (error) message.error(error);
-                        else message.success("Đã đánh dấu đơn bom");
+                        else message.success("Đã đánh dấu đơn hoàn thành");
                     }
                 })
                 break;
@@ -148,8 +150,8 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                 modal.confirm({
                     title: "Đánh dấu đơn là bị bom hàng?",
                     cancelText: "Huỷ",
-                    onOk: () => {
-                        let error = orderUtils.markOrderAsRefuseToReceive(props.item.id);
+                    onOk: async () => {
+                        let error = await orderUtils.markOrderAsRefuseToReceive(props.item.id);
                         if (error) message.error(error);
                         else message.success("Đã đánh dấu đơn bom");
                     }
@@ -165,8 +167,8 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                 modal.confirm({
                     title: "Đánh dấu đơn là hàng lỗi?",
                     cancelText: "Huỷ",
-                    onOk: () => {
-                        let error = orderUtils.markOrderAsBrokenItems(props.item.id);
+                    onOk: async () => {
+                        let error = await orderUtils.markOrderAsBrokenItems(props.item.id);
                         if (error) message.error(error);
                         else message.success("Đã đánh dấu đơn hàng lỗi");
                     }
@@ -176,7 +178,9 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
     }
 
     const _onChangeShippingCode = async (value: string) => {
+        toggleLoadingChangeShippingCode.show();
         let error = await orderUtils.changeShippingCode(props.item.id, value);
+        toggleLoadingChangeShippingCode.hide();
         if (error) message.error(error);
         else {
             toggleInputShippingCodeEditor.hide();
@@ -291,7 +295,7 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                         <Space>
                             <DollarOutlined/>
                             <Space>
-                                <Typography.Text>Thu {props.item.paymentAmount.toLocaleString()} đ</Typography.Text>
+                                <Typography.Text>Thu {props.item.paymentAmount.toLocaleString()}đ</Typography.Text>
                                 {_renderCODAmount()}
                             </Space>
                         </Space>
@@ -324,6 +328,7 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
         </List.Item>
 
         <OrderChangeShippingCodeWidget
+            loading={toggleLoadingChangeShippingCode.value}
             open={toggleInputShippingCodeEditor.value}
             onClose={toggleInputShippingCodeEditor.hide}
             value={props.item.shippingCode}
