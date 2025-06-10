@@ -85,8 +85,6 @@ export const useTrello = (props?: UseTrelloProps): UseTrello => {
         formData.append("name", params.name);
         formData.append("mimeType", params.mimeType);
         formData.append("file", params.file);
-        // let headers = new Headers();
-        // headers.append("Content-Type", "multipart/form-data");
         return apiUtils.postForFile(ENDPOINTS.CREATE_ATTACHMENT, { "{id}": idCard }, formData);
     }
 

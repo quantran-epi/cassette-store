@@ -212,7 +212,7 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
                 start: new Date(),
                 pos: order.position,
                 idLabels: [],
-                idList: "683ad6fb6d164af9e8f0fd32"
+                idList: trello.TRELLO_LIST_IDS.TODO_LIST
             });
             return newCard;
         } catch (e) {
