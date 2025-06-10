@@ -1,19 +1,19 @@
-import {ORDER_PAYMENT_METHOD, ORDER_RETURN_REASON, ORDER_STATUS} from "@common/Constants/AppConstants";
-import {Order} from "@store/Models/Order";
-import {editCustomer} from "@store/Reducers/CustomerReducer";
-import {addOrder, editOrder} from "@store/Reducers/OrderReducer";
-import {RootState} from "@store/Store";
-import {cloneDeep} from "lodash";
-import {useDispatch, useSelector} from "react-redux";
-import {useTrello} from "./Trello/useTrello";
-import {Customer} from "@store/Models/Customer";
-import {TrelloCard} from "./Trello/Models/TrelloCard";
-import {TrelloCreateCardParam} from "./Trello/Models/ApiParam";
-import {OrderHelper} from "@common/Helpers/OrderHelper";
-import {OrderItem} from "@store/Models/OrderItem";
-import {RcFile} from "antd/es/upload";
-import {TrelloAttachment} from "./Trello/Models/TrelloAttachment";
-import {nanoid} from "nanoid";
+import { ORDER_PAYMENT_METHOD, ORDER_RETURN_REASON, ORDER_STATUS } from "@common/Constants/AppConstants";
+import { Order } from "@store/Models/Order";
+import { editCustomer } from "@store/Reducers/CustomerReducer";
+import { addOrder, editOrder } from "@store/Reducers/OrderReducer";
+import { RootState, store } from "@store/Store";
+import { cloneDeep } from "lodash";
+import { useDispatch, useSelector } from "react-redux";
+import { useTrello } from "./Trello/useTrello";
+import { Customer } from "@store/Models/Customer";
+import { TrelloCard } from "./Trello/Models/TrelloCard";
+import { TrelloCreateCardParam } from "./Trello/Models/ApiParam";
+import { OrderHelper } from "@common/Helpers/OrderHelper";
+import { OrderItem } from "@store/Models/OrderItem";
+import { RcFile } from "antd/es/upload";
+import { TrelloAttachment } from "./Trello/Models/TrelloAttachment";
+import { nanoid } from "nanoid";
 
 type UseOrder = {
     isShipped: (orderId: string) => boolean;
@@ -166,7 +166,7 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
             dispatch(editOrder(order));
 
             // comment on trello
-            let action = await trello.createComment({text: code}, order.trelloCardId);
+            let action = await trello.createComment({ text: code }, order.trelloCardId);
             if (action === null) return "Lỗi bình luận Trello";
 
             if (!isAlreadyHasShippingCode) {
@@ -249,21 +249,28 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
     }
 
     const createOrder = async (order: Order, customer: Customer, fileAttachments: RcFile[]): Promise<TrelloCard> => {
-        let trelloCard = await pushToTrelloToDoList(order);
-        order.trelloCardId = trelloCard.id;
-        dispatch(addOrder({order: order, customer}));
-        await attachImagesToOrderOnTrello(order, fileAttachments);
+        dispatch(addOrder({ order: order, customer })); // add first to get position
+        let createdOrder = store.getState().order.orders.find(e => e.id === order.id);
+        let trelloCard = await pushToTrelloToDoList(createdOrder);
+
+        //save trello card id
+        createdOrder = cloneDeep(createdOrder);
+        createdOrder.trelloCardId = trelloCard.id;
+        dispatch(editOrder(createdOrder));
+
+        // upload images
+        await attachImagesToOrderOnTrello(createdOrder, fileAttachments);
         return trelloCard;
     }
 
     const attachImagesToOrderOnTrello = async (order: Order, files: RcFile[]): Promise<TrelloAttachment[]> => {
-        let promises: Promise<TrelloAttachment[]>[] = [];
+        let promises: Promise<TrelloAttachment>[] = [];
         promises = files.map(file => trello.createAttachment({
             name: order.name.concat("attachment").concat(nanoid(2)),
             mimeType: file.type,
             file: file
         }, order.trelloCardId));
-        return Promise.all(promises).then(res => res.flat()).catch(err => []);
+        return Promise.all(promises);
     }
 
     return {

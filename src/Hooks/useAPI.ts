@@ -1,9 +1,10 @@
-import {message} from "antd";
+import { message } from "antd";
 
 type UseAPI = {
-    post: <T>(url: string, replacer: Record<string, string>, body: any, params?: URLSearchParams) => Promise<T>;
+    post: <T>(url: string, replacer: Record<string, string>, body: any, params?: URLSearchParams, headers?: Headers) => Promise<T>;
+    postForFile: <T>(url: string, replacer: Record<string, string>, body: any, params?: URLSearchParams, headers?: Headers) => Promise<T>;
     get: <T>(url: string, replacer: Record<string, string>, params?: URLSearchParams) => Promise<T>;
-    put: <T>(url: string, replacer: Record<string, string>, body: any, params?: URLSearchParams) => Promise<T>;
+    put: <T>(url: string, replacer: Record<string, string>, body: any, params?: URLSearchParams, headers?: Headers) => Promise<T>;
     remove: <T>(url: string, replacer: Record<string, string>, params?: URLSearchParams) => Promise<T>;
 }
 
@@ -43,14 +44,27 @@ export const useAPI = (props: UseAPIProps): UseAPI => {
         })
     }
 
-    const post = <T>(url: string, replacer: Record<string, string>, body: any, params?: URLSearchParams): Promise<T> => {
+    const post = <T>(url: string, replacer: Record<string, string>, body: any, params?: URLSearchParams, headers?: Headers): Promise<T> => {
+        const combinedHeaders = new Headers();
+        let defaultHeaders: Headers = new Headers();
+        defaultHeaders.append("Accept", "application/json");
+        defaultHeaders.append("Content-Type", "application/x-www-form-urlencoded");
+
+        defaultHeaders.forEach((value, key) => {
+            combinedHeaders.append(key, value);
+        });
+
+        // Copy all headers from headers2 (overwrites duplicates)
+        if (headers) {
+            headers.forEach((value, key) => {
+                combinedHeaders.append(key, value);
+            });
+        }
+
         return new Promise((res, rej) => {
             fetch(_buildUrl(url, replacer, params), {
                 method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
+                headers: combinedHeaders,
                 body: (new URLSearchParams(body)).toString()
             })
                 .then(response => {
@@ -64,13 +78,48 @@ export const useAPI = (props: UseAPIProps): UseAPI => {
         })
     }
 
-    const put = <T>(url: string, replacer: Record<string, string>, body: any, params?: URLSearchParams): Promise<T> => {
+    const postForFile = <T>(url: string, replacer: Record<string, string>, body: any, params?: URLSearchParams, headers?: Headers): Promise<T> => {
+        const combinedHeaders = new Headers();
+        let defaultHeaders: Headers = new Headers();
+        defaultHeaders.append("Accept", "application/json");
+
+        defaultHeaders.forEach((value, key) => {
+            combinedHeaders.append(key, value);
+        });
+
+        // Copy all headers from headers2 (overwrites duplicates)
+        if (headers) {
+            headers.forEach((value, key) => {
+                combinedHeaders.append(key, value);
+            });
+        }
+
+        return new Promise((res, rej) => {
+            fetch(_buildUrl(url, replacer, params), {
+                method: 'POST',
+                headers: combinedHeaders,
+                body: body
+            })
+                .then(response => {
+                    _log(`Response: ${response.status} ${response.statusText}`);
+                    return res(response.json() as T);
+                })
+                .catch(err => {
+                    rej(err);
+                    _log(err);
+                });
+        })
+    }
+
+
+    const put = <T>(url: string, replacer: Record<string, string>, body: any, params?: URLSearchParams, headers?: Headers): Promise<T> => {
         return new Promise((res, rej) => {
             fetch(_buildUrl(url, replacer, params), {
                 method: 'PUT',
                 headers: {
                     'Accept': 'application/json',
-                    'Content-Type': 'application/x-www-form-urlencoded'
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    ...headers
                 },
                 body: (new URLSearchParams(body)).toString()
             })
@@ -108,6 +157,7 @@ export const useAPI = (props: UseAPIProps): UseAPI => {
         get,
         post,
         put,
-        remove
+        remove,
+        postForFile
     }
 }
