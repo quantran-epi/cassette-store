@@ -1,5 +1,6 @@
 import {
-    PlusOutlined
+    PlusOutlined,
+    UploadOutlined
 } from "@ant-design/icons";
 import {
     ORDER_DEFAULT_SHIPPING_COST,
@@ -30,10 +31,13 @@ import {OrderItem} from "@store/Models/OrderItem";
 import {addOrder} from "@store/Reducers/OrderReducer";
 import {RootState} from "@store/Store";
 import {RadioChangeEvent} from "antd";
-import React, {useEffect, useMemo} from "react";
+import React, {useEffect, useMemo, useState} from "react";
 import {useDispatch, useSelector} from "react-redux";
 import {useLocation, useNavigate} from "react-router-dom";
 import {OrderPlacedItem} from "./OrderPlacedItem.widget";
+import {Upload} from "@components/Form/Upload";
+import {RcFile} from "antd/es/upload";
+import {Image} from "@components/Image";
 
 export const OrderCreateScreen = () => {
     const location = useLocation();
@@ -45,6 +49,12 @@ export const OrderCreateScreen = () => {
     const navigate = useNavigate();
     const {} = useScreenTitle({value: "Tạo đơn hàng", deps: []});
     const orderUtils = useOrder();
+    const [files, setFiles] = useState<RcFile[]>([]);
+
+    const filePreviewUrls = useMemo(() => {
+        if (files.length > 0) return files.map(file => URL.createObjectURL(file));
+        return [];
+    }, [files])
 
     const orderCustomer = useMemo(() => {
         return customers.find(e => e.id == customerId);
@@ -77,10 +87,13 @@ export const OrderCreateScreen = () => {
             note: ""
         },
         onSubmit: (values) => {
-            dispatch(addOrder({order: values.transformValues, customer: orderCustomer}));
-            message.success("Tạo đơn hàng thành công");
-            addOrderForm.reset();
-            navigate(RootRoutes.AuthorizedRoutes.OrderRoutes.List());
+            orderUtils.createOrder(values.transformValues, orderCustomer, files).then(newOrder => {
+                if (newOrder !== null) {
+                    message.success("Tạo đơn hàng thành công");
+                    addOrderForm.reset();
+                    navigate(RootRoutes.AuthorizedRoutes.OrderRoutes.List());
+                } else message.error("Tạo đơn hàng lỗi");
+            });
         },
         itemDefinitions: defaultValues => ({
             id: {name: ObjectPropertyHelper.nameof(defaultValues, e => e.id), noMarkup: true},
@@ -120,7 +133,7 @@ export const OrderCreateScreen = () => {
             customerId: {name: ObjectPropertyHelper.nameof(defaultValues, e => e.customerId), noMarkup: true},
             trelloCardId: {name: ObjectPropertyHelper.nameof(defaultValues, e => e.trelloCardId), noMarkup: true},
             position: {name: ObjectPropertyHelper.nameof(defaultValues, e => e.position), noMarkup: true},
-            note: {label: "Ghi chú",name: ObjectPropertyHelper.nameof(defaultValues, e => e.note)},
+            note: {label: "Ghi chú", name: ObjectPropertyHelper.nameof(defaultValues, e => e.note)},
         }),
         transformFunc: (values) => ({
             ...values,
@@ -171,6 +184,17 @@ export const OrderCreateScreen = () => {
     const _onChangePaymentMethod = (e: RadioChangeEvent) => {
         let formValues = addOrderForm.form.getFieldsValue();
         addOrderForm.form.setFieldsValue({codAmount: orderUtils.getAutoCODAmount(e.target.value, formValues.paymentAmount)});
+    }
+
+    const _onBeforeUpload = (file: RcFile, fileList: RcFile[]) => {
+        setFiles(fileList);
+        return false;
+    }
+
+    const _renderPreviewUploadFiles = () => {
+        return <Stack fullwidth={true} gap={5}>
+            {filePreviewUrls.map(e => <Image width={100} height={100} preview src={e}/>)}
+        </Stack>
     }
 
     return <React.Fragment>
@@ -256,6 +280,16 @@ export const OrderCreateScreen = () => {
                 </SmartForm.Item>
                 <SmartForm.Item {...addOrderForm.itemDefinitions.note}>
                     <TextArea rows={3} placeholder="Nhập ghi chú"/>
+                </SmartForm.Item>
+                <Divider orientation="left"><Space>
+                    <Typography.Text>Ảnh đính kèm</Typography.Text>
+                    <Upload showUploadList={false} beforeUpload={_onBeforeUpload} multiple={true}
+                            style={{marginBottom: 5}}>
+                        <Button icon={<UploadOutlined/>} size="small"/>
+                    </Upload>
+                </Space></Divider>
+                <SmartForm.Item>
+                    {_renderPreviewUploadFiles()}
                 </SmartForm.Item>
                 <SmartForm.Item>
                     <Button type="primary" fullwidth onClick={_onSaveOrder}>Lưu đơn hàng</Button>

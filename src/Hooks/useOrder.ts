@@ -1,7 +1,7 @@
 import {ORDER_PAYMENT_METHOD, ORDER_RETURN_REASON, ORDER_STATUS} from "@common/Constants/AppConstants";
 import {Order} from "@store/Models/Order";
 import {editCustomer} from "@store/Reducers/CustomerReducer";
-import {editOrder} from "@store/Reducers/OrderReducer";
+import {addOrder, editOrder} from "@store/Reducers/OrderReducer";
 import {RootState} from "@store/Store";
 import {cloneDeep} from "lodash";
 import {useDispatch, useSelector} from "react-redux";
@@ -11,6 +11,9 @@ import {TrelloCard} from "./Trello/Models/TrelloCard";
 import {TrelloCreateCardParam} from "./Trello/Models/ApiParam";
 import {OrderHelper} from "@common/Helpers/OrderHelper";
 import {OrderItem} from "@store/Models/OrderItem";
+import {RcFile} from "antd/es/upload";
+import {TrelloAttachment} from "./Trello/Models/TrelloAttachment";
+import {nanoid} from "nanoid";
 
 type UseOrder = {
     isShipped: (orderId: string) => boolean;
@@ -27,11 +30,13 @@ type UseOrder = {
     changeShippingCode: (orderId: string, code: string) => Promise<string>;
     isPushedTrello: (orderId: string) => boolean;
     canPushToTrello: (orderId: string) => boolean;
-    pushToTrelloToDoList: (orderId: string) => Promise<TrelloCard>;
+    pushToTrelloToDoList: (order: Order) => Promise<TrelloCard>;
     calculateOrderPaymentAmount: (placedItems: OrderItem[], customerId: string) => number;
     getAutoCODAmount: (paymentMethod: string, paymentAmount: number) => number;
     assignTrelloId: (orderId: string, trelloCard: TrelloCard) => void;
     moveOrderToTrelloList: (orderId: string, listId: string) => Promise<TrelloCard>;
+    createOrder: (order: Order, customer: Customer, fileAttachments: RcFile[]) => Promise<TrelloCard>;
+    attachImagesToOrderOnTrello: (order: Order, files: RcFile[]) => Promise<TrelloAttachment[]>;
 }
 
 type UseOrderProps = {}
@@ -193,8 +198,7 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
         return order.status === ORDER_STATUS.PLACED && !Boolean(order.trelloCardId);
     }
 
-    const pushToTrelloToDoList = async (orderId: string): Promise<TrelloCard> => {
-        let order = _findOrderById(orderId);
+    const pushToTrelloToDoList = async (order: Order): Promise<TrelloCard> => {
         let customer = _findCustomerById(order.customerId);
         try {
             //temp
@@ -210,7 +214,6 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
                 idLabels: [],
                 idList: "683ad6fb6d164af9e8f0fd32"
             });
-            assignTrelloId(orderId, newCard);
             return newCard;
         } catch (e) {
             return null;
@@ -245,6 +248,24 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
         }
     }
 
+    const createOrder = async (order: Order, customer: Customer, fileAttachments: RcFile[]): Promise<TrelloCard> => {
+        let trelloCard = await pushToTrelloToDoList(order);
+        order.trelloCardId = trelloCard.id;
+        dispatch(addOrder({order: order, customer}));
+        await attachImagesToOrderOnTrello(order, fileAttachments);
+        return trelloCard;
+    }
+
+    const attachImagesToOrderOnTrello = async (order: Order, files: RcFile[]): Promise<TrelloAttachment[]> => {
+        let promises: Promise<TrelloAttachment[]>[] = [];
+        promises = files.map(file => trello.createAttachment({
+            name: order.name.concat("attachment").concat(nanoid(2)),
+            mimeType: file.type,
+            file: file
+        }, order.trelloCardId));
+        return Promise.all(promises).then(res => res.flat()).catch(err => []);
+    }
+
     return {
         markOrderAsRefuseToReceive,
         isRefuseToReceive,
@@ -264,6 +285,8 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
         calculateOrderPaymentAmount,
         getAutoCODAmount,
         assignTrelloId,
-        moveOrderToTrelloList
+        moveOrderToTrelloList,
+        createOrder,
+        attachImagesToOrderOnTrello
     }
 }

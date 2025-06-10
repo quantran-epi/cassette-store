@@ -13,7 +13,8 @@ import {
     PhoneOutlined,
     TruckOutlined,
     ToolOutlined,
-    HighlightOutlined
+    HighlightOutlined,
+    PaperClipOutlined
 } from "@ant-design/icons";
 import {COLORS, ORDER_PAYMENT_METHOD, ORDER_STATUS} from "@common/Constants/AppConstants";
 import {Button} from "@components/Button";
@@ -23,7 +24,6 @@ import {Stack} from "@components/Layout/Stack";
 import {List} from "@components/List";
 import {useMessage} from "@components/Message";
 import {useModal} from "@components/Modal/ModalProvider";
-import {Popconfirm} from "@components/Popconfirm";
 import {Tag} from "@components/Tag";
 import {Tooltip} from "@components/Tootip";
 import {Typography} from "@components/Typography";
@@ -103,17 +103,6 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
 
     const _onMoreActionClick = async (e) => {
         switch (e.key) {
-            case "push-trello":
-                modal.confirm({
-                    title: "Đẩy đơn lên danh sách cần làm trên Trello?",
-                    cancelText: "Huỷ",
-                    onOk: async () => {
-                        let trelloCard = await orderUtils.pushToTrelloToDoList(props.item.id);
-                        if (!trelloCard) message.error("Lỗi đẩy đơn lên Trello");
-                        else message.success("Đã đẩy đơn lên Trello");
-                    }
-                })
-                break;
             case "place-items":
                 break;
             case "create-delivery-bill-helpers":
@@ -234,10 +223,9 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                     <Dropdown menu={{
                         items: [
                             {
-                                label: 'Đẩy đơn lên Trello',
-                                key: 'push-trello',
-                                icon: <CloudUploadOutlined/>,
-                                disabled: !orderUtils.canPushToTrello(props.item.id)
+                                label: 'Ảnh đính kèm',
+                                key: 'file-attachment',
+                                icon: <PaperClipOutlined />,
                             },
                             {
                                 label: 'Hỗ trợ nhập đơn',
