@@ -26,7 +26,6 @@ import {RootState} from "@store/Store";
 import {debounce, sortBy} from "lodash";
 import React, {useMemo, useState} from "react";
 import {useDispatch, useSelector} from "react-redux";
-import VegetablesIcon from "../../../../assets/icons/vegetable.png";
 import {CustomerAddWidget} from "./CustomerAdd.widget";
 import {CustomerEditWidget} from "./CustomerEdit.widget";
 import {COLORS} from "@common/Constants/AppConstants";
