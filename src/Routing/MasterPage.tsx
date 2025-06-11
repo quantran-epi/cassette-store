@@ -235,9 +235,9 @@ const BackUpGoogleDrive = () => {
         }
     };
 
-    useEffect(() => {
-        if ((window as any).google && (window as any).gapi) initGapi();
-    }, []);
+    // useEffect(() => {
+    //     if ((window as any).google && (window as any).gapi) initGapi();
+    // }, []);
 
     const refreshTokenSilently = () => {
         if (tokenClientRef.current) {
@@ -364,5 +364,8 @@ const BackUpGoogleDrive = () => {
         );
     };
     
-    return <Button onClick={() => alert(JSON.stringify(store.getState()))}>abc</Button>;
+    return <React.Fragment>
+        <Button onClick={() => alert(JSON.stringify(store.getState()))}>abc</Button>
+        <Button onClick={() => initGapi()}>login</Button>
+    </React.Fragment>;
 }
