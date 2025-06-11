@@ -1,19 +1,24 @@
-import { ORDER_PAYMENT_METHOD, ORDER_RETURN_REASON, ORDER_STATUS } from "@common/Constants/AppConstants";
-import { Order } from "@store/Models/Order";
-import { editCustomer } from "@store/Reducers/CustomerReducer";
-import { addOrder, editOrder } from "@store/Reducers/OrderReducer";
-import { RootState, store } from "@store/Store";
-import { cloneDeep } from "lodash";
-import { useDispatch, useSelector } from "react-redux";
-import { useTrello } from "./Trello/useTrello";
-import { Customer } from "@store/Models/Customer";
-import { TrelloCard } from "./Trello/Models/TrelloCard";
-import { TrelloCreateCardParam } from "./Trello/Models/ApiParam";
-import { OrderHelper } from "@common/Helpers/OrderHelper";
-import { OrderItem } from "@store/Models/OrderItem";
-import { RcFile } from "antd/es/upload";
-import { TrelloAttachment } from "./Trello/Models/TrelloAttachment";
-import { nanoid } from "nanoid";
+import {
+    ORDER_PAYMENT_METHOD,
+    ORDER_PRIORITY_STATUS,
+    ORDER_RETURN_REASON,
+    ORDER_STATUS
+} from "@common/Constants/AppConstants";
+import {Order} from "@store/Models/Order";
+import {editCustomer} from "@store/Reducers/CustomerReducer";
+import {addOrder, editOrder} from "@store/Reducers/OrderReducer";
+import {RootState, store} from "@store/Store";
+import {cloneDeep} from "lodash";
+import {useDispatch, useSelector} from "react-redux";
+import {useTrello} from "./Trello/useTrello";
+import {Customer} from "@store/Models/Customer";
+import {TrelloCard} from "./Trello/Models/TrelloCard";
+import {TrelloCreateCardParam} from "./Trello/Models/ApiParam";
+import {OrderHelper} from "@common/Helpers/OrderHelper";
+import {OrderItem} from "@store/Models/OrderItem";
+import {RcFile} from "antd/es/upload";
+import {TrelloAttachment} from "./Trello/Models/TrelloAttachment";
+import {nanoid} from "nanoid";
 
 type UseOrder = {
     isShipped: (orderId: string) => boolean;
@@ -37,6 +42,11 @@ type UseOrder = {
     moveOrderToTrelloList: (orderId: string, listId: string) => Promise<TrelloCard>;
     createOrder: (order: Order, customer: Customer, fileAttachments: RcFile[]) => Promise<TrelloCard>;
     attachImagesToOrderOnTrello: (order: Order, files: RcFile[]) => Promise<TrelloAttachment[]>;
+    isVipOrder: (order: Order) => boolean;
+    isPriority: (order: Order) => boolean;
+    isCustomerReturnLessThan4: (order: Order) => boolean;
+    isBankTransferInAdvance: (order: Order) => boolean;
+    isUrgent: (order: Order) => boolean;
 }
 
 type UseOrderProps = {}
@@ -55,6 +65,16 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
     const _findCustomerById = (customerId: string): Customer => {
         let customer = customers.find(e => e.id == customerId);
         return cloneDeep(customer);
+    }
+
+    const _getLabelIds = (order: Order): string[] => {
+        let labelIds = [];
+        if (isVipOrder(order)) labelIds.push(trello.TRELLO_LIST_LABEL_IDS.VIP);
+        if (isUrgent(order)) labelIds.push(trello.TRELLO_LIST_LABEL_IDS.URGENT);
+        else if (isPriority(order)) labelIds.push(trello.TRELLO_LIST_LABEL_IDS.PRIORITY);
+        if (isBankTransferInAdvance(order)) labelIds.push(trello.TRELLO_LIST_LABEL_IDS.BANK_TRANSFER_IN_ADVANCE);
+        if (isCustomerReturnLessThan4(order)) labelIds.push(trello.TRELLO_LIST_LABEL_IDS.CUSTOMER_RETURN_LESS_THAN_4);
+        return labelIds;
     }
 
     const markOrderAsRefuseToReceive = async (orderId: string): Promise<string> => {
@@ -166,7 +186,7 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
             dispatch(editOrder(order));
 
             // comment on trello
-            let action = await trello.createComment({ text: code }, order.trelloCardId);
+            let action = await trello.createComment({text: code}, order.trelloCardId);
             if (action === null) return "Lỗi bình luận Trello";
 
             if (!isAlreadyHasShippingCode) {
@@ -201,19 +221,18 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
     const pushToTrelloToDoList = async (order: Order): Promise<TrelloCard> => {
         let customer = _findCustomerById(order.customerId);
         try {
-            //temp
-            let newCard = await trello.createCard({
-                name: order.name,
-                desc: `${customer.name}  
+                let newCard = await trello.createCard({
+                    name: order.name,
+                    desc: `${customer.name}  
                 ${customer.mobile}  
                 ${customer.address}  
                 ${order.placedItems.map(item => `${item.count} băng ${item.type}. Thu ${order.codAmount.toLocaleString()}đ`)}  
                 ${order.note}`,
-                start: new Date(),
-                pos: order.position,
-                idLabels: [],
-                idList: trello.TRELLO_LIST_IDS.TODO_LIST
-            });
+                    start: new Date(),
+                    pos: order.position,
+                    idLabels: _getLabelIds(order),
+                    idList: trello.TRELLO_LIST_IDS.TODO_LIST
+                });
             return newCard;
         } catch (e) {
             return null;
@@ -249,7 +268,7 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
     }
 
     const createOrder = async (order: Order, customer: Customer, fileAttachments: RcFile[]): Promise<TrelloCard> => {
-        dispatch(addOrder({ order: order, customer })); // add first to get position
+        dispatch(addOrder({order: order, customer})); // add first to get position
         let createdOrder = store.getState().order.orders.find(e => e.id === order.id);
         let trelloCard = await pushToTrelloToDoList(createdOrder);
 
@@ -273,6 +292,28 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
         return Promise.all(promises);
     }
 
+    const isVipOrder = (order: Order): boolean => {
+        let customer = _findCustomerById(order.customerId);
+        return customer.isVIP;
+    }
+
+    const isPriority = (order: Order): boolean => {
+        return order.priorityStatus === ORDER_PRIORITY_STATUS.PRIORITY;
+    }
+
+    const isUrgent = (order: Order): boolean => {
+        return order.priorityStatus === ORDER_PRIORITY_STATUS.URGENT;
+    }
+
+    const isCustomerReturnLessThan4 = (order: Order): boolean => {
+        let customer = _findCustomerById(order.customerId);
+        return customer.buyCount > 1 && customer.buyCount < 4;
+    }
+
+    const isBankTransferInAdvance = (order: Order): boolean => {
+        return order.paymentMethod === ORDER_PAYMENT_METHOD.BANK_TRANSFER_IN_ADVANCE;
+    }
+
     return {
         markOrderAsRefuseToReceive,
         isRefuseToReceive,
@@ -294,6 +335,11 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
         assignTrelloId,
         moveOrderToTrelloList,
         createOrder,
-        attachImagesToOrderOnTrello
+        attachImagesToOrderOnTrello,
+        isVipOrder,
+        isBankTransferInAdvance,
+        isUrgent,
+        isCustomerReturnLessThan4,
+        isPriority
     }
 }

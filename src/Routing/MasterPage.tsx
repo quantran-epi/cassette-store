@@ -25,7 +25,7 @@ import { useTheme, useToggle } from "@hooks";
 import { addCustomer, resetCustomer } from "@store/Reducers/CustomerReducer";
 import { RootState } from "@store/Store";
 import { Drawer, Flex, Layout } from "antd";
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { useDispatch, useSelector } from "react-redux";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
@@ -84,6 +84,7 @@ export const MasterPage = () => {
             <Outlet />
         </Content>
         <BottomTabNavigator />
+        <BackUpGoogleDrive />
     </Layout>
 }
 
@@ -193,4 +194,68 @@ const BottomTabNavigator = () => {
         {/*    <Typography.Text style={_textStyles(RootRoutes.AuthorizedRoutes.ScheduledMealRoutes.List())}>Thực đơn</Typography.Text>*/}
         {/*</Button>*/}
     </Stack>
+}
+
+const BackUpGoogleDrive = () => {
+    const CLIENT_ID = '1094219427182-93j2l5olha9457a8kikup3klickn6150.apps.googleusercontent.com';
+    const SCOPES = 'https://www.googleapis.com/auth/drive.file';
+    const [gapiReady, setGapiReady] = useState(false);
+    const [isSignedIn, setIsSignedIn] = useState(false);
+
+    useEffect(() => {
+        const start = () => {
+            (window as any).gapi.load('client:auth2', async () => {
+                await (window as any).gapi.client.init({
+                    clientId: CLIENT_ID,
+                    scope: SCOPES,
+                });
+
+                const authInstance = (window as any).gapi.auth2.getAuthInstance();
+                setIsSignedIn(authInstance.isSignedIn.get());
+                setGapiReady(true);
+            });
+        };
+
+        if ((window as any).gapi) start();
+
+        signIn();
+    }, []);
+
+    const signIn = () => {
+        (window as any).gapi.auth2.getAuthInstance().signIn().then(() => {
+            setIsSignedIn(true);
+            uploadTextFile();
+        });
+    }
+
+    const uploadTextFile = async () => {
+        const textContent = "This is a plain text string that will be saved to a file.";
+        const fileName = "cassette-store-data-backup.txt";
+        const mimeType = "text/plain";
+
+        const accessToken = (window as any).gapi.auth.getToken().access_token;
+
+        const metadata = {
+            name: fileName,
+            mimeType: mimeType,
+        };
+
+        const form = new FormData();
+        form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+        form.append('file', new Blob([textContent], { type: mimeType }));
+
+        const response = await fetch(
+            'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',
+            {
+                method: 'POST',
+                headers: new Headers({ Authorization: `Bearer ${accessToken}` }),
+                body: form,
+            }
+        );
+
+        const result = await response.json();
+        alert('File uploaded! ID: ' + result.id);
+    };
+
+    return null;
 }

@@ -1,18 +1,18 @@
 {
   "files": {
     "main.css": "/cassette-store/static/css/main.b73f0f08.css",
-    "main.js": "/cassette-store/static/js/main.35b50a88.js",
+    "main.js": "/cassette-store/static/js/main.ff30b142.js",
     "static/js/453.0063fc75.chunk.js": "/cassette-store/static/js/453.0063fc75.chunk.js",
     "static/media/logo.png": "/cassette-store/static/media/logo.343efc60b8b70dd39875.png",
     "static/media/shoppingList.png": "/cassette-store/static/media/shoppingList.8e9a35171bf2cea2583f.png",
     "service-worker.js": "/cassette-store/service-worker.js",
     "index.html": "/cassette-store/index.html",
     "main.b73f0f08.css.map": "/cassette-store/static/css/main.b73f0f08.css.map",
-    "main.35b50a88.js.map": "/cassette-store/static/js/main.35b50a88.js.map",
+    "main.ff30b142.js.map": "/cassette-store/static/js/main.ff30b142.js.map",
     "453.0063fc75.chunk.js.map": "/cassette-store/static/js/453.0063fc75.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.b73f0f08.css",
-    "static/js/main.35b50a88.js"
+    "static/js/main.ff30b142.js"
   ]
 }
