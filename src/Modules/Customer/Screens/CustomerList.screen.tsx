@@ -67,7 +67,7 @@ export const CustomerListScreen = () => {
             dataSource={filteredCustomers}
             renderItem={(item) => <CustomerItemWidget item={item} onDelete={_onDelete}/>}
         />
-        <Modal open={toggleAddModal.value} title={
+        <Modal open={toggleAddModal.value} centered title={
             <Space>
                 <UserOutlined />
                 Thêm khách hàng

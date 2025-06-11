@@ -98,7 +98,7 @@ export const OrderListScreen = () => {
                 onCreateOrderFromNewCustomer={_onCreateNewCustomer} />
         </Modal>
 
-        <Modal open={toggleAddCustomerModal.value} title={
+        <Modal open={toggleAddCustomerModal.value} centered title={
             <Space>
                 <UserOutlined />
                 Thêm khách hàng
