@@ -23,7 +23,7 @@ import {List} from "@components/List";
 import {useMessage} from "@components/Message";
 import {SmartForm, useSmartForm} from "@components/SmartForm";
 import {Typography} from "@components/Typography";
-import {useOrder, useScreenTitle} from "@hooks";
+import {useOrder, useScreenTitle, useToggle} from "@hooks";
 import {nanoid} from "@reduxjs/toolkit";
 import {RootRoutes} from "@routing/RootRoutes";
 import {Order} from "@store/Models/Order";
@@ -50,6 +50,7 @@ export const OrderCreateScreen = () => {
     const {} = useScreenTitle({value: "Tạo đơn hàng", deps: []});
     const orderUtils = useOrder();
     const [files, setFiles] = useState<RcFile[]>([]);
+    const toggleSaveLoading = useToggle();
 
     const filePreviewUrls = useMemo(() => {
         if (files.length > 0) return files.map(file => URL.createObjectURL(file));
@@ -87,12 +88,14 @@ export const OrderCreateScreen = () => {
             note: ""
         },
         onSubmit: (values) => {
+            toggleSaveLoading.show();
             orderUtils.createOrder(values.transformValues, orderCustomer, files).then(newOrder => {
                 if (newOrder !== null) {
                     message.success("Tạo đơn hàng thành công");
                     addOrderForm.reset();
                     navigate(RootRoutes.AuthorizedRoutes.OrderRoutes.List());
                 } else message.error("Tạo đơn hàng lỗi");
+                toggleSaveLoading.hide();
             });
         },
         itemDefinitions: defaultValues => ({
@@ -292,7 +295,7 @@ export const OrderCreateScreen = () => {
                     {_renderPreviewUploadFiles()}
                 </SmartForm.Item>
                 <SmartForm.Item>
-                    <Button type="primary" fullwidth onClick={_onSaveOrder}>Lưu đơn hàng</Button>
+                    <Button type="primary" fullwidth onClick={_onSaveOrder} loading={toggleSaveLoading.value}>Lưu đơn hàng</Button>
                 </SmartForm.Item>
             </React.Fragment>}
         </SmartForm>
