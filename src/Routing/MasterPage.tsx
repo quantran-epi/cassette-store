@@ -195,9 +195,8 @@ const BackUpGoogleDrive = () => {
     const SCOPES = 'https://www.googleapis.com/auth/drive.file';
     const TOKEN_REFRESH_INTERVAL_MS = 55 * 60 * 1000;
     const FILE_NAME = 'autosave-note.txt';
-    const UPLOAD_INTERVAL_MS = 10 * 60 * 1000;
+    const UPLOAD_INTERVAL_MS = 20 * 1000;
 
-    const [accessToken, setAccessToken] = useState(null);
     const tokenClientRef = useRef(null);
     const uploadIntervalRef = useRef(null);
     const fileIdRef = useRef(null); // Store file ID if it already exists
@@ -206,7 +205,6 @@ const BackUpGoogleDrive = () => {
     const getFileContent = () => JSON.stringify(store.getState());
 
     const handleTokenReceived = (token) => {
-        setAccessToken(token);
         localStorage.setItem('accessToken', token);
         (window as any).gapi.client.setToken({ access_token: token });
         startUploadCycle();
@@ -229,9 +227,9 @@ const BackUpGoogleDrive = () => {
 
         const saved = localStorage.getItem('accessToken');
         if (saved) {
-            setAccessToken(saved);
             (window as any).gapi.client.setToken({ access_token: saved });
             startUploadCycle();
+            setInterval(refreshTokenSilently, TOKEN_REFRESH_INTERVAL_MS);
         } else {
             tokenClientRef.current.requestAccessToken();
         }
@@ -240,6 +238,12 @@ const BackUpGoogleDrive = () => {
     useEffect(() => {
         if ((window as any).google && (window as any).gapi) initGapi();
     }, []);
+
+    const refreshTokenSilently = () => {
+        if (tokenClientRef.current) {
+            tokenClientRef.current.requestAccessToken({ prompt: '' });
+        }
+    };
 
     const startUploadCycle = () => {
         // Start periodic uploads
