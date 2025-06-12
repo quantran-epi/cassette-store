@@ -38,6 +38,8 @@ import {OrderPlacedItem} from "./OrderPlacedItem.widget";
 import {Upload} from "@components/Form/Upload";
 import {RcFile} from "antd/es/upload";
 import {Image} from "@components/Image";
+import {Checkbox} from "@components/Form/Checkbox";
+import {CheckboxChangeEvent} from "antd/es/checkbox";
 
 export const OrderCreateScreen = () => {
     const location = useLocation();
@@ -85,9 +87,11 @@ export const OrderCreateScreen = () => {
             customerId: "",
             trelloCardId: null,
             position: null,
-            note: ""
+            note: "",
+            isFreeShip: false
         },
         onSubmit: (values) => {
+            // console.log(values.transformValues);
             toggleSaveLoading.show();
             orderUtils.createOrder(values.transformValues, orderCustomer, files).then(newOrder => {
                 if (newOrder !== null) {
@@ -137,6 +141,7 @@ export const OrderCreateScreen = () => {
             trelloCardId: {name: ObjectPropertyHelper.nameof(defaultValues, e => e.trelloCardId), noMarkup: true},
             position: {name: ObjectPropertyHelper.nameof(defaultValues, e => e.position), noMarkup: true},
             note: {label: "Ghi chú", name: ObjectPropertyHelper.nameof(defaultValues, e => e.note)},
+            isFreeShip: {name: ObjectPropertyHelper.nameof(defaultValues, e => e.isFreeShip), valuePropName: "checked"},
         }),
         transformFunc: (values) => ({
             ...values,
@@ -166,27 +171,45 @@ export const OrderCreateScreen = () => {
         addOrderForm.submit();
     }
 
+    const _onUpdatePlacedItems = (placedItems: OrderItem[]) => {
+        let newPaymentAmount = orderUtils.calculateOrderPaymentAmount(placedItems, addOrderForm.form.getFieldValue("customerId"))
+        addOrderForm.form.setFieldsValue({
+            placedItems: placedItems,
+            paymentAmount: newPaymentAmount,
+            codAmount: orderUtils.getAutoCODAmount(addOrderForm.form.getFieldValue("paymentMethod"), newPaymentAmount)
+        });
+    }
+
     const _onDeletePlacedItem = (id: string) => {
-        addOrderForm.form.setFieldsValue({placedItems: (addOrderForm.form.getFieldValue("placedItems") as OrderItem[]).filter(e => e.id !== id)});
+        let updatedPlacedItems = (addOrderForm.form.getFieldValue("placedItems") as OrderItem[]).filter(e => e.id !== id);
+        _onUpdatePlacedItems(updatedPlacedItems);
     }
 
     const _onAddPlaceItems = () => {
         let newOrder = OrderHelper.createNewEmptyOrderItem(addOrderForm.form.getFieldValue("name"), placedItems.length == 0 ? true : false);
-        addOrderForm.form.setFieldsValue({placedItems: [...addOrderForm.form.getFieldValue("placedItems"), newOrder]});
+        _onUpdatePlacedItems([...addOrderForm.form.getFieldValue("placedItems"), newOrder]);
     }
 
     const _onChangePlacedItem = (placedItem: OrderItem) => {
-        addOrderForm.form.setFieldsValue({
-            placedItems: (addOrderForm.form.getFieldValue("placedItems") as OrderItem[]).map(e => {
-                if (e.id == placedItem.id) return placedItem;
-                return e;
-            })
-        })
+        let updatedOrderItems = (addOrderForm.form.getFieldValue("placedItems") as OrderItem[]).map(e => {
+            if (e.id == placedItem.id) return placedItem;
+            return e;
+        });
+        _onUpdatePlacedItems(updatedOrderItems);
     }
 
     const _onChangePaymentMethod = (e: RadioChangeEvent) => {
         let formValues = addOrderForm.form.getFieldsValue();
         addOrderForm.form.setFieldsValue({codAmount: orderUtils.getAutoCODAmount(e.target.value, formValues.paymentAmount)});
+    }
+
+    const _onChangeIsFreeShip = (e: CheckboxChangeEvent) => {
+        let newPaymentAmount = orderUtils.calculateOrderPaymentAmount(addOrderForm.form.getFieldValue("placedItems"),
+            addOrderForm.form.getFieldValue("customerId"), e.target.checked);
+        addOrderForm.form.setFieldsValue({
+            paymentAmount: newPaymentAmount,
+            codAmount: orderUtils.getAutoCODAmount(addOrderForm.form.getFieldValue("paymentMethod"), newPaymentAmount)
+        })
     }
 
     const _onBeforeUpload = (file: RcFile, fileList: RcFile[]) => {
@@ -221,6 +244,9 @@ export const OrderCreateScreen = () => {
                 <Divider orientation="left">Thông tin đơn hàng</Divider>
                 <SmartForm.Item {...addOrderForm.itemDefinitions.name}>
                     <Input/>
+                </SmartForm.Item>
+                <SmartForm.Item {...addOrderForm.itemDefinitions.isFreeShip}>
+                    <Checkbox onChange={_onChangeIsFreeShip}>Miễn phí vận chuyển</Checkbox>
                 </SmartForm.Item>
                 <SmartForm.Item {...addOrderForm.itemDefinitions.priorityStatus}>
                     <Radio.Group
@@ -263,9 +289,6 @@ export const OrderCreateScreen = () => {
                     <InputNumber style={{width: "100%"}} placeholder="Nhập phí vận chuyển"
                                  formatter={(value) => `đ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}/>
                 </SmartForm.Item>
-                <SmartForm.Item {...addOrderForm.itemDefinitions.shippingCode}>
-                    <Input placeholder="Nhập mã vận đơn"/>
-                </SmartForm.Item>
                 <Divider orientation="left"><Space>
                     <Typography.Text>Danh sách hàng hoá</Typography.Text>
                     <Button icon={<PlusOutlined/>} size="small" onClick={_onAddPlaceItems}/>
@@ -295,7 +318,8 @@ export const OrderCreateScreen = () => {
                     {_renderPreviewUploadFiles()}
                 </SmartForm.Item>
                 <SmartForm.Item>
-                    <Button type="primary" fullwidth onClick={_onSaveOrder} loading={toggleSaveLoading.value}>Lưu đơn hàng</Button>
+                    <Button type="primary" fullwidth onClick={_onSaveOrder} loading={toggleSaveLoading.value}>Lưu đơn
+                        hàng</Button>
                 </SmartForm.Item>
             </React.Fragment>}
         </SmartForm>

@@ -36,7 +36,7 @@ type UseOrder = {
     isPushedTrello: (orderId: string) => boolean;
     canPushToTrello: (orderId: string) => boolean;
     pushToTrelloToDoList: (order: Order) => Promise<TrelloCard>;
-    calculateOrderPaymentAmount: (placedItems: OrderItem[], customerId: string) => number;
+    calculateOrderPaymentAmount: (placedItems: OrderItem[], customerId: string, isFreeShip?: boolean) => number;
     getAutoCODAmount: (paymentMethod: string, paymentAmount: number) => number;
     assignTrelloId: (orderId: string, trelloCard: TrelloCard) => void;
     moveOrderToTrelloList: (orderId: string, listId: string) => Promise<TrelloCard>;
@@ -47,6 +47,7 @@ type UseOrder = {
     isCustomerReturnLessThan4: (order: Order) => boolean;
     isBankTransferInAdvance: (order: Order) => boolean;
     isUrgent: (order: Order) => boolean;
+    refund: (orderId: string, amount: number) => void;
 }
 
 type UseOrderProps = {}
@@ -85,6 +86,7 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
 
             let customer = _findCustomerById(order.customerId);
             customer.isInBlacklist = true;
+            customer.isVIP = false;
 
             dispatch(editOrder(order));
             dispatch(editCustomer(customer));
@@ -135,6 +137,7 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
             customer.buyAmount += order.placedItems.reduce((prev, cur) => {
                 return prev + (cur.count * cur.unitPrice);
             }, 0)
+            if (customer.buyCount > 4) customer.isVIP = true;
 
             dispatch(editOrder(order));
             dispatch(editCustomer(customer));
@@ -221,27 +224,23 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
     const pushToTrelloToDoList = async (order: Order): Promise<TrelloCard> => {
         let customer = _findCustomerById(order.customerId);
         try {
-                let newCard = await trello.createCard({
-                    name: order.name,
-                    desc: `${customer.name}  
-                ${customer.mobile}  
-                ${customer.address}  
-                ${order.placedItems.map(item => `${item.count} băng ${item.type}. Thu ${order.codAmount.toLocaleString()}đ`)}  
-                ${order.note}`,
-                    start: new Date(),
-                    pos: order.position,
-                    idLabels: _getLabelIds(order),
-                    idList: trello.TRELLO_LIST_IDS.TODO_LIST
-                });
+            let newCard = await trello.createCard({
+                name: order.name,
+                desc: `${customer.name}\n${customer.mobile}\n${customer.address}\n${order.placedItems.map(item => `${item.count} băng ${item.type}\n`)}\nThu ${order.codAmount.toLocaleString()}đ\n${order.note}`,
+                start: new Date(),
+                pos: order.position,
+                idLabels: _getLabelIds(order),
+                idList: trello.TRELLO_LIST_IDS.TODO_LIST
+            });
             return newCard;
         } catch (e) {
             return null;
         }
     }
 
-    const calculateOrderPaymentAmount = (placedItems: OrderItem[], customerId: string): number => {
+    const calculateOrderPaymentAmount = (placedItems: OrderItem[], customerId: string, isFreeShip?: boolean): number => {
         let customer = _findCustomerById(customerId);
-        return OrderHelper.calculateTotalOrderItemsAmount(placedItems) + OrderHelper.getShippingAmountByArea(customer.area);
+        return OrderHelper.calculateTotalOrderItemsAmount(placedItems) + (Boolean(isFreeShip) ? 0 : OrderHelper.getShippingAmountByArea(customer.area));
     }
 
     const getAutoCODAmount = (paymentMethod: string, paymentAmount: number): number => {
@@ -314,6 +313,13 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
         return order.paymentMethod === ORDER_PAYMENT_METHOD.BANK_TRANSFER_IN_ADVANCE;
     }
 
+    const refund = (orderId: string, amount: number): void => {
+        let order = _findOrderById(orderId);
+        order.isRefund = amount > 0;
+        order.refundAmount = amount;
+        dispatch(editOrder(order));
+    }
+
     return {
         markOrderAsRefuseToReceive,
         isRefuseToReceive,
@@ -340,6 +346,7 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
         isBankTransferInAdvance,
         isUrgent,
         isCustomerReturnLessThan4,
-        isPriority
+        isPriority,
+        refund
     }
 }

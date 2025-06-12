@@ -87,7 +87,7 @@ export const OrderPlacedItem: FunctionComponent<OrderPlacedItemProps> = (props) 
                             <Select
                                 status={isValid ? undefined : "error"}
                                 onChange={_onChangeType}
-                                popupMatchSelectWidth={200}
+                                popupMatchSelectWidth={250}
                                 style={{ width: '100%' }}>
                                 {Object.keys(ORDER_ITEM_TYPE).map(k => <Option key={k} value={k}>{k}</Option>)}
                             </Select>

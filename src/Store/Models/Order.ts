@@ -24,6 +24,7 @@ export type Order = {
     trelloCardId: string;
     position: number;
     note: string;
+    isFreeShip: boolean;
 }
 
 export type ChangeItem = {

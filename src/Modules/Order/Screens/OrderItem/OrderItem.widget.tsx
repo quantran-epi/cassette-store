@@ -37,6 +37,8 @@ import {useToggle, useOrder} from "@hooks";
 import {Modal} from "@components/Modal";
 import {Input} from "@components/Form/Input";
 import {OrderChangeShippingCodeWidget} from "./OrderChangeShippingCode.widget";
+import {OrderCreateDeliveryAssistantWidget} from "@modules/Order/Screens/OrderItem/OrderCreateDeliveryAssistant.widget";
+import {OrderRefundWidget} from "@modules/Order/Screens/OrderItem/OrderRefund.widget";
 
 type OrderItemProps = {
     item: Order;
@@ -50,6 +52,8 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
     const modal = useModal();
     const toggleInputShippingCodeEditor = useToggle();
     const toggleLoadingChangeShippingCode = useToggle();
+    const toggleOrderCreateDeliveryAssistant = useToggle();
+    const toggleOrderRefund = useToggle();
     const orderCustomer = useMemo(() => {
         return customers.find(e => e.id == props.item.customerId);
     }, [props.item.customerId])
@@ -105,7 +109,11 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
         switch (e.key) {
             case "place-items":
                 break;
+            case "refund":
+                toggleOrderRefund.show();
+                break;
             case "create-delivery-bill-helpers":
+                toggleOrderCreateDeliveryAssistant.show();
                 break;
             case "input-shipping-code":
                 toggleInputShippingCodeEditor.show();
@@ -225,12 +233,17 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                             {
                                 label: 'Ảnh đính kèm',
                                 key: 'file-attachment',
-                                icon: <PaperClipOutlined />,
+                                icon: <PaperClipOutlined/>,
                             },
                             {
                                 label: 'Hỗ trợ nhập đơn',
                                 key: 'create-delivery-bill-helpers',
                                 icon: <HighlightOutlined/>,
+                            },
+                            {
+                                label: 'Hoàn tiền khách hàng',
+                                key: 'refund',
+                                icon: <DollarOutlined/>,
                             },
                             {
                                 label: 'Danh sách băng',
@@ -321,6 +334,14 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
             onClose={toggleInputShippingCodeEditor.hide}
             value={props.item.shippingCode}
             onSave={_onChangeShippingCode}/>
+
+        <OrderCreateDeliveryAssistantWidget open={toggleOrderCreateDeliveryAssistant.value}
+                                            onClose={toggleOrderCreateDeliveryAssistant.hide}
+                                            order={props.item} customer={orderCustomer}/>
+        <OrderRefundWidget open={toggleOrderRefund.value}
+                           onClose={toggleOrderRefund.hide}
+                           order={props.item}/>
+
     </React.Fragment>
 }
 

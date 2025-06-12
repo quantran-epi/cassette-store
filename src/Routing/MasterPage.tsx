@@ -220,14 +220,14 @@ const BackUpDataTrello = () => {
             }
         } else {
             // First time, save the current time
-            const fileBlob = new Blob([JSON.stringify(store.getState())], { type: 'text/plain' });
-            await trello.createAttachment({
-                name: moment().toLocaleString(),
-                mimeType: "text/plain",
-                file: fileBlob
-            }, BACKUP_CARD_ID);
+            // const fileBlob = new Blob([JSON.stringify(store.getState())], { type: 'text/plain' });
+            // await trello.createAttachment({
+            //     name: moment().toLocaleString(),
+            //     mimeType: "text/plain",
+            //     file: fileBlob
+            // }, BACKUP_CARD_ID);
             localStorage.setItem('lastCheckTime', Date.now().toString());
-            message.success("Backup success");
+            // message.success("Backup success");
         }
     }
 
