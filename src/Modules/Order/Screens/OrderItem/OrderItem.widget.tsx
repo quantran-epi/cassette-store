@@ -41,6 +41,7 @@ import {OrderCreateDeliveryAssistantWidget} from "@modules/Order/Screens/OrderIt
 import {OrderRefundWidget} from "@modules/Order/Screens/OrderItem/OrderRefund.widget";
 import {OrderPlacedItemsWidget} from "@modules/Order/Screens/OrderItem/OrderPlacedItems.widget";
 import {OrderShippinInfoWidget} from "@modules/Order/Screens/OrderItem/OrderShippingInfo.widget";
+import {OrderAttachmentsWidget} from "@modules/Order/Screens/OrderItem/OrderAttachments.widget";
 
 type OrderItemProps = {
     item: Order;
@@ -58,6 +59,7 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
     const toggleOrderPlacedItems = useToggle();
     const toggleOrderShippingInfo = useToggle();
     const toggleOrderRefund = useToggle();
+    const toggleOrderAttachment = useToggle();
     const orderCustomer = useMemo(() => {
         return customers.find(e => e.id == props.item.customerId);
     }, [props.item.customerId])
@@ -127,7 +129,7 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                 toggleOrderShippingInfo.show();
                 break;
             case "file-attachment":
-
+                toggleOrderAttachment.show();
                 break;
             case "delete":
                 modal.confirm({
@@ -361,6 +363,10 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
 
         <OrderShippinInfoWidget open={toggleOrderShippingInfo.value}
                                 onClose={toggleOrderShippingInfo.hide}
+                                order={props.item}/>
+
+        <OrderAttachmentsWidget open={toggleOrderAttachment.value}
+                                onClose={toggleOrderAttachment.hide}
                                 order={props.item}/>
 
     </React.Fragment>
