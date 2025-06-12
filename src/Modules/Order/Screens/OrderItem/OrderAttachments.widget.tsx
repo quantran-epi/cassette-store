@@ -85,7 +85,6 @@ export const OrderAttachmentsWidget: FunctionComponent<OrderAttachmentsWidgetPro
     const _renderCurrentPreviewUploadFiles = () => {
         return currentFilePreviewUrls.length > 0 ? <List>
             {currentFilePreviewUrls.map(e => <List.Item>
-                {e}
                 <Image width={100} height={100} preview
                        src={e}/>
                 <Popconfirm title={"Xóa ảnh đính kèm này?"} onConfirm={() => _onRemoveAttachment(e)}>

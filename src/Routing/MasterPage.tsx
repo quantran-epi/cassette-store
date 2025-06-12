@@ -123,6 +123,7 @@ const SidebarDrawer = () => {
 
                         ]}
                     />
+                    <a href="https://trello.com/login" target="_blank">Log in to Trello</a>
                     <Box style={{ overflow: "hidden" }}>
                         <Image src={Logo} width={350} preview={false} style={{ marginLeft: 90, opacity: 0.4 }} />
                     </Box>
