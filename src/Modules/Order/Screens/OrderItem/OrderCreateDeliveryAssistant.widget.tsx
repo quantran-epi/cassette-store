@@ -30,63 +30,45 @@ export const OrderCreateDeliveryAssistantWidget: FunctionComponent<OrderCreateDe
         <Stack direction={"column"} align={"flex-start"}>
             <CopyToClipboard text={props.customer.name}
                              onCopy={() => message.success("Đã sao chép Tên khách hàng")}>
-                    <Space>
-                        <Typography.Text strong>Tên khách hàng:</Typography.Text>
-                        <Typography.Paragraph ellipsis style={{
-                            width: 300,
-                            marginBottom: 0
-                        }}>{props.customer.name}</Typography.Paragraph>
-                    </Space>
+                    <Typography.Text>
+                        <Typography.Text strong>Tên khách hàng: </Typography.Text>
+                        <Typography.Text>{props.customer.name}</Typography.Text>
+                    </Typography.Text>
             </CopyToClipboard>
             <CopyToClipboard text={props.customer.mobile}
                              onCopy={() => message.success("Đã sao chép Số điện thoại")}>
-                <Space>
-                    <Typography.Text strong>Số điện thoại:</Typography.Text>
-                    <Typography.Paragraph ellipsis style={{
-                        width: 300,
-                        marginBottom: 0
-                    }}>{props.customer.mobile}</Typography.Paragraph>
-                </Space>
+                <Typography.Text>
+                    <Typography.Text strong>Số điện thoại: </Typography.Text>
+                    <Typography.Text>{props.customer.mobile}</Typography.Text>
+                </Typography.Text>
             </CopyToClipboard>
             <CopyToClipboard text={props.customer.address}
                              onCopy={() => message.success("Đã sao chép Địa chỉ")}>
-                <Space>
-                    <Typography.Text strong>Địa chỉ:</Typography.Text>
-                    <Typography.Paragraph ellipsis style={{
-                        width: 300,
-                        marginBottom: 0
-                    }}>{props.customer.address}</Typography.Paragraph>
-                </Space>
+                <Typography.Text>
+                    <Typography.Text strong>Địa chỉ: </Typography.Text>
+                    <Typography.Text>{props.customer.address}</Typography.Text>
+                </Typography.Text>
             </CopyToClipboard>
             <CopyToClipboard text={props.order.codAmount}
                              onCopy={() => message.success("Đã sao chép Số tiền COD")}>
-                <Space>
-                    <Typography.Text strong>Số tiền COD:</Typography.Text>
-                    <Typography.Paragraph ellipsis style={{
-                        width: 300,
-                        marginBottom: 0
-                    }}>{props.order.codAmount.toLocaleString()}đ</Typography.Paragraph>
-                </Space>
+                <Typography.Text>
+                    <Typography.Text strong>Số tiền COD: </Typography.Text>
+                    <Typography.Text>{props.order.codAmount.toLocaleString()}đ</Typography.Text>
+                </Typography.Text>
             </CopyToClipboard>
             <CopyToClipboard text={"Cho xem hàng, KHÔNG DÙNG THỬ"}
                              onCopy={() => message.success("Đã sao chép Ghi chú")}>
-                <Space>
-                    <Typography.Text strong>Ghi chú:</Typography.Text>
-                    <Typography.Paragraph ellipsis style={{
-                        width: 300,
-                        marginBottom: 0
-                    }}>Cho xem hàng, KHÔNG DÙNG THỬ</Typography.Paragraph>
-                </Space>
+                <Typography.Text>
+                    <Typography.Text strong>Ghi chú: </Typography.Text>
+                    <Typography.Text>Cho xem hàng, KHÔNG DÙNG THỬ</Typography.Text>
+                </Typography.Text>
             </CopyToClipboard>
             <CopyToClipboard text={"băng cát sét"}
                              onCopy={() => message.success("Đã sao chép Mô tả hàng")}>
-                <Space>
-                    <Typography.Text strong>Mô tả hàng:</Typography.Text>
-                    <Typography.Paragraph ellipsis style={{
-                        width: 300,
-                        marginBottom: 0
-                    }}>băng cát sét</Typography.Paragraph>
-                </Space>
+                <Typography.Text>
+                    <Typography.Text strong>Mô tả hàng: </Typography.Text>
+                    <Typography.Text>băng cát sét</Typography.Text>
+                </Typography.Text>
             </CopyToClipboard>
         </Stack>
     </Modal>

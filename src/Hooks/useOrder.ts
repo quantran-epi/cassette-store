@@ -41,7 +41,7 @@ type UseOrder = {
     assignTrelloId: (orderId: string, trelloCard: TrelloCard) => void;
     moveOrderToTrelloList: (orderId: string, listId: string) => Promise<TrelloCard>;
     createOrder: (order: Order, customer: Customer, fileAttachments: RcFile[]) => Promise<TrelloCard>;
-    updatePlaceItems: (order: Order) => Promise<TrelloCard>;
+    updateOrder: (order: Order) => Promise<TrelloCard>;
     attachImagesToOrderOnTrello: (order: Order, files: RcFile[]) => Promise<TrelloAttachment[]>;
     isVipOrder: (order: Order) => boolean;
     isPriority: (order: Order) => boolean;
@@ -291,7 +291,7 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
         return trelloCard;
     }
 
-    const updatePlaceItems = async (order: Order): Promise<TrelloCard> => {
+    const updateOrder = async (order: Order): Promise<TrelloCard> => {
         let customer = _findCustomerById(order.customerId);
         dispatch(editOrder({order, customer}));
         let updatedOrder = store.getState().order.orders.find(e => e.id === order.id);
@@ -372,6 +372,6 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
         isCustomerReturnLessThan4,
         isPriority,
         refund,
-        updatePlaceItems
+        updateOrder
     }
 }

@@ -105,7 +105,7 @@ export const OrderCreateScreen = () => {
         itemDefinitions: defaultValues => ({
             id: {name: ObjectPropertyHelper.nameof(defaultValues, e => e.id), noMarkup: true},
             sequence: {name: ObjectPropertyHelper.nameof(defaultValues, e => e.sequence), noMarkup: true},
-            name: {label: "Tên đơn hàng", name: ObjectPropertyHelper.nameof(defaultValues, e => e.name)},
+            name: {name: ObjectPropertyHelper.nameof(defaultValues, e => e.name)},
             createdDate: {name: ObjectPropertyHelper.nameof(defaultValues, e => e.createdDate), noMarkup: true},
             placedItems: {name: ObjectPropertyHelper.nameof(defaultValues, e => e.placedItems), noMarkup: true},
             changeItems: {name: ObjectPropertyHelper.nameof(defaultValues, e => e.changeItems), noMarkup: true},
@@ -133,14 +133,13 @@ export const OrderCreateScreen = () => {
             codAmount: {label: "Số tiền COD", name: ObjectPropertyHelper.nameof(defaultValues, e => e.codAmount)},
             priorityMark: {name: ObjectPropertyHelper.nameof(defaultValues, e => e.priorityMark), noMarkup: true},
             priorityStatus: {
-                label: "Độ ưu tiên",
                 name: ObjectPropertyHelper.nameof(defaultValues, e => e.priorityStatus)
             },
             dueDate: {label: "", name: ObjectPropertyHelper.nameof(defaultValues, e => e.dueDate)},
             customerId: {name: ObjectPropertyHelper.nameof(defaultValues, e => e.customerId), noMarkup: true},
             trelloCardId: {name: ObjectPropertyHelper.nameof(defaultValues, e => e.trelloCardId), noMarkup: true},
             position: {name: ObjectPropertyHelper.nameof(defaultValues, e => e.position), noMarkup: true},
-            note: {label: "Ghi chú", name: ObjectPropertyHelper.nameof(defaultValues, e => e.note)},
+            note: {label: "Ghi chú thông tin hàng", name: ObjectPropertyHelper.nameof(defaultValues, e => e.note)},
             isFreeShip: {name: ObjectPropertyHelper.nameof(defaultValues, e => e.isFreeShip), valuePropName: "checked"},
         }),
         transformFunc: (values) => ({
@@ -172,7 +171,7 @@ export const OrderCreateScreen = () => {
     }
 
     const _onUpdatePlacedItems = (placedItems: OrderItem[]) => {
-        let newPaymentAmount = orderUtils.calculateOrderPaymentAmount(placedItems, addOrderForm.form.getFieldValue("customerId"))
+        let newPaymentAmount = orderUtils.calculateOrderPaymentAmount(placedItems, addOrderForm.form.getFieldValue("customerId"), addOrderForm.form.getFieldValue("isFreeShip"))
         addOrderForm.form.setFieldsValue({
             placedItems: placedItems,
             paymentAmount: newPaymentAmount,
@@ -218,9 +217,9 @@ export const OrderCreateScreen = () => {
     }
 
     const _renderPreviewUploadFiles = () => {
-        return <Stack fullwidth={true} gap={5}>
+        return filePreviewUrls.length > 0 ? <Stack fullwidth={true} gap={5}>
             {filePreviewUrls.map(e => <Image width={100} height={100} preview src={e}/>)}
-        </Stack>
+        </Stack> : <Typography.Text type={"secondary"}>Chưa có ảnh đính kèm</Typography.Text>
     }
 
     return <React.Fragment>
@@ -241,12 +240,9 @@ export const OrderCreateScreen = () => {
                         <Typography.Text>{orderCustomer.address}</Typography.Text>
                     </Typography.Text>
                 </Stack>
-                <Divider orientation="left">Thông tin đơn hàng</Divider>
+                <Divider orientation="left">Tên đơn hàng</Divider>
                 <SmartForm.Item {...addOrderForm.itemDefinitions.name}>
                     <Input/>
-                </SmartForm.Item>
-                <SmartForm.Item {...addOrderForm.itemDefinitions.isFreeShip}>
-                    <Checkbox onChange={_onChangeIsFreeShip}>Miễn phí vận chuyển</Checkbox>
                 </SmartForm.Item>
                 <SmartForm.Item {...addOrderForm.itemDefinitions.priorityStatus}>
                     <Radio.Group
@@ -256,6 +252,40 @@ export const OrderCreateScreen = () => {
                             {value: ORDER_PRIORITY_STATUS.URGENT, label: ORDER_PRIORITY_STATUS.URGENT},
                         ]}
                     />
+                </SmartForm.Item>
+                <Divider orientation="left"><Space>
+                    <Typography.Text>Danh sách hàng hoá</Typography.Text>
+                    <Button icon={<PlusOutlined/>} size="small" onClick={_onAddPlaceItems}/>
+                </Space></Divider>
+                <List
+                    pagination={false}
+                    itemLayout="horizontal"
+                    dataSource={placedItems}
+                    locale={{emptyText: "Chưa có danh sách hàng hoá"}}
+                    renderItem={(item) => <OrderPlacedItem item={item} onDelete={_onDeletePlacedItem}
+                                                           onChange={_onChangePlacedItem}
+                                                           allPlacedItems={placedItems}/>}
+                />
+                <SmartForm.Item {...addOrderForm.itemDefinitions.paymentAmount}>
+                    <InputNumber style={{width: "100%"}} placeholder="Nhập số tiền thu"
+                                 formatter={(value) => `đ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}/>
+                </SmartForm.Item>
+                <SmartForm.Item {...addOrderForm.itemDefinitions.note}>
+                    <TextArea rows={3} placeholder="Nhập ghi chú"/>
+                </SmartForm.Item>
+                <Divider orientation="left"><Space>
+                    <Typography.Text>Ảnh đính kèm</Typography.Text>
+                    <Upload showUploadList={false} beforeUpload={_onBeforeUpload} multiple={true}
+                            style={{marginBottom: 5}}>
+                        <Button icon={<UploadOutlined/>} size="small"/>
+                    </Upload>
+                </Space></Divider>
+                <SmartForm.Item>
+                    {_renderPreviewUploadFiles()}
+                </SmartForm.Item>
+                <Divider orientation="left">Thông tin vận chuyển</Divider>
+                <SmartForm.Item {...addOrderForm.itemDefinitions.isFreeShip}>
+                    <Checkbox onChange={_onChangeIsFreeShip}>Miễn phí vận chuyển</Checkbox>
                 </SmartForm.Item>
                 <SmartForm.Item {...addOrderForm.itemDefinitions.shippingPartner}>
                     <Radio.Group
@@ -277,10 +307,6 @@ export const OrderCreateScreen = () => {
                         ]}
                     />
                 </SmartForm.Item>
-                <SmartForm.Item {...addOrderForm.itemDefinitions.paymentAmount}>
-                    <InputNumber style={{width: "100%"}} placeholder="Nhập số tiền thu"
-                                 formatter={(value) => `đ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}/>
-                </SmartForm.Item>
                 <SmartForm.Item {...addOrderForm.itemDefinitions.codAmount}>
                     <InputNumber style={{width: "100%"}} placeholder="Nhập số tiền COD"
                                  formatter={(value) => `đ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}/>
@@ -289,38 +315,11 @@ export const OrderCreateScreen = () => {
                     <InputNumber style={{width: "100%"}} placeholder="Nhập phí vận chuyển"
                                  formatter={(value) => `đ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}/>
                 </SmartForm.Item>
-                <Divider orientation="left"><Space>
-                    <Typography.Text>Danh sách hàng hoá</Typography.Text>
-                    <Button icon={<PlusOutlined/>} size="small" onClick={_onAddPlaceItems}/>
-                </Space></Divider>
-                <SmartForm.Item>
-                    <List
-                        pagination={false}
-                        itemLayout="horizontal"
-                        dataSource={placedItems}
-                        locale={{emptyText: "Chưa có danh sách hàng hoá"}}
-                        renderItem={(item) => <OrderPlacedItem item={item} onDelete={_onDeletePlacedItem}
-                                                               onChange={_onChangePlacedItem}
-                                                               allPlacedItems={placedItems}/>}
-                    />
-                </SmartForm.Item>
-                <SmartForm.Item {...addOrderForm.itemDefinitions.note}>
-                    <TextArea rows={3} placeholder="Nhập ghi chú"/>
-                </SmartForm.Item>
-                <Divider orientation="left"><Space>
-                    <Typography.Text>Ảnh đính kèm</Typography.Text>
-                    <Upload showUploadList={false} beforeUpload={_onBeforeUpload} multiple={true}
-                            style={{marginBottom: 5}}>
-                        <Button icon={<UploadOutlined/>} size="small"/>
-                    </Upload>
-                </Space></Divider>
-                <SmartForm.Item>
-                    {_renderPreviewUploadFiles()}
-                </SmartForm.Item>
                 <SmartForm.Item>
                     <Button type="primary" fullwidth onClick={_onSaveOrder} loading={toggleSaveLoading.value}>Lưu đơn
                         hàng</Button>
                 </SmartForm.Item>
+                <br/>
             </React.Fragment>}
         </SmartForm>
     </React.Fragment>

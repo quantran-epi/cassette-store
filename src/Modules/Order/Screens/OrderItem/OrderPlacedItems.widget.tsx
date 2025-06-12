@@ -1,4 +1,4 @@
-import React, {FunctionComponent, useEffect, useState} from "react";
+import React, {ChangeEvent, FunctionComponent, useEffect, useState} from "react";
 import {OrderPlacedItem} from "@modules/Order/Screens/OrderCreate/OrderPlacedItem.widget";
 import {List} from "@components/List";
 import {Order} from "@store/Models/Order";
@@ -13,6 +13,9 @@ import {Modal} from "@components/Modal";
 import {Typography} from "@components/Typography";
 import {Divider} from "@components/Layout/Divider";
 import {useOrder, useToggle} from "@hooks";
+import {SmartForm} from "@components/SmartForm";
+import {TextArea} from "@components/Form/Input";
+import {InputNumber} from "@components/Form/InputNumber";
 
 type OrderPlacedItemsWidgetProps = {
     order: Order;
@@ -30,7 +33,7 @@ export const OrderPlacedItemsWidget: FunctionComponent<OrderPlacedItemsWidgetPro
     }, [props.order]);
 
     const _onUpdatePlacedItems = (placedItems: OrderItem[]) => {
-        let newPaymentAmount = orderUtils.calculateOrderPaymentAmount(placedItems, order.customerId)
+        let newPaymentAmount = orderUtils.calculateOrderPaymentAmount(placedItems, order.customerId, order.isFreeShip)
         setOrder({
             ...order,
             placedItems: placedItems,
@@ -57,15 +60,28 @@ export const OrderPlacedItemsWidget: FunctionComponent<OrderPlacedItemsWidgetPro
         _onUpdatePlacedItems(updatedPlacedItems);
     }
 
+    const _onChangeNote = (e: ChangeEvent<HTMLTextAreaElement>) => {
+        setOrder({
+            ...order,
+            note: e.target.value
+        });
+    }
+
+    const _onChangePaymentAmount = (value: number) => {
+        setOrder({
+            ...order,
+            paymentAmount: value
+        });
+    }
+
     const _onSave = async () => {
         toggleLoading.show();
-        let card = await orderUtils.updatePlaceItems(order);
+        let card = await orderUtils.updateOrder(order);
         toggleLoading.hide();
-        if(card) {
+        if (card) {
             message.success("Lưu danh sách băng thành công");
             props.onClose();
-        }
-        else message.error("Lỗi lưu danh sách băng")
+        } else message.error("Lỗi lưu danh sách băng")
     }
 
     return <Modal open={props.open} destroyOnClose={true} onCancel={props.onClose}
@@ -76,14 +92,25 @@ export const OrderPlacedItemsWidget: FunctionComponent<OrderPlacedItemsWidgetPro
             <Typography.Text>Danh sách hàng hoá</Typography.Text>
             <Button icon={<PlusOutlined/>} size="small" onClick={_onAddPlaceItems}/>
         </Space></Divider>
-        <List
-            pagination={false}
-            itemLayout="horizontal"
-            dataSource={order.placedItems}
-            locale={{emptyText: "Chưa có danh sách hàng hoá"}}
-            renderItem={(item) => <OrderPlacedItem item={item} onDelete={_onDeletePlacedItem}
-                                                   onChange={_onChangePlacedItem}
-                                                   allPlacedItems={order.placedItems}/>}
-        />
+        <SmartForm itemDefinitions={{}} layout={"vertical"}>
+            <List
+                pagination={false}
+                itemLayout="horizontal"
+                dataSource={order.placedItems}
+                locale={{emptyText: "Chưa có danh sách hàng hoá"}}
+                renderItem={(item) => <OrderPlacedItem item={item} onDelete={_onDeletePlacedItem}
+                                                       onChange={_onChangePlacedItem}
+                                                       allPlacedItems={order.placedItems}/>}
+            />
+            <SmartForm.Item label={"Số tiền thu"}>
+                <InputNumber style={{width: "100%"}} placeholder="Nhập số tiền thu"
+                             value={order.paymentAmount}
+                             onChange={_onChangePaymentAmount}
+                             formatter={(value) => `đ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}/>
+            </SmartForm.Item>
+            <SmartForm.Item label={"Ghi chú thông tin hàng"}>
+                <TextArea rows={3} onChange={_onChangeNote} value={order.note}/>
+            </SmartForm.Item>
+        </SmartForm>
     </Modal>
 }

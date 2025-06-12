@@ -77,5 +77,6 @@ export const COLORS = {
         COD: "",
         BANK_TRANSFER_IN_ADVANCE: "#1877F2"
     },
-    RETURN_REASON: "#990505"
+    RETURN_REASON: "#990505",
+    FREE_SHIP: "#1877F2"
 }

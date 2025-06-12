@@ -14,7 +14,7 @@ import {
     TruckOutlined,
     ToolOutlined,
     HighlightOutlined,
-    PaperClipOutlined
+    PaperClipOutlined, DropboxOutlined, RollbackOutlined
 } from "@ant-design/icons";
 import {COLORS, ORDER_PAYMENT_METHOD, ORDER_STATUS} from "@common/Constants/AppConstants";
 import {Button} from "@components/Button";
@@ -40,6 +40,7 @@ import {OrderChangeShippingCodeWidget} from "./OrderChangeShippingCode.widget";
 import {OrderCreateDeliveryAssistantWidget} from "@modules/Order/Screens/OrderItem/OrderCreateDeliveryAssistant.widget";
 import {OrderRefundWidget} from "@modules/Order/Screens/OrderItem/OrderRefund.widget";
 import {OrderPlacedItemsWidget} from "@modules/Order/Screens/OrderItem/OrderPlacedItems.widget";
+import {OrderShippinInfoWidget} from "@modules/Order/Screens/OrderItem/OrderShippingInfo.widget";
 
 type OrderItemProps = {
     item: Order;
@@ -55,6 +56,7 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
     const toggleLoadingChangeShippingCode = useToggle();
     const toggleOrderCreateDeliveryAssistant = useToggle();
     const toggleOrderPlacedItems = useToggle();
+    const toggleOrderShippingInfo = useToggle();
     const toggleOrderRefund = useToggle();
     const orderCustomer = useMemo(() => {
         return customers.find(e => e.id == props.item.customerId);
@@ -121,7 +123,11 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
             case "input-shipping-code":
                 toggleInputShippingCodeEditor.show();
                 break;
-            case "delivery-bill":
+            case "order-bill":
+                toggleOrderShippingInfo.show();
+                break;
+            case "file-attachment":
+
                 break;
             case "delete":
                 modal.confirm({
@@ -234,9 +240,10 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                     <Dropdown menu={{
                         items: [
                             {
-                                label: 'Ảnh đính kèm',
-                                key: 'file-attachment',
-                                icon: <PaperClipOutlined/>,
+                                label: 'Mã vận đơn',
+                                key: 'input-shipping-code',
+                                icon: <BarcodeOutlined/>,
+                                disabled: !orderUtils.isPushedTrello(props.item.id)
                             },
                             {
                                 label: 'Hỗ trợ nhập đơn',
@@ -244,25 +251,24 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                                 icon: <HighlightOutlined/>,
                             },
                             {
-                                label: 'Hoàn tiền khách hàng',
-                                key: 'refund',
-                                icon: <DollarOutlined/>,
-                            },
-                            {
-                                label: 'Danh sách băng',
+                                label: 'Danh sách hàng hoá',
                                 key: 'place-items',
-                                icon: <FileTextOutlined/>,
+                                icon: <DropboxOutlined/>,
                             },
                             {
-                                label: 'Sửa đơn vận chuyển',
-                                key: 'delivery-bill',
+                                label: 'Ảnh đính kèm',
+                                key: 'file-attachment',
+                                icon: <PaperClipOutlined/>,
+                            },
+                            {
+                                label: 'Vận chuyển',
+                                key: 'order-bill',
                                 icon: <TruckOutlined/>,
                             },
                             {
-                                label: 'Mã vận đơn',
-                                key: 'input-shipping-code',
-                                icon: <BarcodeOutlined/>,
-                                disabled: !orderUtils.isPushedTrello(props.item.id)
+                                label: 'Hoàn tiền khách',
+                                key: 'refund',
+                                icon: <RollbackOutlined/>,
                             },
                             {
                                 label: 'Xoá đơn hàng',
@@ -303,6 +309,10 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                                 {_renderCODAmount()}
                             </Space>
                         </Space>
+                        {props.item.isFreeShip && <Space>
+                            <TruckOutlined/>
+                            <Typography.Text style={{color: COLORS.FREE_SHIP}}>Miễn phí vận chuyển</Typography.Text>
+                        </Space>}
                         {orderCustomer && <React.Fragment>
                             <CopyToClipboard text={orderCustomer.mobile}
                                              onCopy={() => message.success("Đã sao chép số điện thoại")}>
@@ -347,6 +357,10 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
 
         <OrderPlacedItemsWidget open={toggleOrderPlacedItems.value}
                                 onClose={toggleOrderPlacedItems.hide}
+                                order={props.item}/>
+
+        <OrderShippinInfoWidget open={toggleOrderShippingInfo.value}
+                                onClose={toggleOrderShippingInfo.hide}
                                 order={props.item}/>
 
     </React.Fragment>
