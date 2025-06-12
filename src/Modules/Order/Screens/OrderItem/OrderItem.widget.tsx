@@ -39,6 +39,7 @@ import {Input} from "@components/Form/Input";
 import {OrderChangeShippingCodeWidget} from "./OrderChangeShippingCode.widget";
 import {OrderCreateDeliveryAssistantWidget} from "@modules/Order/Screens/OrderItem/OrderCreateDeliveryAssistant.widget";
 import {OrderRefundWidget} from "@modules/Order/Screens/OrderItem/OrderRefund.widget";
+import {OrderPlacedItemsWidget} from "@modules/Order/Screens/OrderItem/OrderPlacedItems.widget";
 
 type OrderItemProps = {
     item: Order;
@@ -53,6 +54,7 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
     const toggleInputShippingCodeEditor = useToggle();
     const toggleLoadingChangeShippingCode = useToggle();
     const toggleOrderCreateDeliveryAssistant = useToggle();
+    const toggleOrderPlacedItems = useToggle();
     const toggleOrderRefund = useToggle();
     const orderCustomer = useMemo(() => {
         return customers.find(e => e.id == props.item.customerId);
@@ -108,6 +110,7 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
     const _onMoreActionClick = async (e) => {
         switch (e.key) {
             case "place-items":
+                toggleOrderPlacedItems.show();
                 break;
             case "refund":
                 toggleOrderRefund.show();
@@ -341,6 +344,10 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
         <OrderRefundWidget open={toggleOrderRefund.value}
                            onClose={toggleOrderRefund.hide}
                            order={props.item}/>
+
+        <OrderPlacedItemsWidget open={toggleOrderPlacedItems.value}
+                                onClose={toggleOrderPlacedItems.hide}
+                                order={props.item}/>
 
     </React.Fragment>
 }

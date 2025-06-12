@@ -20,3 +20,7 @@ export type TrelloCreateAttachmentParam = {
 export type TrelloCreateCommentParam = {
     text: string;
 }
+
+export type TrelloDeleteAttachmentParam = {
+    idAttachment: string;
+}

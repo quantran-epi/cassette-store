@@ -41,6 +41,7 @@ type UseOrder = {
     assignTrelloId: (orderId: string, trelloCard: TrelloCard) => void;
     moveOrderToTrelloList: (orderId: string, listId: string) => Promise<TrelloCard>;
     createOrder: (order: Order, customer: Customer, fileAttachments: RcFile[]) => Promise<TrelloCard>;
+    updatePlaceItems: (order: Order) => Promise<TrelloCard>;
     attachImagesToOrderOnTrello: (order: Order, files: RcFile[]) => Promise<TrelloAttachment[]>;
     isVipOrder: (order: Order) => boolean;
     isPriority: (order: Order) => boolean;
@@ -78,6 +79,10 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
         return labelIds;
     }
 
+    const _buildDesc = (order: Order, customer: Customer): string => {
+        return `${customer.name}\n${customer.mobile}\n${customer.address}\n${order.placedItems.map(item => `${item.count} băng ${item.type}\n`)}\nThu ${order.codAmount.toLocaleString()}đ\n${order.note}`
+    }
+
     const markOrderAsRefuseToReceive = async (orderId: string): Promise<string> => {
         try {
             let order = _findOrderById(orderId);
@@ -88,7 +93,7 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
             customer.isInBlacklist = true;
             customer.isVIP = false;
 
-            dispatch(editOrder(order));
+            dispatch(editOrder({order, customer}));
             dispatch(editCustomer(customer));
 
             let updatedCard = await moveOrderToTrelloList(orderId, trello.TRELLO_LIST_IDS.NOT_DELIVERED_LIST);
@@ -101,9 +106,10 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
     const markOrderAsBrokenItems = async (orderId: string): Promise<string> => {
         try {
             let order = _findOrderById(orderId);
+            let customer = _findCustomerById(order.customerId);
             order.status = ORDER_STATUS.NEED_RETURN;
             order.returnReason = ORDER_RETURN_REASON.BROKEN_ITEMS;
-            dispatch(editOrder(order));
+            dispatch(editOrder({order, customer}));
 
             let updatedCard = await moveOrderToTrelloList(orderId, trello.TRELLO_LIST_IDS.NOT_DELIVERED_LIST);
             return updatedCard === null ? "Lỗi khi chuyển đơn Trello" : null;
@@ -114,15 +120,17 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
 
     const markOrderAsWaitingForReturn = (orderId: string): string => {
         let order = _findOrderById(orderId);
+        let customer = _findCustomerById(order.customerId);
         order.status = ORDER_STATUS.WAITING_FOR_RETURNED;
-        dispatch(editOrder(order));
+        dispatch(editOrder({order, customer}));
         return null;
     }
 
     const markOrderAsReturned = (orderId: string): string => {
         let order = _findOrderById(orderId);
+        let customer = _findCustomerById(order.customerId);
         order.status = ORDER_STATUS.RETURNED;
-        dispatch(editOrder(order));
+        dispatch(editOrder({order, customer}));
         return null;
     }
 
@@ -139,7 +147,7 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
             }, 0)
             if (customer.buyCount > 4) customer.isVIP = true;
 
-            dispatch(editOrder(order));
+            dispatch(editOrder({order, customer}));
             dispatch(editCustomer(customer));
 
             let updatedCard = await moveOrderToTrelloList(orderId, trello.TRELLO_LIST_IDS.DONE_LIST);
@@ -184,9 +192,10 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
     const changeShippingCode = async (orderId: string, code: string): Promise<string> => {
         try {
             let order = _findOrderById(orderId);
+            let customer = _findCustomerById(order.customerId);
             let isAlreadyHasShippingCode = Boolean(order.shippingCode);
             order.shippingCode = code;
-            dispatch(editOrder(order));
+            dispatch(editOrder({order, customer}));
 
             // comment on trello
             let action = await trello.createComment({text: code}, order.trelloCardId);
@@ -226,7 +235,7 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
         try {
             let newCard = await trello.createCard({
                 name: order.name,
-                desc: `${customer.name}\n${customer.mobile}\n${customer.address}\n${order.placedItems.map(item => `${item.count} băng ${item.type}\n`)}\nThu ${order.codAmount.toLocaleString()}đ\n${order.note}`,
+                desc: _buildDesc(order, customer),
                 start: new Date(),
                 pos: order.position,
                 idLabels: _getLabelIds(order),
@@ -249,8 +258,9 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
 
     const assignTrelloId = (orderId: string, trelloCard: TrelloCard): void => {
         let order = _findOrderById(orderId);
+        let customer = _findCustomerById(order.customerId);
         order.trelloCardId = trelloCard.id;
-        dispatch(editOrder(order));
+        dispatch(editOrder({order, customer}));
     }
 
     const moveOrderToTrelloList = async (orderId: string, listId: string): Promise<TrelloCard> => {
@@ -274,11 +284,24 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
         //save trello card id
         createdOrder = cloneDeep(createdOrder);
         createdOrder.trelloCardId = trelloCard.id;
-        dispatch(editOrder(createdOrder));
+        dispatch(editOrder({order: createdOrder, customer}));
 
         // upload images
         await attachImagesToOrderOnTrello(createdOrder, fileAttachments);
         return trelloCard;
+    }
+
+    const updatePlaceItems = async (order: Order): Promise<TrelloCard> => {
+        let customer = _findCustomerById(order.customerId);
+        dispatch(editOrder({order, customer}));
+        let updatedOrder = store.getState().order.orders.find(e => e.id === order.id);
+
+        let updatedCard = await trello.updateCard({
+            id: updatedOrder.trelloCardId,
+            desc: _buildDesc(updatedOrder, customer),
+            pos: updatedOrder.position
+        })
+        return updatedCard;
     }
 
     const attachImagesToOrderOnTrello = async (order: Order, files: RcFile[]): Promise<TrelloAttachment[]> => {
@@ -315,9 +338,10 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
 
     const refund = (orderId: string, amount: number): void => {
         let order = _findOrderById(orderId);
+        let customer = _findCustomerById(order.customerId);
         order.isRefund = amount > 0;
         order.refundAmount = amount;
-        dispatch(editOrder(order));
+        dispatch(editOrder({order, customer}));
     }
 
     return {
@@ -347,6 +371,7 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
         isUrgent,
         isCustomerReturnLessThan4,
         isPriority,
-        refund
+        refund,
+        updatePlaceItems
     }
 }

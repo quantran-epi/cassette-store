@@ -1,7 +1,7 @@
 import {
     TrelloCreateAttachmentParam,
     TrelloCreateCardParam,
-    TrelloCreateCommentParam,
+    TrelloCreateCommentParam, TrelloDeleteAttachmentParam,
     TrelloUpdateCardParam
 } from "./Models/ApiParam";
 import {TrelloAction} from "./Models/TrelloAction";
@@ -31,6 +31,7 @@ type UseTrello = {
     updateCard: (params: TrelloUpdateCardParam) => Promise<TrelloCard>;
     createAttachment: (params: TrelloCreateAttachmentParam, idCard: string) => Promise<TrelloAttachment>;
     createComment: (params: TrelloCreateCommentParam, idCard: string) => Promise<TrelloAction>;
+    deleteAttachment: (params: TrelloDeleteAttachmentParam, idCard: string) => Promise<void>;
 }
 
 type UseTrelloProps = {}
@@ -60,7 +61,8 @@ export const useTrello = (props?: UseTrelloProps): UseTrello => {
         CREATE_ATTACHMENT: "/cards/{id}/attachments",
         CREATE_NEW_CARD: "/cards?idList={idList}",
         UPDATE_CARD: "/cards/{id}",
-        ADD_COMMENT_ON_CARD: "/cards/{id}/actions/comments?text={text}"
+        ADD_COMMENT_ON_CARD: "/cards/{id}/actions/comments?text={text}",
+        DELETE_ATTACHMENT: "/cards/{id}/attachments/{idAttachment}"
     }
     const apiUtils = useAPI({
         root: ENDPOINTS.ROOT,
@@ -94,6 +96,10 @@ export const useTrello = (props?: UseTrelloProps): UseTrello => {
         return apiUtils.put(ENDPOINTS.UPDATE_CARD, {"{id}": params.id}, params);
     }
 
+    const deleteAttachment = (params: TrelloDeleteAttachmentParam, idCard: string): Promise<void> => {
+        return apiUtils.remove(ENDPOINTS.DELETE_ATTACHMENT, {"{id}": idCard, "{idAttachment}": params.idAttachment});
+    }
+
     const createAttachment = (params: TrelloCreateAttachmentParam, idCard: string): Promise<TrelloAttachment> => {
         let formData = new FormData();
         formData.append("name", params.name);
@@ -116,6 +122,7 @@ export const useTrello = (props?: UseTrelloProps): UseTrello => {
         createComment,
         createCard,
         updateCard,
-        createAttachment
+        createAttachment,
+        deleteAttachment
     }
 }

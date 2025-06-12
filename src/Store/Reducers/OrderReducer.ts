@@ -1,11 +1,11 @@
-import { createSelector, createSlice } from '@reduxjs/toolkit'
-import type { PayloadAction } from '@reduxjs/toolkit'
-import { Order } from '@store/Models/Order'
-import { OrderHelper } from "@common/Helpers/OrderHelper";
-import { ORDER_STATUS } from "@common/Constants/AppConstants";
-import { Customer } from "@store/Models/Customer";
-import { cloneDeep } from 'lodash';
-import { RootState } from '@store/Store';
+import {createSelector, createSlice} from '@reduxjs/toolkit'
+import type {PayloadAction} from '@reduxjs/toolkit'
+import {Order} from '@store/Models/Order'
+import {OrderHelper} from "@common/Helpers/OrderHelper";
+import {ORDER_STATUS} from "@common/Constants/AppConstants";
+import {Customer} from "@store/Models/Customer";
+import {cloneDeep} from 'lodash';
+import {RootState} from '@store/Store';
 
 export interface OrderState {
     orders: Order[];
@@ -35,11 +35,18 @@ export const orderSlice = createSlice({
             state.orders = [...state.orders.filter(e => !pendingOrders.map(i => i.id).includes(e.id)), ...pendingOrders];
             state.lastSequence = newOrder.sequence;
         },
-        edit: (state, action: PayloadAction<Order>) => {
-            state.orders = state.orders.map(e => {
-                if (e.id === action.payload.id) return action.payload;
-                return e;
-            })
+        edit: (state, action: PayloadAction<{ order: Order, customer: Customer }>) => {
+            let editingOrder = cloneDeep(action.payload.order);
+            editingOrder.priorityMark = OrderHelper.calculatePendingOrderPrioritymark(editingOrder,
+                action.payload.customer);
+            let pendingOrders = [...state.orders.filter(e => e.status === ORDER_STATUS.PLACED && e.id !== editingOrder.id), editingOrder];
+            pendingOrders = pendingOrders.slice()
+                .sort((a, b) => b.priorityMark - a.priorityMark)
+                .map((order, index) => ({
+                    ...order,
+                    position: index,
+                }));
+            state.orders = [...state.orders.filter(e => !pendingOrders.map(i => i.id).includes(e.id)), ...pendingOrders];
         },
         remove: (state, action: PayloadAction<string[]>) => {
             state.orders = state.orders.filter(o => !action.payload.includes(o.id));
@@ -62,6 +69,6 @@ export const selectSortedPendingOrders = createSelector(
 );
 
 // Action creators are generated for each case reducer function
-export const { add: addOrder, edit: editOrder, remove: removeOrder, reset: resetOrder } = orderSlice.actions
+export const {add: addOrder, edit: editOrder, remove: removeOrder, reset: resetOrder} = orderSlice.actions
 
 export default orderSlice.reducer
