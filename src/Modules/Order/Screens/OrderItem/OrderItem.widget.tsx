@@ -110,7 +110,7 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
     }
 
     const _renderPriority = () => {
-        switch(props.item.priorityStatus) {
+        switch (props.item.priorityStatus) {
             case ORDER_PRIORITY_STATUS.PRIORITY: return <Tag color={COLORS.PRIORITY_STATUS.PRIORITY}>Ưu tiên</Tag>
             case ORDER_PRIORITY_STATUS.URGENT: return <Tag color={COLORS.PRIORITY_STATUS.URGENT}>Gấp</Tag>
             default: return undefined;
@@ -309,6 +309,7 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                             style={{ paddingLeft: 0, fontWeight: "bold" }}>
                             <Space>
                                 <Typography.Text>{props.item.name}</Typography.Text>
+                                {_renderOrderIcon()}
                             </Space>
                         </Button>
                     </Tooltip>
@@ -316,8 +317,8 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                 description={<Stack direction={"column"} align={"flex-start"} gap={4}>
                     <Space size={0}>
                         {_renderOrderStatus()}
-                        {_renderOrderIcon()}
                         {props.item.returnReason && _renderReturnReason()}
+                        {props.item.priorityStatus !== ORDER_PRIORITY_STATUS.NONE && _renderPriority()}
                     </Space>
                     <Stack gap={2} direction="column" align={"flex-start"}>
                         <Space>
@@ -331,7 +332,6 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                             <TruckOutlined />
                             <Typography.Text style={{ color: COLORS.FREE_SHIP }}>Miễn phí vận chuyển</Typography.Text>
                         </Space>}
-                        {props.item.priorityStatus !== ORDER_PRIORITY_STATUS.NONE && _renderPriority()}
                         {orderCustomer && <React.Fragment>
                             <CopyToClipboard text={orderCustomer.mobile}
                                 onCopy={() => message.success("Đã sao chép số điện thoại")}>
