@@ -299,7 +299,8 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
         let updatedCard = await trello.updateCard({
             id: updatedOrder.trelloCardId,
             desc: _buildDesc(updatedOrder, customer),
-            pos: updatedOrder.position
+            pos: updatedOrder.position,
+            idLabels: _getLabelIds(updatedOrder)
         })
         return updatedCard;
     }

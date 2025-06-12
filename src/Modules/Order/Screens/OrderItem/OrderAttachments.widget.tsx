@@ -39,7 +39,7 @@ export const OrderAttachmentsWidget: FunctionComponent<OrderAttachmentsWidgetPro
     }, [addAttachments])
 
     const currentFilePreviewUrls = useMemo(() => {
-        return currentAttachments.map(file => file.previews[file.previews.length-1].url);
+        return currentAttachments.map(file => file.url);
     }, [currentAttachments])
 
     useEffect(() => {
@@ -77,9 +77,9 @@ export const OrderAttachmentsWidget: FunctionComponent<OrderAttachmentsWidgetPro
     }
 
     const _onRemoveAttachment = (url: string) => {
-        setDeleteAttachments([...deleteAttachments, currentAttachments.find(e => e.previews[e.previews.length-1].url === url
-            && !deleteAttachments.map(e => e.previews[e.previews.length-1].url).includes(url))]);
-        setCurrentAttachments(currentAttachments.filter(e => e.previews[e.previews.length-1].url !== url));
+        setDeleteAttachments([...deleteAttachments, currentAttachments.find(e => e.url === url
+            && !deleteAttachments.map(e => e.url).includes(url))]);
+        setCurrentAttachments(currentAttachments.filter(e => e.url !== url));
     }
 
     const _renderCurrentPreviewUploadFiles = () => {
