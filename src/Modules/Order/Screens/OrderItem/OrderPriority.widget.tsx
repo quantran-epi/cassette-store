@@ -50,7 +50,7 @@ export const OrderPriorityWidget: FunctionComponent<OrderPriorityProps> = props 
         <SmartForm itemDefinitions={{}} layout={"vertical"}>
             <SmartForm.Item label="Độ ưu tiên">
                 <Radio.Group
-                    value={props.order.priorityStatus}
+                    value={order.priorityStatus}
                     onChange={_onChangePriorityStatus}
                     options={[
                         { value: ORDER_PRIORITY_STATUS.NONE, label: ORDER_PRIORITY_STATUS.NONE },

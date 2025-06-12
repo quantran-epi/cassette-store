@@ -16,7 +16,7 @@ import {
     HighlightOutlined,
     PaperClipOutlined, DropboxOutlined, RollbackOutlined, DoubleRightOutlined
 } from "@ant-design/icons";
-import { COLORS, ORDER_PAYMENT_METHOD, ORDER_STATUS } from "@common/Constants/AppConstants";
+import { COLORS, ORDER_PAYMENT_METHOD, ORDER_PRIORITY_STATUS, ORDER_STATUS } from "@common/Constants/AppConstants";
 import { Button } from "@components/Button";
 import { Dropdown } from "@components/Dropdown";
 import { Space } from "@components/Layout/Space";
@@ -106,6 +106,14 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                 return <Tag color={COLORS.PAYMENT_METHOD.BANK_TRANSFER_IN_ADVANCE}>Bank</Tag>;
             default:
                 return undefined;
+        }
+    }
+
+    const _renderPriority = () => {
+        switch(props.item.priorityStatus) {
+            case ORDER_PRIORITY_STATUS.PRIORITY: return <Tag color={COLORS.PRIORITY_STATUS.PRIORITY}>Ưu tiên</Tag>
+            case ORDER_PRIORITY_STATUS.URGENT: return <Tag color={COLORS.PRIORITY_STATUS.URGENT}>Gấp</Tag>
+            default: return undefined;
         }
     }
 
@@ -323,6 +331,7 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                             <TruckOutlined />
                             <Typography.Text style={{ color: COLORS.FREE_SHIP }}>Miễn phí vận chuyển</Typography.Text>
                         </Space>}
+                        {props.item.priorityStatus !== ORDER_PRIORITY_STATUS.NONE && _renderPriority()}
                         {orderCustomer && <React.Fragment>
                             <CopyToClipboard text={orderCustomer.mobile}
                                 onCopy={() => message.success("Đã sao chép số điện thoại")}>
