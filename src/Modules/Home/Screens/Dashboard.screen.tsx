@@ -57,29 +57,31 @@ export const DashboardScreen = () => {
     return <React.Fragment>
         <Divider>Thống kê chung</Divider>
         <Card bordered={false} title={"Tổng số từ trước đến hiện tại"}>
-            <Stack justify={"space-between"} wrap={"wrap"}>
+            <Stack fullwidth justify={"space-between"}>
                 <Statistic
-                    title="Tổng số tiền bán"
+                    title="Số tiền bán"
                     value={orderUtils.getTotalAmountSoldAll()}
                     suffix="đ"
                     valueStyle={{color: COLORS.ORDER_STATUS.SHIPPED}}
                 />
                 <Statistic
-                    title="Tổng số đơn bán"
+                    title="Số đơn bán"
                     value={orderUtils.getTotalOrderSoldAll()}
                     suffix="đơn"
                     valueStyle={{color: COLORS.ORDER_STATUS.SHIPPED}}
+                />
+            </Stack>
+            <Stack fullwidth justify={"space-between"}>
+                <Statistic
+                    title="Số tiền bom"
+                    value={orderUtils.getTotalAmountBomAll()}
+                    suffix="đ"
+                    valueStyle={{color: COLORS.ORDER_STATUS.RETURNED}}
                 />
                 <Statistic
                     title="Số đơn bom"
                     value={orderUtils.getTotalOrderBomAll()}
                     suffix="đơn"
-                    valueStyle={{color: COLORS.ORDER_STATUS.RETURNED}}
-                />
-                <Statistic
-                    title="Số tiền bom"
-                    value={orderUtils.getTotalAmountBomAll()}
-                    suffix="đ"
                     valueStyle={{color: COLORS.ORDER_STATUS.RETURNED}}
                 />
             </Stack>
@@ -103,6 +105,8 @@ export const DashboardScreen = () => {
                     prefix={_getCompareAmountWeek() >= 0 ? <ArrowUpOutlined/> : <ArrowDownOutlined/>}
                     valueStyle={{color: _getCompareAmountWeek() >= 0 ? COLORS.ORDER_STATUS.SHIPPED : COLORS.ORDER_STATUS.RETURNED}}
                 />
+            </Stack>
+            <Stack justify={"space-between"} wrap={"wrap"}>
                 <Statistic
                     title="Số đơn bán tháng này"
                     value={_getCompareAmountMonth()}
@@ -123,7 +127,7 @@ export const DashboardScreen = () => {
         </Card>
         <Divider>Thống kê theo Tuần</Divider>
         <Card bordered={false} title={"Tuần này"}>
-            <Stack justify={"space-between"} wrap={"wrap"}>
+            <Stack fullwidth justify={"space-between"}>
                 <Statistic
                     title="Số đơn bán"
                     value={orderUtils.getTotalOrderSold(thisWeekFrom.toDate(), thisWeekTo.toDate())}
@@ -136,6 +140,8 @@ export const DashboardScreen = () => {
                     suffix="đ"
                     valueStyle={{color: COLORS.ORDER_STATUS.SHIPPED}}
                 />
+            </Stack>
+            <Stack fullwidth justify={"space-between"}>
                 <Statistic
                     title="Số đơn bom"
                     value={orderUtils.getTotalOrderBom(thisWeekFrom.toDate(), thisWeekTo.toDate())}
@@ -152,7 +158,7 @@ export const DashboardScreen = () => {
         </Card>
         <br/>
         <Card bordered={false} title={"Tuần trước"}>
-            <Stack justify={"space-between"} wrap={"wrap"}>
+            <Stack fullwidth justify={"space-between"}>
                 <Statistic
                     title="Số đơn bán"
                     value={orderUtils.getTotalOrderSold(lastWeekFrom.toDate(), lastWeekTo.toDate())}
@@ -165,6 +171,8 @@ export const DashboardScreen = () => {
                     suffix="đ"
                     valueStyle={{color: COLORS.ORDER_STATUS.SHIPPED}}
                 />
+            </Stack>
+            <Stack fullwidth justify={"space-between"}>
                 <Statistic
                     title="Số đơn bom"
                     value={orderUtils.getTotalOrderBom(lastWeekFrom.toDate(), lastWeekTo.toDate())}
@@ -181,7 +189,7 @@ export const DashboardScreen = () => {
         </Card>
         <Divider>Thống kê theo Tháng</Divider>
         <Card bordered={false} title={"Tháng này"}>
-            <Stack justify={"space-between"} wrap={"wrap"}>
+            <Stack fullwidth justify={"space-between"}>
                 <Statistic
                     title="Số đơn bán"
                     value={orderUtils.getTotalOrderSold(thisMonthFrom.toDate(), thisMonthTo.toDate())}
@@ -194,6 +202,8 @@ export const DashboardScreen = () => {
                     suffix="đ"
                     valueStyle={{color: COLORS.ORDER_STATUS.SHIPPED}}
                 />
+            </Stack>
+            <Stack fullwidth justify={"space-between"}>
                 <Statistic
                     title="Số đơn bom"
                     value={orderUtils.getTotalOrderBom(thisMonthFrom.toDate(), thisMonthTo.toDate())}
@@ -210,7 +220,7 @@ export const DashboardScreen = () => {
         </Card>
         <br/>
         <Card bordered={false} title={"Tháng trước"}>
-            <Stack justify={"space-between"} wrap={"wrap"}>
+            <Stack fullwidth justify={"space-between"}>
                 <Statistic
                     title="Số đơn bán"
                     value={orderUtils.getTotalOrderSold(lastMonthFrom.toDate(), lastMonthTo.toDate())}
@@ -223,6 +233,8 @@ export const DashboardScreen = () => {
                     suffix="đ"
                     valueStyle={{color: COLORS.ORDER_STATUS.SHIPPED}}
                 />
+            </Stack>
+            <Stack fullwidth justify={"space-between"}>
                 <Statistic
                     title="Số đơn bom"
                     value={orderUtils.getTotalOrderBom(lastMonthFrom.toDate(), lastMonthTo.toDate())}
@@ -237,5 +249,7 @@ export const DashboardScreen = () => {
                 />
             </Stack>
         </Card>
+        <br/>
+        <br/>
     </React.Fragment>
 }
