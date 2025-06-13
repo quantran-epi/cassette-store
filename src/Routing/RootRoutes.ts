@@ -4,7 +4,7 @@ import OrderRoutes from '@modules/Order/Routing/OrderRouteConfig';
 const AuthorizedRoutes = {
     Root: () => "/",
     CustomerRoutes,
-    OrderRoutes
+    OrderRoutes,
 }
 
 export const RootRoutes = {

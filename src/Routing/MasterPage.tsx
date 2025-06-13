@@ -4,38 +4,43 @@ import {
     ImportOutlined,
     MenuOutlined,
     UserOutlined,
-    TruckOutlined
+    TruckOutlined,
+    BarChartOutlined
 } from "@ant-design/icons";
-import { ObjectPropertyHelper } from "@common/Helpers/ObjectProperty";
-import { Button } from "@components/Button";
-import { TextArea } from "@components/Form/Input";
-import { Image } from "@components/Image";
-import { Box } from "@components/Layout/Box";
-import { Content } from "@components/Layout/Content";
-import { Header } from "@components/Layout/Header";
-import { Space } from "@components/Layout/Space";
-import { Stack } from "@components/Layout/Stack";
-import { Menu } from "@components/Menu";
-import { useMessage } from "@components/Message";
-import { Modal } from "@components/Modal";
-import { SmartForm, useSmartForm } from "@components/SmartForm";
-import { Tooltip } from "@components/Tootip";
-import { Typography } from "@components/Typography";
-import { useTheme, useToggle, useTrello } from "@hooks";
-import { addCustomer, resetCustomer } from "@store/Reducers/CustomerReducer";
-import { RootState, store } from "@store/Store";
-import { Drawer, Flex, Layout, message } from "antd";
-import React, { useEffect, useRef, useState } from "react";
-import { CopyToClipboard } from 'react-copy-to-clipboard';
-import { useDispatch, useSelector } from "react-redux";
-import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import { RootRoutes } from "./RootRoutes";
+import {ObjectPropertyHelper} from "@common/Helpers/ObjectProperty";
+import {Button} from "@components/Button";
+import {TextArea} from "@components/Form/Input";
+import {Image} from "@components/Image";
+import {Box} from "@components/Layout/Box";
+import {Content} from "@components/Layout/Content";
+import {Header} from "@components/Layout/Header";
+import {Space} from "@components/Layout/Space";
+import {Stack} from "@components/Layout/Stack";
+import {Menu} from "@components/Menu";
+import {useMessage} from "@components/Message";
+import {Modal} from "@components/Modal";
+import {SmartForm, useSmartForm} from "@components/SmartForm";
+import {Tooltip} from "@components/Tootip";
+import {Typography} from "@components/Typography";
+import {useTheme, useToggle, useTrello} from "@hooks";
+import {addCustomer, resetCustomer, setCustomerState} from "@store/Reducers/CustomerReducer";
+import {RootState, store} from "@store/Store";
+import {Drawer, Flex, Layout, message} from "antd";
+import React, {useEffect, useRef, useState} from "react";
+import {CopyToClipboard} from 'react-copy-to-clipboard';
+import {useDispatch, useSelector} from "react-redux";
+import {Outlet, useLocation, useNavigate} from "react-router-dom";
+import {RootRoutes} from "./RootRoutes";
 import Logo from "../../assets/icons/radio-cassette.png";
 import moment from "moment";
+import {orderBy} from "lodash";
+import {setOrderState} from "@store/Reducers/OrderReducer";
 
 const layoutStyles: React.CSSProperties = {
     height: "100%"
 }
+
+const BACKUP_CARD_ID = "68498a4712a808a92bf59b01";
 
 export const MasterPage = () => {
     const theme = useTheme();
@@ -45,9 +50,9 @@ export const MasterPage = () => {
         _featureIcon = () => {
             switch (currentFeatureName) {
                 case "Khách hàng":
-                    return <UserOutlined style={{ fontSize: "1.5em" }} />;
+                    return <UserOutlined style={{fontSize: "1.5em"}}/>;
                 case "Đơn hàng":
-                    return <TruckOutlined style={{ fontSize: "1.5em" }} />;
+                    return <TruckOutlined style={{fontSize: "1.5em"}}/>;
                 default:
                     return null;
             }
@@ -63,29 +68,33 @@ export const MasterPage = () => {
         }}>
             <Stack justify="space-between" align="center">
                 <Stack>
-                    <SidebarDrawer />
+                    <SidebarDrawer/>
                     <Tooltip title={currentFeatureName}>
                         <Typography.Paragraph
-                            style={{ fontFamily: "kanit", fontSize: 24, fontWeight: "500", marginBottom: 0, width: 230 }}
+                            style={{fontFamily: "kanit", fontSize: 24, fontWeight: "500", marginBottom: 0, width: 230}}
                             ellipsis>{currentFeatureName}</Typography.Paragraph>
                     </Tooltip>
                 </Stack>
-                <Box style={{ marginTop: 5 }}>
+                <Box style={{marginTop: 5}}>
                     {_featureIcon()}
                 </Box>
             </Stack>
         </Header>
         <Content>
-            <Outlet />
+            <Outlet/>
         </Content>
-        <BottomTabNavigator />
-        <BackUpDataTrello />
+        <BottomTabNavigator/>
+        <BackUpDataTrello/>
     </Layout>
 }
 
 const SidebarDrawer = () => {
     const [open, setOpen] = useState(false);
     const navigate = useNavigate();
+    const trello = useTrello();
+    const dispatch = useDispatch();
+    const message = useMessage();
+    const toggleLoading = useToggle();
 
     const showDrawer = () => {
         setOpen(true);
@@ -100,32 +109,59 @@ const SidebarDrawer = () => {
         setOpen(false);
     }
 
+    const _onRehydrateData = async () => {
+        try {
+            toggleLoading.show();
+            let attachments = await trello.getAttachmentsOfCard(BACKUP_CARD_ID);
+            let latestAttachment = orderBy(attachments, ["date"], ["desc"])[0];
+            let data = await fetch(latestAttachment.url);
+            let text = await data.text();
+
+            let state: RootState = JSON.parse(text) as RootState;
+            dispatch(setOrderState(state.order));
+            dispatch(setCustomerState(state.customer));
+            message.success("Đồng bộ thành công");
+        } catch (e) {
+            message.error(e);
+        }
+        finally {
+            toggleLoading.hide();
+        }
+    }
+
     return (
         <React.Fragment>
-            <Button type="primary" onClick={showDrawer} icon={<MenuOutlined />} />
-            <Drawer placement="left" title={<Typography.Text style={{ fontFamily: "kanit", fontSize: 24 }}>Cửa hàng
-                Cassette</Typography.Text>} onClose={onClose} open={open} styles={{ body: { padding: 0 } }}>
-                <Flex vertical justify="space-between" style={{ height: "100%" }}>
+            <Button type="primary" onClick={showDrawer} icon={<MenuOutlined/>}/>
+            <Drawer placement="left" title={<Typography.Text style={{fontFamily: "kanit", fontSize: 24}}>Cửa hàng
+                Cassette</Typography.Text>} onClose={onClose} open={open} styles={{body: {padding: 0}}}>
+                <Flex vertical justify="space-between" style={{height: "100%"}}>
                     <Menu
                         items={[
                             {
+                                key: "home", label: <Flex align="center" gap={5}>
+                                    <BarChartOutlined style={{fontSize: "1.2em"}}/>
+                                    {"Home"}
+                                </Flex>, onClick: () => onNavigate(RootRoutes.AuthorizedRoutes.Root())
+                            },
+                            {
                                 key: "orders", label: <Flex align="center" gap={5}>
-                                    <TruckOutlined style={{ fontSize: "1.2em" }} />
+                                    <TruckOutlined style={{fontSize: "1.2em"}}/>
                                     {"Đơn hàng"}
                                 </Flex>, onClick: () => onNavigate(RootRoutes.AuthorizedRoutes.OrderRoutes.List())
                             },
                             {
                                 key: "customers", label: <Flex align="center" gap={5}>
-                                    <UserOutlined style={{ fontSize: "1.2em" }} />
+                                    <UserOutlined style={{fontSize: "1.2em"}}/>
                                     {"Khách hàng"}
                                 </Flex>, onClick: () => onNavigate(RootRoutes.AuthorizedRoutes.CustomerRoutes.List())
                             },
-
                         ]}
                     />
-                    <a href="https://trello.com/login" target="_blank">Log in to Trello</a>
-                    <Box style={{ overflow: "hidden" }}>
-                        <Image src={Logo} width={350} preview={false} style={{ marginLeft: 90, opacity: 0.4 }} />
+                    <Stack justify={"center"}>
+                        <Button loading={toggleLoading.value} icon={<CloudDownloadOutlined />} onClick={_onRehydrateData}>Đồng bộ dữ liệu đã lưu trữ</Button>
+                    </Stack>
+                    <Box style={{overflow: "hidden"}}>
+                        <Image src={Logo} width={350} preview={false} style={{marginLeft: 90, opacity: 0.4}}/>
                     </Box>
                 </Flex>
             </Drawer>
@@ -175,25 +211,24 @@ const BottomTabNavigator = () => {
     }
 
     return <Stack justify="space-evenly" style={_containerStyles()}>
+        <Button type="text" style={_buttonStyles()} icon={<BarChartOutlined style={{fontSize: "1.2em"}}/>} onClick={() => onNavigate(RootRoutes.AuthorizedRoutes.Root())}>
+            <Typography.Text style={_textStyles(RootRoutes.AuthorizedRoutes.Root())}>Home</Typography.Text>
+        </Button>
         <Button type="text" style={_buttonStyles()}
-            icon={<TruckOutlined style={{ fontSize: "1.2em" }} />}
-            onClick={() => onNavigate(RootRoutes.AuthorizedRoutes.OrderRoutes.List())}>
+                icon={<TruckOutlined style={{fontSize: "1.2em"}}/>}
+                onClick={() => onNavigate(RootRoutes.AuthorizedRoutes.OrderRoutes.List())}>
             <Typography.Text style={_textStyles(RootRoutes.AuthorizedRoutes.OrderRoutes.List())}>Đơn
                 hàng</Typography.Text>
         </Button>
-        <Button type="text" style={_buttonStyles()} icon={<UserOutlined style={{ fontSize: "1.2em" }} />}
-            onClick={() => onNavigate(RootRoutes.AuthorizedRoutes.CustomerRoutes.List())}>
+        <Button type="text" style={_buttonStyles()} icon={<UserOutlined style={{fontSize: "1.2em"}}/>}
+                onClick={() => onNavigate(RootRoutes.AuthorizedRoutes.CustomerRoutes.List())}>
             <Typography.Text style={_textStyles(RootRoutes.AuthorizedRoutes.CustomerRoutes.List())}>Khách
                 hàng</Typography.Text>
         </Button>
-        {/*<Button type="text" style={_buttonStyles()} icon={<Image src={MealsIcon} preview={false} width={28} style={{ marginLeft: 2 }} />} onClick={() => onNavigate(RootRoutes.AuthorizedRoutes.ScheduledMealRoutes.List())}>*/}
-        {/*    <Typography.Text style={_textStyles(RootRoutes.AuthorizedRoutes.ScheduledMealRoutes.List())}>Thực đơn</Typography.Text>*/}
-        {/*</Button>*/}
     </Stack>
 }
 
 const BackUpDataTrello = () => {
-    const BACKUP_CARD_ID = "68498a4712a808a92bf59b01";
     const trello = useTrello();
     const message = useMessage();
 
@@ -210,7 +245,7 @@ const BackUpDataTrello = () => {
             const hoursPassed = (now - lastTime) / (1000 * 60 * 60); // Convert ms to hours
 
             if (hoursPassed >= 4) {
-                const fileBlob = new Blob([JSON.stringify(store.getState())], { type: 'text/plain' });
+                const fileBlob = new Blob([JSON.stringify(store.getState())], {type: 'text/plain'});
                 await trello.createAttachment({
                     name: moment().toLocaleString(),
                     mimeType: "text/plain",

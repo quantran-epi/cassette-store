@@ -68,7 +68,7 @@ export const COLORS = {
     },
     ORDER_STATUS: {
         SHIPPED: "#2aa345",
-        RETURNED: "#3f50eb",
+        RETURNED: "#990505",
         NEED_RETURN: "#cfbe04",
         CREATE_DELIVERY: "#16ab31",
         WAITING_FOR_RETURNED: "#f79a72"

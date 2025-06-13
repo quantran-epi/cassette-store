@@ -1,4 +1,5 @@
-import { PayloadAction, createSlice } from '@reduxjs/toolkit'
+import {PayloadAction, createSlice} from '@reduxjs/toolkit'
+import {OrderState} from "@store/Reducers/OrderReducer";
 
 export interface AppContextState {
     loading: boolean;
@@ -20,6 +21,6 @@ export const appContextSlice = createSlice({
     }
 })
 
-export const { updateCurrentFeatureName } = appContextSlice.actions
+export const {updateCurrentFeatureName} = appContextSlice.actions
 
 export default appContextSlice.reducer
