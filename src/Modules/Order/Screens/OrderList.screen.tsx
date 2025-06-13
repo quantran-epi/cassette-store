@@ -14,13 +14,14 @@ import { RootRoutes } from "@routing/RootRoutes";
 import { Customer } from "@store/Models/Customer";
 import { removeOrder, selectSortedPendingOrders } from "@store/Reducers/OrderReducer";
 import { RootState } from "@store/Store";
-import { debounce, sortBy } from "lodash";
+import {debounce, orderBy, sortBy} from "lodash";
 import React, {useEffect, useMemo, useState} from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { CustomerSearchWidget } from "./OrderCreate/CustomerSearch.widget";
 import { OrderItemWidget } from "./OrderItem/OrderItem.widget";
 import { Typography } from "@components/Typography";
+import {Order} from "@store/Models/Order";
 
 export const OrderListScreen = () => {
     const orders = useSelector((state: RootState) => state.order.orders);
@@ -40,8 +41,8 @@ export const OrderListScreen = () => {
         // trello.createComment({text: "testcomment"}, "6837aba7967282e8d951f0c8");
     }, []);
 
-    const filteredOrders = useMemo(() => {
-        return sortBy(orders.filter(e => e.name.trim().toLowerCase().includes(searchText.trim().toLowerCase())), "name");
+    const filteredOrders = useMemo<Order[]>(() => {
+        return orderBy(orders.filter(e => e.name.trim().toLowerCase().includes(searchText.trim().toLowerCase())), ["createdDate"], ["desc"]);
     }, [orders, searchText])
 
     const _onAddOrder = () => {
