@@ -109,7 +109,7 @@ export const DashboardScreen = () => {
             <Stack justify={"space-between"} wrap={"wrap"}>
                 <Statistic
                     title="Số đơn bán tháng này"
-                    value={_getCompareAmountMonth()}
+                    value={_getCompareMonth()}
                     suffix="%"
                     precision={0}
                     prefix={_getCompareAmountMonth() >= 0 ? <ArrowUpOutlined/> : <ArrowDownOutlined/>}
@@ -117,7 +117,7 @@ export const DashboardScreen = () => {
                 />
                 <Statistic
                     title="Số tiền bán tháng này"
-                    value={_getCompareAmountWeek()}
+                    value={_getCompareAmountMonth()}
                     suffix="%"
                     precision={0}
                     prefix={_getCompareAmountWeek() >= 0 ? <ArrowUpOutlined/> : <ArrowDownOutlined/>}
