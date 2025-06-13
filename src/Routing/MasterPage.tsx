@@ -122,7 +122,7 @@ const SidebarDrawer = () => {
             dispatch(setCustomerState(state.customer));
             message.success("Đồng bộ thành công");
         } catch (e) {
-            message.error(e);
+            message.error(e?.message);
         }
         finally {
             toggleLoading.hide();
