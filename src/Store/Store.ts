@@ -1,9 +1,9 @@
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
-import storage from 'redux-persist/lib/storage';
 import { persistReducer, persistStore } from 'redux-persist';
 import CustomerReducer from "./Reducers/CustomerReducer";
 import OrderReducer from "./Reducers/OrderReducer";
 import AppContextReducer from "./Reducers/AppContextReducer";
+import { idbStorage } from "./idbStorage";
 
 const combinedReducer = combineReducers({
     appContext: AppContextReducer,
@@ -13,7 +13,7 @@ const combinedReducer = combineReducers({
 
 const persistConfig = {
     key: 'root',
-    storage,
+    storage: idbStorage,
 }
 
 const persistedReducer = persistReducer(persistConfig, combinedReducer);
