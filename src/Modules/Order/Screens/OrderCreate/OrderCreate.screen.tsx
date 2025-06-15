@@ -146,7 +146,7 @@ export const OrderCreateScreen = () => {
             ...values,
             id: values.name.concat(nanoid(10)),
             sequence: lastSequence + 1,
-            createdDate: new Date()
+            createdDate: (new Date()).toISOString()
         })
     })
     const placedItems = Form.useWatch("placedItems", addOrderForm.form);

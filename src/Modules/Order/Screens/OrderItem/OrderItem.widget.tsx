@@ -332,6 +332,17 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                             <TruckOutlined />
                             <Typography.Text style={{ color: COLORS.FREE_SHIP }}>Miễn phí vận chuyển</Typography.Text>
                         </Space>}
+                        {Boolean(props.item.shippingCode) && <CopyToClipboard text={props.item.shippingCode}
+                                onCopy={() => message.success("Đã sao chép mã vận đơnn")}>
+                                <Space>
+                                    <BarcodeOutlined />
+                                    <Typography.Paragraph ellipsis style={{
+                                        width: 300,
+                                        marginBottom: 0,
+                                        color: COLORS.ORDER_STATUS.CREATE_DELIVERY
+                                    }}>{props.item.shippingCode}</Typography.Paragraph>
+                                </Space>
+                            </CopyToClipboard>}
                         {orderCustomer && <React.Fragment>
                             <CopyToClipboard text={orderCustomer.mobile}
                                 onCopy={() => message.success("Đã sao chép số điện thoại")}>

@@ -38,7 +38,7 @@ export const OrderHelper = {
         // by date
         const now = new Date();
         // @ts-ignore
-        const diffDays = Math.floor((now - order.createdDate) / (1000 * 60 * 60 * 24));
+        const diffDays = Math.floor((now.getTime() - new Date(order.createdDate).getTime()) / (1000 * 60 * 60 * 24));
         const maxDays = 30; // sau 30 ngày thì trọng số đạt max
         const minWeight = 1;
         const maxWeight = 5;

@@ -3,7 +3,7 @@ import {OrderItem} from "@store/Models/OrderItem";
 export type Order = {
     id: string;
     sequence: number;
-    createdDate: Date;
+    createdDate: string;
     name: string;
     placedItems: OrderItem[];
     changeItems: ChangeItem[];

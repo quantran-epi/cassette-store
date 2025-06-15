@@ -8,20 +8,26 @@ import { Space } from "@components/Layout/Space";
 import { Stack } from "@components/Layout/Stack";
 import { List } from "@components/List";
 import { Modal } from "@components/Modal";
-import {useScreenTitle, useToggle, useTrello} from "@hooks";
+import { useScreenTitle, useToggle, useTrello } from "@hooks";
 import { CustomerAddWidget } from "@modules/Customer/Screens/CustomerAdd.widget";
 import { RootRoutes } from "@routing/RootRoutes";
 import { Customer } from "@store/Models/Customer";
 import { removeOrder, selectSortedPendingOrders } from "@store/Reducers/OrderReducer";
 import { RootState } from "@store/Store";
-import {debounce, orderBy, sortBy} from "lodash";
-import React, {useEffect, useMemo, useState} from "react";
+import { debounce, orderBy, sortBy } from "lodash";
+import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { CustomerSearchWidget } from "./OrderCreate/CustomerSearch.widget";
 import { OrderItemWidget } from "./OrderItem/OrderItem.widget";
 import { Typography } from "@components/Typography";
-import {Order} from "@store/Models/Order";
+import { Order } from "@store/Models/Order";
+import { Radio } from "@components/Form/Radio";
+import { ORDER_STATUS } from "@common/Constants/AppConstants";
+import { RadioChangeEvent } from "antd";
+import { Checkbox } from "@components/Form/Checkbox";
+import { Checkbox as AntCheckbox } from "antd";
+import { Col, Row } from "@components/Grid";
 
 export const OrderListScreen = () => {
     const orders = useSelector((state: RootState) => state.order.orders);
@@ -31,19 +37,13 @@ export const OrderListScreen = () => {
     const toggleAddCustomerModal = useToggle();
     const { } = useScreenTitle({ value: "Đơn hàng", deps: [] });
     const [searchText, setSearchText] = useState("");
+    const [searchStatuses, setSearchStatuses] = useState<string[]>([]);
     const [prefilledCustomer, setPrefilledCustomer] = useState<Partial<Customer>>();
-    const trello = useTrello();
-    const sortedPendingOrders = useSelector(selectSortedPendingOrders);
-
-    useEffect(() => {
-        // trello.getCardsByList("683823d67567eff9da5c91c2").then(res => console.log(res));
-        // trello.getCard("6837aba7967282e8d951f0c8");
-        // trello.createComment({text: "testcomment"}, "6837aba7967282e8d951f0c8");
-    }, []);
 
     const filteredOrders = useMemo<Order[]>(() => {
-        return orderBy(orders.filter(e => e.name.trim().toLowerCase().includes(searchText.trim().toLowerCase())), ["createdDate"], ["desc"]);
-    }, [orders, searchText])
+        return orderBy(orders.filter(e => e.name.trim().toLowerCase().includes(searchText.trim().toLowerCase()) &&
+            (searchStatuses.length === 0 || searchStatuses.includes(e.status))), ["createdDate"], ["desc"]);
+    }, [orders, searchText, searchStatuses])
 
     const _onAddOrder = () => {
         toggleAddOrderModal.show();
@@ -74,11 +74,39 @@ export const OrderListScreen = () => {
         });
     }
 
+    const _onChangeSearchStatuses = (checkedValue: string[]) => {
+        setSearchStatuses(checkedValue);
+    }
+
     return <React.Fragment>
         <Stack.Compact>
             <Input allowClear placeholder="Tìm kiếm" onChange={debounce((e) => setSearchText(e.target.value), 350)} />
             <Button onClick={_onAddOrder} icon={<PlusOutlined />} />
         </Stack.Compact>
+        <AntCheckbox.Group
+            style={{ marginTop: 7 }}
+            onChange={_onChangeSearchStatuses}>
+            <Row>
+                <Col span={12}>
+                    <Checkbox value={ORDER_STATUS.PLACED}>{ORDER_STATUS.PLACED}</Checkbox>
+                </Col>
+                <Col span={12}>
+                    <Checkbox value={ORDER_STATUS.CREATE_DELIVERY}>{ORDER_STATUS.CREATE_DELIVERY}</Checkbox>
+                </Col>
+                <Col span={12}>
+                    <Checkbox value={ORDER_STATUS.SHIPPED}>{ORDER_STATUS.SHIPPED}</Checkbox>
+                </Col>
+                <Col span={12}>
+                    <Checkbox value={ORDER_STATUS.RETURNED}>{ORDER_STATUS.RETURNED}</Checkbox>
+                </Col>
+                <Col span={12}>
+                    <Checkbox value={ORDER_STATUS.WAITING_FOR_RETURNED}>{ORDER_STATUS.WAITING_FOR_RETURNED}</Checkbox>
+                </Col>
+                <Col span={12}>
+                    <Checkbox value={ORDER_STATUS.NEED_RETURN}>{ORDER_STATUS.NEED_RETURN}</Checkbox>
+                </Col>
+            </Row>
+        </AntCheckbox.Group>
         <List
             pagination={filteredOrders.length > 0 ? {
                 position: "bottom", align: "center", pageSize: 10

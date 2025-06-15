@@ -4,21 +4,21 @@ import {
     ORDER_RETURN_REASON,
     ORDER_STATUS
 } from "@common/Constants/AppConstants";
-import {Order} from "@store/Models/Order";
-import {editCustomer} from "@store/Reducers/CustomerReducer";
-import {addOrder, editOrder} from "@store/Reducers/OrderReducer";
-import {RootState, store} from "@store/Store";
-import {cloneDeep, uniq} from "lodash";
-import {useDispatch, useSelector} from "react-redux";
-import {useTrello} from "./Trello/useTrello";
-import {Customer} from "@store/Models/Customer";
-import {TrelloCard} from "./Trello/Models/TrelloCard";
-import {TrelloCreateCardParam} from "./Trello/Models/ApiParam";
-import {OrderHelper} from "@common/Helpers/OrderHelper";
-import {OrderItem} from "@store/Models/OrderItem";
-import {RcFile} from "antd/es/upload";
-import {TrelloAttachment} from "./Trello/Models/TrelloAttachment";
-import {nanoid} from "nanoid";
+import { Order } from "@store/Models/Order";
+import { editCustomer } from "@store/Reducers/CustomerReducer";
+import { addOrder, editOrder } from "@store/Reducers/OrderReducer";
+import { RootState, store } from "@store/Store";
+import { cloneDeep, uniq } from "lodash";
+import { useDispatch, useSelector } from "react-redux";
+import { useTrello } from "./Trello/useTrello";
+import { Customer } from "@store/Models/Customer";
+import { TrelloCard } from "./Trello/Models/TrelloCard";
+import { TrelloCreateCardParam } from "./Trello/Models/ApiParam";
+import { OrderHelper } from "@common/Helpers/OrderHelper";
+import { OrderItem } from "@store/Models/OrderItem";
+import { RcFile } from "antd/es/upload";
+import { TrelloAttachment } from "./Trello/Models/TrelloAttachment";
+import { nanoid } from "nanoid";
 import moment from "moment";
 
 type UseOrder = {
@@ -108,7 +108,7 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
             customer.isInBlacklist = true;
             customer.isVIP = false;
 
-            dispatch(editOrder({order, customer}));
+            dispatch(editOrder({ order, customer }));
             dispatch(editCustomer(customer));
 
             let updatedCard = await moveOrderToTrelloList(orderId, trello.TRELLO_LIST_IDS.NOT_DELIVERED_LIST);
@@ -124,7 +124,7 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
             let customer = _findCustomerById(order.customerId);
             order.status = ORDER_STATUS.NEED_RETURN;
             order.returnReason = ORDER_RETURN_REASON.BROKEN_ITEMS;
-            dispatch(editOrder({order, customer}));
+            dispatch(editOrder({ order, customer }));
 
             let updatedCard = await moveOrderToTrelloList(orderId, trello.TRELLO_LIST_IDS.NOT_DELIVERED_LIST);
             return updatedCard === null ? "Lỗi khi chuyển đơn Trello" : null;
@@ -137,7 +137,7 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
         let order = _findOrderById(orderId);
         let customer = _findCustomerById(order.customerId);
         order.status = ORDER_STATUS.WAITING_FOR_RETURNED;
-        dispatch(editOrder({order, customer}));
+        dispatch(editOrder({ order, customer }));
         return null;
     }
 
@@ -145,7 +145,7 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
         let order = _findOrderById(orderId);
         let customer = _findCustomerById(order.customerId);
         order.status = ORDER_STATUS.RETURNED;
-        dispatch(editOrder({order, customer}));
+        dispatch(editOrder({ order, customer }));
         return null;
     }
 
@@ -162,7 +162,7 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
             }, 0)
             if (customer.buyCount > 4) customer.isVIP = true;
 
-            dispatch(editOrder({order, customer}));
+            dispatch(editOrder({ order, customer }));
             dispatch(editCustomer(customer));
 
             let updatedCard = await moveOrderToTrelloList(orderId, trello.TRELLO_LIST_IDS.DONE_LIST);
@@ -209,12 +209,12 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
             let order = _findOrderById(orderId);
             let customer = _findCustomerById(order.customerId);
             let isAlreadyHasShippingCode = Boolean(order.shippingCode);
-            if(order.status !== ORDER_STATUS.CREATE_DELIVERY) order.status = ORDER_STATUS.CREATE_DELIVERY;
+            if (order.status !== ORDER_STATUS.CREATE_DELIVERY) order.status = ORDER_STATUS.CREATE_DELIVERY;
             order.shippingCode = code;
-            dispatch(editOrder({order, customer}));
+            dispatch(editOrder({ order, customer }));
 
             // comment on trello
-            let action = await trello.createComment({text: code}, order.trelloCardId);
+            let action = await trello.createComment({ text: code }, order.trelloCardId);
             if (action === null) return "Lỗi bình luận Trello";
 
             if (!isAlreadyHasShippingCode) {
@@ -276,7 +276,7 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
         let order = _findOrderById(orderId);
         let customer = _findCustomerById(order.customerId);
         order.trelloCardId = trelloCard.id;
-        dispatch(editOrder({order, customer}));
+        dispatch(editOrder({ order, customer }));
     }
 
     const moveOrderToTrelloList = async (orderId: string, listId: string): Promise<TrelloCard> => {
@@ -293,14 +293,28 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
     }
 
     const createOrder = async (order: Order, customer: Customer, fileAttachments: RcFile[]): Promise<TrelloCard> => {
-        dispatch(addOrder({order: order, customer})); // add first to get position
+        let previousPendingOrders = orders.filter(o => o.status === ORDER_STATUS.PLACED);
+        dispatch(addOrder({ order: order, customer })); // add first to get position
         let createdOrder = store.getState().order.orders.find(e => e.id === order.id);
         let trelloCard = await pushToTrelloToDoList(createdOrder);
+
+        //update all other pending orders's position
+        let currentPendingOrders = store.getState().order.orders.filter(o => o.status === ORDER_STATUS.PLACED);
+        const oldPosMap = new Map(previousPendingOrders.map(order => [order.id, order.position]));
+        let changedPositionOrders = currentPendingOrders.filter(order => {
+            const oldPos = oldPosMap.get(order.id);
+            return oldPos !== undefined && oldPos !== order.position;
+        });
+        let promises = changedPositionOrders.map(o => trello.updateCard({
+            id: o.trelloCardId,
+            pos: o.position
+        }));
+        await Promise.all(promises);
 
         //save trello card id
         createdOrder = cloneDeep(createdOrder);
         createdOrder.trelloCardId = trelloCard.id;
-        dispatch(editOrder({order: createdOrder, customer}));
+        dispatch(editOrder({ order: createdOrder, customer }));
 
         // upload images
         await attachImagesToOrderOnTrello(createdOrder, fileAttachments);
@@ -308,8 +322,9 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
     }
 
     const updateOrder = async (order: Order): Promise<TrelloCard> => {
+        let previousPendingOrders = orders.filter(o => o.status === ORDER_STATUS.PLACED && o.id !== order.id);
         let customer = _findCustomerById(order.customerId);
-        dispatch(editOrder({order, customer}));
+        dispatch(editOrder({ order, customer }));
         let updatedOrder = store.getState().order.orders.find(e => e.id === order.id);
 
         let updatedCard = await trello.updateCard({
@@ -317,7 +332,20 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
             desc: _buildDesc(updatedOrder, customer),
             pos: updatedOrder.position,
             idLabels: _getLabelIds(updatedOrder)
-        })
+        });
+
+        //update all other pending orders's position
+        let currentPendingOrders = store.getState().order.orders.filter(o => o.status === ORDER_STATUS.PLACED);
+        const oldPosMap = new Map(previousPendingOrders.map(order => [order.id, order.position]));
+        let changedPositionOrders = currentPendingOrders.filter(order => {
+            const oldPos = oldPosMap.get(order.id);
+            return oldPos !== undefined && oldPos !== order.position;
+        });
+        let promises = changedPositionOrders.map(o => trello.updateCard({
+            id: o.trelloCardId,
+            pos: o.position
+        }));
+        await Promise.all(promises);
         return updatedCard;
     }
 
@@ -358,7 +386,7 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
         let customer = _findCustomerById(order.customerId);
         order.isRefund = amount > 0;
         order.refundAmount = amount;
-        dispatch(editOrder({order, customer}));
+        dispatch(editOrder({ order, customer }));
     }
 
     const getTotalOrderPending = (fromDate: Date, toDate: Date): number => {
@@ -397,7 +425,7 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
         }, 0)
     }
 
-    const getTotalAmountSoldAll= (): number => {
+    const getTotalAmountSoldAll = (): number => {
         return orders.filter(o => o.status === ORDER_STATUS.SHIPPED).reduce((prev, cur) => {
             return prev + cur.placedItems.reduce((prev1, cur1) => prev1 + (cur1.count * cur1.unitPrice), 0);
         }, 0)
@@ -407,7 +435,7 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
         return orders.filter(o => o.status === ORDER_STATUS.SHIPPED).length;
     }
 
-    const getTotalAmountBomAll= (): number => {
+    const getTotalAmountBomAll = (): number => {
         return orders.filter(o => o.status === ORDER_STATUS.RETURNED && o.returnReason === ORDER_RETURN_REASON.REFUSE_TO_RECEIVE).reduce((prev, cur) => {
             return prev + cur.placedItems.reduce((prev1, cur1) => prev1 + (cur1.count * cur1.unitPrice), 0);
         }, 0)

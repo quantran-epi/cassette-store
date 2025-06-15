@@ -232,7 +232,7 @@ const BackUpDataTrello = () => {
     const message = useMessage();
 
     useEffect(() => {
-        backup();
+        // backup();
     }, [])
 
     const backup = async () => {
