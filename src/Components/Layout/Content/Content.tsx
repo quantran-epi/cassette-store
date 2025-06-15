@@ -8,7 +8,7 @@ export const Content = ({
     ...props
 }) => {
     return <AntContent {...props}>
-        <Box style={{ padding: 15, paddingBottom: 45, backgroundColor: "#f5f5f5", height: window.screen.availHeight - 60 - 80, overflowY: "auto" }}>
+        <Box style={{ padding: 15, paddingBottom: 60, backgroundColor: "#f5f5f5", height: window.screen.availHeight - 60 - 80, overflowY: "auto" }}>
             {children}
         </Box>
     </AntContent>
