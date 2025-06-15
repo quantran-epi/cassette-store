@@ -28,6 +28,7 @@ import { RadioChangeEvent } from "antd";
 import { Checkbox } from "@components/Form/Checkbox";
 import { Checkbox as AntCheckbox } from "antd";
 import { Col, Row } from "@components/Grid";
+import { Divider } from "@components/Layout/Divider";
 
 export const OrderListScreen = () => {
     const orders = useSelector((state: RootState) => state.order.orders);
@@ -107,6 +108,7 @@ export const OrderListScreen = () => {
                 </Col>
             </Row>
         </AntCheckbox.Group>
+        <Divider orientation="left" style={{ marginBottom: 0 }}>Danh sách đơn hàng ({filteredOrders.length})</Divider>
         <List
             pagination={filteredOrders.length > 0 ? {
                 position: "bottom", align: "center", pageSize: 10

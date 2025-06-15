@@ -14,7 +14,7 @@ import {
     TruckOutlined,
     ToolOutlined,
     HighlightOutlined,
-    PaperClipOutlined, DropboxOutlined, RollbackOutlined, DoubleRightOutlined
+    PaperClipOutlined, DropboxOutlined, RollbackOutlined, DoubleRightOutlined, CalendarOutlined
 } from "@ant-design/icons";
 import { COLORS, ORDER_PAYMENT_METHOD, ORDER_PRIORITY_STATUS, ORDER_STATUS } from "@common/Constants/AppConstants";
 import { Button } from "@components/Button";
@@ -43,6 +43,7 @@ import { OrderPlacedItemsWidget } from "@modules/Order/Screens/OrderItem/OrderPl
 import { OrderShippinInfoWidget } from "@modules/Order/Screens/OrderItem/OrderShippingInfo.widget";
 import { OrderAttachmentsWidget } from "@modules/Order/Screens/OrderItem/OrderAttachments.widget";
 import { OrderPriorityWidget } from "./OrderPriority.widget";
+import moment from "moment";
 
 type OrderItemProps = {
     item: Order;
@@ -333,16 +334,16 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                             <Typography.Text style={{ color: COLORS.FREE_SHIP }}>Miễn phí vận chuyển</Typography.Text>
                         </Space>}
                         {Boolean(props.item.shippingCode) && <CopyToClipboard text={props.item.shippingCode}
-                                onCopy={() => message.success("Đã sao chép mã vận đơnn")}>
-                                <Space>
-                                    <BarcodeOutlined />
-                                    <Typography.Paragraph ellipsis style={{
-                                        width: 300,
-                                        marginBottom: 0,
-                                        color: COLORS.ORDER_STATUS.CREATE_DELIVERY
-                                    }}>{props.item.shippingCode}</Typography.Paragraph>
-                                </Space>
-                            </CopyToClipboard>}
+                            onCopy={() => message.success("Đã sao chép mã vận đơnn")}>
+                            <Space>
+                                <BarcodeOutlined />
+                                <Typography.Paragraph ellipsis style={{
+                                    width: 300,
+                                    marginBottom: 0,
+                                    color: COLORS.ORDER_STATUS.CREATE_DELIVERY
+                                }}>{props.item.shippingCode}</Typography.Paragraph>
+                            </Space>
+                        </CopyToClipboard>}
                         {orderCustomer && <React.Fragment>
                             <CopyToClipboard text={orderCustomer.mobile}
                                 onCopy={() => message.success("Đã sao chép số điện thoại")}>
@@ -367,6 +368,10 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                                 </Tooltip>
                             </CopyToClipboard>
                         </React.Fragment>}
+                        <Space>
+                            <CalendarOutlined />
+                            <Typography.Text>{moment(new Date(props.item.createdDate)).format("DD-MM-yyyy")}</Typography.Text>
+                        </Space>
                     </Stack>
                 </Stack>} />
         </List.Item>
