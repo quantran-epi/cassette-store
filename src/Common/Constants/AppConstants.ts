@@ -70,7 +70,7 @@ export const COLORS = {
         SHIPPED: "#2aa345",
         RETURNED: "#990505",
         NEED_RETURN: "#cfbe04",
-        CREATE_DELIVERY: "#16ab31",
+        CREATE_DELIVERY: "#9b0ead",
         WAITING_FOR_RETURNED: "#f79a72"
     },
     PAYMENT_METHOD: {
