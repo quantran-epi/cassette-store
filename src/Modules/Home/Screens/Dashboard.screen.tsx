@@ -250,6 +250,5 @@ export const DashboardScreen = () => {
             </Stack>
         </Card>
         <br/>
-        <br/>
     </React.Fragment>
 }

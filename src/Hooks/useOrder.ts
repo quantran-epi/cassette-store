@@ -209,6 +209,7 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
             let order = _findOrderById(orderId);
             let customer = _findCustomerById(order.customerId);
             let isAlreadyHasShippingCode = Boolean(order.shippingCode);
+            if(order.status !== ORDER_STATUS.CREATE_DELIVERY) order.status = ORDER_STATUS.CREATE_DELIVERY;
             order.shippingCode = code;
             dispatch(editOrder({order, customer}));
 
