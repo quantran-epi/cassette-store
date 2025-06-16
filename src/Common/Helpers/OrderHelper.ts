@@ -113,7 +113,7 @@ export const OrderHelper = {
     },
     getShippingAmountByArea: (area: string):number => {
         if(area === CUSTOMER_AREAS[0]) return 20000;
-        else if ([CUSTOMER_AREAS[1], CUSTOMER_AREAS[2], CUSTOMER_AREAS[3]]) return 25000;
+        else if ([CUSTOMER_AREAS[1], CUSTOMER_AREAS[2], CUSTOMER_AREAS[3]].includes(area)) return 25000;
         else return 30000;
     }
 }

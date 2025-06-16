@@ -30,10 +30,10 @@ export const AreaHelpers = {
         "Hà Tĩnh",
         "Quảng Bình",
         "Quảng Trị",
-        "Thừa Thiên Huế"
+        "Thừa Thiên Huế",
+        "Đà Nẵng"
     ],
     middleSouth: [
-        "Đà Nẵng",
         "Quảng Nam",
         "Quảng Ngãi",
         "Bình Định",

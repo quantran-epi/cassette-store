@@ -5,7 +5,9 @@ import {
     MenuOutlined,
     UserOutlined,
     TruckOutlined,
-    BarChartOutlined
+    BarChartOutlined,
+    DollarCircleOutlined,
+    UnorderedListOutlined
 } from "@ant-design/icons";
 import { ObjectPropertyHelper } from "@common/Helpers/ObjectProperty";
 import { Button } from "@components/Button";
@@ -35,6 +37,11 @@ import Logo from "../../assets/icons/radio-cassette.png";
 import moment from "moment";
 import { orderBy } from "lodash";
 import { setOrderState } from "@store/Reducers/OrderReducer";
+import { Option, Select } from "@components/Form/Select";
+import { CUSTOMER_PROVINCES } from "@common/Constants/AppConstants";
+import { Tag } from "@components/Tag";
+import { AreaHelpers } from "@common/Helpers/AreaHelper";
+import { OrderHelper } from "@common/Helpers/OrderHelper";
 
 const layoutStyles: React.CSSProperties = {
     height: "100%"
@@ -172,6 +179,9 @@ const BottomTabNavigator = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const theme = useTheme();
+    const toggleMoreModal = useToggle();
+    const [area, setArea] = useState("");
+    const [shippingCost, setShippingCost] = useState<number>(0);
 
     const _buttonStyles = (): React.CSSProperties => {
         return {
@@ -179,8 +189,8 @@ const BottomTabNavigator = () => {
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            height: 64,
-            width: 95
+            height: 60,
+            width: 80
         }
     }
 
@@ -209,22 +219,63 @@ const BottomTabNavigator = () => {
         navigate(href);
     }
 
-    return <Stack justify="space-evenly" style={_containerStyles()}>
-        <Button type="text" style={_buttonStyles()} icon={<BarChartOutlined style={{ fontSize: "1.2em" }} />} onClick={() => onNavigate(RootRoutes.AuthorizedRoutes.Root())}>
-            <Typography.Text style={_textStyles(RootRoutes.AuthorizedRoutes.Root())}>Home</Typography.Text>
-        </Button>
-        <Button type="text" style={_buttonStyles()}
-            icon={<TruckOutlined style={{ fontSize: "1.2em" }} />}
-            onClick={() => onNavigate(RootRoutes.AuthorizedRoutes.OrderRoutes.List())}>
-            <Typography.Text style={_textStyles(RootRoutes.AuthorizedRoutes.OrderRoutes.List())}>Đơn
-                hàng</Typography.Text>
-        </Button>
-        <Button type="text" style={_buttonStyles()} icon={<UserOutlined style={{ fontSize: "1.2em" }} />}
-            onClick={() => onNavigate(RootRoutes.AuthorizedRoutes.CustomerRoutes.List())}>
-            <Typography.Text style={_textStyles(RootRoutes.AuthorizedRoutes.CustomerRoutes.List())}>Khách
-                hàng</Typography.Text>
-        </Button>
-    </Stack>
+    const _onCalculateShipCost = () => {
+        toggleMoreModal.show();
+    }
+
+    const _onChangeProvince = (value: string) => {
+        let currentArea = AreaHelpers.parseAreaFromProvince(value);
+        setArea(currentArea);
+        setShippingCost(OrderHelper.getShippingAmountByArea(currentArea));
+    }
+
+    const _renderArea = () => {
+        return Boolean(area) && <Tag>{area}</Tag>;
+    }
+
+    return <React.Fragment>
+        <Stack justify="space-around" style={_containerStyles()}>
+            <Button type="text" style={_buttonStyles()} icon={<BarChartOutlined style={{ fontSize: "1.2em" }} />} onClick={() => onNavigate(RootRoutes.AuthorizedRoutes.Root())}>
+                <Typography.Text style={_textStyles(RootRoutes.AuthorizedRoutes.Root())}>Home</Typography.Text>
+            </Button>
+            <Button type="text" style={_buttonStyles()}
+                icon={<TruckOutlined style={{ fontSize: "1.2em" }} />}
+                onClick={() => onNavigate(RootRoutes.AuthorizedRoutes.OrderRoutes.List())}>
+                <Typography.Text style={_textStyles(RootRoutes.AuthorizedRoutes.OrderRoutes.List())}>Đơn
+                    hàng</Typography.Text>
+            </Button>
+            <Button type="text" style={_buttonStyles()} icon={<UserOutlined style={{ fontSize: "1.2em" }} />}
+                onClick={() => onNavigate(RootRoutes.AuthorizedRoutes.CustomerRoutes.List())}>
+                <Typography.Text style={_textStyles(RootRoutes.AuthorizedRoutes.CustomerRoutes.List())}>Khách
+                    hàng</Typography.Text>
+            </Button>
+            <Button type="text" style={_buttonStyles()} icon={<UnorderedListOutlined style={{ fontSize: "1.2em" }} />}
+                onClick={_onCalculateShipCost}>
+                <Typography.Text>Phí ship</Typography.Text>
+            </Button>
+        </Stack>
+
+        <Modal open={toggleMoreModal.value} title={
+            <Space>
+                Tính phí ship theo tỉnh
+            </Space>
+        } destroyOnClose={true} onCancel={toggleMoreModal.hide} footer={null}>
+            <Select
+                suffixIcon={_renderArea()}
+                showSearch
+                placeholder="Chọn tỉnh thành"
+                onChange={_onChangeProvince}
+                filterOption={(inputValue, option) => {
+                    if (!option?.children) return false;
+                    return option?.children?.toString().toLowerCase().includes(inputValue.toLowerCase());
+                }}
+                style={{ width: '100%', marginBottom: 7 }}
+            >
+                {CUSTOMER_PROVINCES.map(p => <Option key={p} value={p}>{p}</Option>)}
+            </Select>
+            <Typography.Text>Phí ship là: <Typography.Text type="success">{shippingCost.toLocaleString()}đ</Typography.Text></Typography.Text>
+        </Modal>
+    </React.Fragment>
 }
 
 const BackUpDataTrello = () => {
