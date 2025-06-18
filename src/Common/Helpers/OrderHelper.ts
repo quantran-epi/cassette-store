@@ -38,7 +38,7 @@ export const OrderHelper = {
         // by date
         const now = new Date();
         // @ts-ignore
-        const diffDays = Math.floor((now.getTime() - new Date(order.createdDate).getTime()) / (1000 * 60 * 60 * 24));
+        const diffDays = (now.getTime() - new Date(order.createdDate).getTime()) / (1000 * 60 * 60 * 24);
         const maxDays = 30; // sau 30 ngày thì trọng số đạt max
         const minWeight = 1;
         const maxWeight = 5;
@@ -52,29 +52,29 @@ export const OrderHelper = {
                 markByArea = 0;
                 break;
             case CUSTOMER_AREAS[1]:
-                markByArea = 0.2;
+                markByArea = 0.15;
                 break;
             case CUSTOMER_AREAS[2]:
-                markByArea = 0.4;
+                markByArea = 0.25;
                 break;
             case CUSTOMER_AREAS[3]:
-                markByArea = 0.6;
+                markByArea = 0.35;
                 break;
             case CUSTOMER_AREAS[4]:
-                markByArea = 0.8;
+                markByArea = 0.5;
                 break;
             case CUSTOMER_AREAS[5]:
-                markByArea = 0.9;
+                markByArea = 0.7;
                 break;
         }
 
         // by difficulty
         switch (customer.difficulty) {
             case CUSTOMER_DIFFUCULTIES[0]:
-                markByDifficulty = 0.4;
+                markByDifficulty = 0.15;
                 break;
             case CUSTOMER_DIFFUCULTIES[1]:
-                markByDifficulty = 0.2;
+                markByDifficulty = 0.1;
                 break;
             case CUSTOMER_DIFFUCULTIES[2]:
                 markByDifficulty = 0;
@@ -91,7 +91,7 @@ export const OrderHelper = {
             if (customer.buyAmount == 0) markByCustomerRank += 0;
             else if (customer.buyAmount > 0 && customer.buyAmount <= 150000) markByCustomerRank += 0.2;
             else if (customer.buyAmount > 150000 && customer.buyAmount < 300000) markByCustomerRank += 0.3;
-            else if (customer.buyCount >= 300000 && customer.buyAmount < 500000) markByCustomerRank += 0.5;
+            else if (customer.buyAmount >= 300000 && customer.buyAmount < 500000) markByCustomerRank += 0.5;
             else if (customer.buyAmount >= 500000) markByCustomerRank += 1;
         }
 
