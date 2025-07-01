@@ -92,22 +92,22 @@ export const OrderListScreen = () => {
             style={{ marginTop: 7 }}
             onChange={_onChangeSearchStatuses}>
             <Row>
-                <Col span={12}>
+                <Col span={13}>
                     <Checkbox value={ORDER_STATUS.PLACED}>{ORDER_STATUS.PLACED} ({orders.filter(e => e.status === ORDER_STATUS.PLACED).length})</Checkbox>
                 </Col>
-                <Col span={12}>
+                <Col span={11}>
                     <Checkbox value={ORDER_STATUS.CREATE_DELIVERY}>{ORDER_STATUS.CREATE_DELIVERY} ({orders.filter(e => e.status === ORDER_STATUS.CREATE_DELIVERY).length})</Checkbox>
                 </Col>
-                <Col span={12}>
+                <Col span={13}>
                     <Checkbox value={ORDER_STATUS.SHIPPED}>{ORDER_STATUS.SHIPPED} ({orders.filter(e => e.status === ORDER_STATUS.SHIPPED).length})</Checkbox>
                 </Col>
-                <Col span={12}>
+                <Col span={11}>
                     <Checkbox value={ORDER_STATUS.RETURNED}>{ORDER_STATUS.RETURNED} ({orders.filter(e => e.status === ORDER_STATUS.RETURNED).length})</Checkbox>
                 </Col>
-                <Col span={12}>
+                <Col span={13}>
                     <Checkbox value={ORDER_STATUS.WAITING_FOR_RETURNED}>{ORDER_STATUS.WAITING_FOR_RETURNED} ({orders.filter(e => e.status === ORDER_STATUS.WAITING_FOR_RETURNED).length})</Checkbox>
                 </Col>
-                <Col span={12}>
+                <Col span={11}>
                     <Checkbox value={ORDER_STATUS.NEED_RETURN}>{ORDER_STATUS.NEED_RETURN} ({orders.filter(e => e.status === ORDER_STATUS.NEED_RETURN).length})</Checkbox>
                 </Col>
             </Row>
