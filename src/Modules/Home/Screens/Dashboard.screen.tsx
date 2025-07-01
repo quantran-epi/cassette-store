@@ -50,6 +50,7 @@ export const DashboardScreen = () => {
                 />
             </Stack>
         </Card>
+        {/* <br />
         <Card bordered={false} title={"Tháng này"}>
             <Stack fullwidth justify={"space-between"}>
                 <Statistic
@@ -79,6 +80,6 @@ export const DashboardScreen = () => {
                     valueStyle={{ color: COLORS.ORDER_STATUS.RETURNED }}
                 />
             </Stack>
-        </Card>
+        </Card> */}
     </React.Fragment>
 }

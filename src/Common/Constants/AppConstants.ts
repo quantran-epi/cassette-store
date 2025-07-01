@@ -34,7 +34,7 @@ export const ORDER_STATUS = {
     PLACED: "Chưa vận chuyển",
     CREATE_DELIVERY: "Đã tạo đơn",
     NEED_RETURN: "Cần chuyển hoàn",
-    SHIPPED: "Đã giao thành công",
+    SHIPPED: "Giao thành công",
     WAITING_FOR_RETURNED: "Chờ chuyển hoàn",
     RETURNED: "Đã chuyển hoàn",
 }
