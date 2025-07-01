@@ -49,15 +49,10 @@ export const ORDER_PRIORITY_STATUS = {
 
 export const ORDER_ITEM_TYPE  = {
     "SONY-50K": 50000,
-    "MAXELL-80K": 80000,
-    "MAXELL-140K": 140000,
-    "MAXELL-200K": 200000,
-    "TDK-100K": 100000,
-    "TDK-Yêu cầu-150K": 150000,
-    "SONY-Yêu cầu-100K": 100000,
-    "MAXELL-Yêu cầu-130K": 130000,
-    "MAXELL-Yêu cầu-190K": 190000,
-    "MAXELL-Yêu cầu-250K": 250000,
+    "MAXELL-90p-100K": 100000,
+    "TDK-90p-80K": 80000,
+    "TDK-120p-100K": 100000,
+    "TDK-150p-120K": 120000
 }
 
 export const COLORS = {
