@@ -46,6 +46,10 @@ export const OrderListScreen = () => {
             (searchStatuses.length === 0 || searchStatuses.includes(e.status))), ["createdDate"], ["desc"]);
     }, [orders, searchText, searchStatuses])
 
+    const cassetteAmount = useMemo(() => {
+        return filteredOrders.reduce((prev, cur) => prev + cur.placedItems.reduce((prev1, cur1) => prev1 + cur1.count, 0), 0);
+    }, [filteredOrders])
+
     const _onAddOrder = () => {
         toggleAddOrderModal.show();
     }
@@ -89,26 +93,27 @@ export const OrderListScreen = () => {
             onChange={_onChangeSearchStatuses}>
             <Row>
                 <Col span={12}>
-                    <Checkbox value={ORDER_STATUS.PLACED}>{ORDER_STATUS.PLACED}</Checkbox>
+                    <Checkbox value={ORDER_STATUS.PLACED}>{ORDER_STATUS.PLACED} ({orders.filter(e => e.status === ORDER_STATUS.PLACED).length})</Checkbox>
                 </Col>
                 <Col span={12}>
-                    <Checkbox value={ORDER_STATUS.CREATE_DELIVERY}>{ORDER_STATUS.CREATE_DELIVERY}</Checkbox>
+                    <Checkbox value={ORDER_STATUS.CREATE_DELIVERY}>{ORDER_STATUS.CREATE_DELIVERY} ({orders.filter(e => e.status === ORDER_STATUS.CREATE_DELIVERY).length})</Checkbox>
                 </Col>
                 <Col span={12}>
-                    <Checkbox value={ORDER_STATUS.SHIPPED}>{ORDER_STATUS.SHIPPED}</Checkbox>
+                    <Checkbox value={ORDER_STATUS.SHIPPED}>{ORDER_STATUS.SHIPPED} ({orders.filter(e => e.status === ORDER_STATUS.SHIPPED).length})</Checkbox>
                 </Col>
                 <Col span={12}>
-                    <Checkbox value={ORDER_STATUS.RETURNED}>{ORDER_STATUS.RETURNED}</Checkbox>
+                    <Checkbox value={ORDER_STATUS.RETURNED}>{ORDER_STATUS.RETURNED} ({orders.filter(e => e.status === ORDER_STATUS.RETURNED).length})</Checkbox>
                 </Col>
                 <Col span={12}>
-                    <Checkbox value={ORDER_STATUS.WAITING_FOR_RETURNED}>{ORDER_STATUS.WAITING_FOR_RETURNED}</Checkbox>
+                    <Checkbox value={ORDER_STATUS.WAITING_FOR_RETURNED}>{ORDER_STATUS.WAITING_FOR_RETURNED} ({orders.filter(e => e.status === ORDER_STATUS.WAITING_FOR_RETURNED).length})</Checkbox>
                 </Col>
                 <Col span={12}>
-                    <Checkbox value={ORDER_STATUS.NEED_RETURN}>{ORDER_STATUS.NEED_RETURN}</Checkbox>
+                    <Checkbox value={ORDER_STATUS.NEED_RETURN}>{ORDER_STATUS.NEED_RETURN} ({orders.filter(e => e.status === ORDER_STATUS.NEED_RETURN).length})</Checkbox>
                 </Col>
             </Row>
         </AntCheckbox.Group>
         <Divider orientation="left" style={{ marginBottom: 0 }}>Danh sách đơn hàng ({filteredOrders.length})</Divider>
+        <Typography.Text>Số băng: {cassetteAmount}</Typography.Text>
         <List
             pagination={filteredOrders.length > 0 ? {
                 position: "bottom", align: "center", pageSize: 10
