@@ -23,13 +23,14 @@ import { OrderItemWidget } from "./OrderItem/OrderItem.widget";
 import { Typography } from "@components/Typography";
 import { Order } from "@store/Models/Order";
 import { Radio } from "@components/Form/Radio";
-import {COLORS, ORDER_STATUS} from "@common/Constants/AppConstants";
+import { COLORS, ORDER_STATUS } from "@common/Constants/AppConstants";
 import { RadioChangeEvent } from "antd";
 import { Checkbox } from "@components/Form/Checkbox";
 import { Checkbox as AntCheckbox } from "antd";
 import { Col, Row } from "@components/Grid";
 import { Divider } from "@components/Layout/Divider";
-import {Tag} from "@components/Tag";
+import { Tag } from "@components/Tag";
+import { Box } from "@components/Layout/Box";
 
 export const OrderListScreen = () => {
     const orders = useSelector((state: RootState) => state.order.orders);
@@ -49,6 +50,10 @@ export const OrderListScreen = () => {
 
     const cassetteAmount = useMemo(() => {
         return filteredOrders.reduce((prev, cur) => prev + cur.placedItems.reduce((prev1, cur1) => prev1 + cur1.count, 0), 0);
+    }, [filteredOrders])
+
+    const cashAmount = useMemo(() => {
+        return filteredOrders.reduce((prev, cur) => prev + cur.placedItems.reduce((prev1, cur1) => prev1 + cur1.count * cur1.unitPrice, 0), 0);
     }, [filteredOrders])
 
     const _onAddOrder = () => {
@@ -94,27 +99,30 @@ export const OrderListScreen = () => {
             onChange={_onChangeSearchStatuses}>
             <Row>
                 <Col span={13}>
-                    <Checkbox value={ORDER_STATUS.PLACED}>{ORDER_STATUS.PLACED} <Typography.Text style={{fontSize: "0.6em"}}>({orders.filter(e => e.status === ORDER_STATUS.PLACED).length})</Typography.Text></Checkbox>
+                    <Checkbox value={ORDER_STATUS.PLACED}>{ORDER_STATUS.PLACED} <Typography.Text style={{ fontSize: "0.6em" }}>({orders.filter(e => e.status === ORDER_STATUS.PLACED).length})</Typography.Text></Checkbox>
                 </Col>
                 <Col span={11}>
-                    <Checkbox value={ORDER_STATUS.CREATE_DELIVERY}>{ORDER_STATUS.CREATE_DELIVERY} <Typography.Text style={{fontSize: "0.6em"}}>({orders.filter(e => e.status === ORDER_STATUS.CREATE_DELIVERY).length})</Typography.Text></Checkbox>
+                    <Checkbox value={ORDER_STATUS.CREATE_DELIVERY}>{ORDER_STATUS.CREATE_DELIVERY} <Typography.Text style={{ fontSize: "0.6em" }}>({orders.filter(e => e.status === ORDER_STATUS.CREATE_DELIVERY).length})</Typography.Text></Checkbox>
                 </Col>
                 <Col span={13}>
-                    <Checkbox value={ORDER_STATUS.SHIPPED}>{ORDER_STATUS.SHIPPED} <Typography.Text style={{fontSize: "0.6em"}}>({orders.filter(e => e.status === ORDER_STATUS.SHIPPED).length})</Typography.Text></Checkbox>
+                    <Checkbox value={ORDER_STATUS.SHIPPED}>{ORDER_STATUS.SHIPPED} <Typography.Text style={{ fontSize: "0.6em" }}>({orders.filter(e => e.status === ORDER_STATUS.SHIPPED).length})</Typography.Text></Checkbox>
                 </Col>
                 <Col span={11}>
-                    <Checkbox value={ORDER_STATUS.RETURNED}>{ORDER_STATUS.RETURNED} <Typography.Text style={{fontSize: "0.6em"}}>({orders.filter(e => e.status === ORDER_STATUS.RETURNED).length})</Typography.Text></Checkbox>
+                    <Checkbox value={ORDER_STATUS.RETURNED}>{ORDER_STATUS.RETURNED} <Typography.Text style={{ fontSize: "0.6em" }}>({orders.filter(e => e.status === ORDER_STATUS.RETURNED).length})</Typography.Text></Checkbox>
                 </Col>
                 <Col span={13}>
-                    <Checkbox value={ORDER_STATUS.WAITING_FOR_RETURNED}>{ORDER_STATUS.WAITING_FOR_RETURNED} <Typography.Text style={{fontSize: "0.6em"}}>({orders.filter(e => e.status === ORDER_STATUS.WAITING_FOR_RETURNED).length})</Typography.Text></Checkbox>
+                    <Checkbox value={ORDER_STATUS.WAITING_FOR_RETURNED}>{ORDER_STATUS.WAITING_FOR_RETURNED} <Typography.Text style={{ fontSize: "0.6em" }}>({orders.filter(e => e.status === ORDER_STATUS.WAITING_FOR_RETURNED).length})</Typography.Text></Checkbox>
                 </Col>
                 <Col span={11}>
-                    <Checkbox value={ORDER_STATUS.NEED_RETURN}>{ORDER_STATUS.NEED_RETURN} <Typography.Text style={{fontSize: "0.6em"}}>({orders.filter(e => e.status === ORDER_STATUS.NEED_RETURN).length})</Typography.Text></Checkbox>
+                    <Checkbox value={ORDER_STATUS.NEED_RETURN}>{ORDER_STATUS.NEED_RETURN} <Typography.Text style={{ fontSize: "0.6em" }}>({orders.filter(e => e.status === ORDER_STATUS.NEED_RETURN).length})</Typography.Text></Checkbox>
                 </Col>
             </Row>
         </AntCheckbox.Group>
         <Divider orientation="left" style={{ marginBottom: 0 }}>Danh sách đơn hàng ({filteredOrders.length} đơn)</Divider>
-        <Tag color={COLORS.ORDER_STATUS.SHIPPED}>Số băng: {cassetteAmount}</Tag>
+        <Stack style={{marginTop: 5}} gap={5}>
+            <Tag color={COLORS.ORDER_STATUS.SHIPPED}>Số băng: {cassetteAmount}</Tag>
+            <Tag color={COLORS.ORDER_STATUS.CREATE_DELIVERY}>Số tiền: {cashAmount.toLocaleString()}đ</Tag>
+        </Stack>
         <List
             pagination={filteredOrders.length > 0 ? {
                 position: "bottom", align: "center", pageSize: 10
