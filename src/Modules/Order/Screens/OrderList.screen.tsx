@@ -23,12 +23,13 @@ import { OrderItemWidget } from "./OrderItem/OrderItem.widget";
 import { Typography } from "@components/Typography";
 import { Order } from "@store/Models/Order";
 import { Radio } from "@components/Form/Radio";
-import { ORDER_STATUS } from "@common/Constants/AppConstants";
+import {COLORS, ORDER_STATUS} from "@common/Constants/AppConstants";
 import { RadioChangeEvent } from "antd";
 import { Checkbox } from "@components/Form/Checkbox";
 import { Checkbox as AntCheckbox } from "antd";
 import { Col, Row } from "@components/Grid";
 import { Divider } from "@components/Layout/Divider";
+import {Tag} from "@components/Tag";
 
 export const OrderListScreen = () => {
     const orders = useSelector((state: RootState) => state.order.orders);
@@ -112,8 +113,8 @@ export const OrderListScreen = () => {
                 </Col>
             </Row>
         </AntCheckbox.Group>
-        <Divider orientation="left" style={{ marginBottom: 0 }}>Danh sách đơn hàng ({filteredOrders.length})</Divider>
-        <Typography.Text>Số băng: {cassetteAmount}</Typography.Text>
+        <Divider orientation="left" style={{ marginBottom: 0 }}>Danh sách đơn hàng ({filteredOrders.length} đơn)</Divider>
+        <Tag color={COLORS.ORDER_STATUS.SHIPPED}>Số băng: {cassetteAmount}</Tag>
         <List
             pagination={filteredOrders.length > 0 ? {
                 position: "bottom", align: "center", pageSize: 10

@@ -44,6 +44,6 @@ export const OrderChangeShippingCodeWidget: FunctionComponent<ChangeShippingCode
     } destroyOnClose={true} onCancel={props.onClose} footer={<Stack fullwidth justify="flex-end">
         <Button loading={props.loading} type="primary" onClick={() => props.onSave(code)}>Lưu mã</Button>
     </Stack>}>
-        <Input autoFocus value={code} onChange={e => setCode(e.target.value)} />
+        <Input allowClear autoFocus value={code} onChange={e => setCode(e.target.value)} />
     </Modal>
 }

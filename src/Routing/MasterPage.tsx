@@ -189,7 +189,7 @@ const BottomTabNavigator = () => {
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            height: 60,
+            height: 70,
             width: 80
         }
     }
@@ -202,7 +202,7 @@ const BottomTabNavigator = () => {
             right: 0,
             width: "100%",
             backgroundColor: "#fff",
-            height: 70,
+            height: 80,
             borderTop: "0.5px solid " + theme.token.colorBorder
         }
     }
@@ -283,7 +283,7 @@ const BackUpDataTrello = () => {
     const message = useMessage();
 
     useEffect(() => {
-        // backup();
+        backup();
     }, [])
 
     const backup = async () => {
