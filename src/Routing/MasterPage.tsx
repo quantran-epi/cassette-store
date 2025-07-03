@@ -281,14 +281,6 @@ const BackUpDataTrello = () => {
     const message = useMessage();
 
     useEffect(() => {
-        const fileBlob = new Blob([JSON.stringify(store.getState())], { type: 'text/plain' });
-         trello.createAttachment({
-            name: moment().toLocaleString(),
-            mimeType: "text/plain",
-            file: fileBlob
-        }, BACKUP_CARD_ID);
-        localStorage.setItem('lastCheckTime', Date.now().toString()); // Reset the time
-        message.success("Backup success");
         backup();
     }, [])
 
