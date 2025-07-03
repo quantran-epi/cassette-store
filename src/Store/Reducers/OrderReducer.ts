@@ -57,6 +57,12 @@ export const orderSlice = createSlice({
         setState: (state, action: PayloadAction<OrderState>) =>{
             state.orders = action.payload.orders;
             state.lastSequence = action.payload.lastSequence;
+        },
+        test: (state) => {
+            state.orders = state.orders.map(e=>({
+                ...e,
+                isPayCOD: false
+            }))
         }
     },
 })
@@ -73,6 +79,6 @@ export const selectSortedPendingOrders = createSelector(
 );
 
 // Action creators are generated for each case reducer function
-export const {setState: setOrderState, add: addOrder, edit: editOrder, remove: removeOrder, reset: resetOrder} = orderSlice.actions
+export const {test, setState: setOrderState, add: addOrder, edit: editOrder, remove: removeOrder, reset: resetOrder} = orderSlice.actions
 
 export default orderSlice.reducer

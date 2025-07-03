@@ -101,7 +101,7 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
     const markOrderAsRefuseToReceive = async (orderId: string): Promise<string> => {
         try {
             let order = _findOrderById(orderId);
-            order.status = ORDER_STATUS.NEED_RETURN;
+            order.status = ORDER_STATUS.WAITING_FOR_RETURNED;
             order.returnReason = ORDER_RETURN_REASON.REFUSE_TO_RECEIVE;
 
             let customer = _findCustomerById(order.customerId);
@@ -122,7 +122,7 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
         try {
             let order = _findOrderById(orderId);
             let customer = _findCustomerById(order.customerId);
-            order.status = ORDER_STATUS.NEED_RETURN;
+            order.status = ORDER_STATUS.WAITING_FOR_RETURNED;
             order.returnReason = ORDER_RETURN_REASON.BROKEN_ITEMS;
             dispatch(editOrder({ order, customer }));
 
@@ -175,14 +175,14 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
     const isRefuseToReceive = (orderId: string): boolean => {
         let order = _findOrderById(orderId);
         if (order === null) return false;
-        return [ORDER_STATUS.NEED_RETURN, ORDER_STATUS.WAITING_FOR_RETURNED, ORDER_STATUS.RETURNED].includes(order.status)
+        return [ORDER_STATUS.WAITING_FOR_RETURNED, ORDER_STATUS.RETURNED].includes(order.status)
             && order.returnReason == ORDER_RETURN_REASON.REFUSE_TO_RECEIVE;
     }
 
     const isBrokenItems = (orderId: string): boolean => {
         let order = _findOrderById(orderId);
         if (order === null) return false;
-        return [ORDER_STATUS.NEED_RETURN, ORDER_STATUS.WAITING_FOR_RETURNED, ORDER_STATUS.RETURNED].includes(order.status)
+        return [ORDER_STATUS.WAITING_FOR_RETURNED, ORDER_STATUS.RETURNED].includes(order.status)
             && order.returnReason == ORDER_RETURN_REASON.BROKEN_ITEMS;
     }
 

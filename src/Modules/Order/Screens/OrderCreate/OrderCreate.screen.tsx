@@ -88,7 +88,8 @@ export const OrderCreateScreen = () => {
             trelloCardId: null,
             position: null,
             note: "",
-            isFreeShip: false
+            isFreeShip: false,
+            isPayCOD: false
         },
         onSubmit: (values) => {
             // console.log(values.transformValues);
@@ -139,6 +140,7 @@ export const OrderCreateScreen = () => {
             customerId: {name: ObjectPropertyHelper.nameof(defaultValues, e => e.customerId), noMarkup: true},
             trelloCardId: {name: ObjectPropertyHelper.nameof(defaultValues, e => e.trelloCardId), noMarkup: true},
             position: {name: ObjectPropertyHelper.nameof(defaultValues, e => e.position), noMarkup: true},
+            isPayCOD: {name: ObjectPropertyHelper.nameof(defaultValues, e => e.isPayCOD), noMarkup: true},
             note: {label: "Ghi chú thông tin hàng", name: ObjectPropertyHelper.nameof(defaultValues, e => e.note)},
             isFreeShip: {name: ObjectPropertyHelper.nameof(defaultValues, e => e.isFreeShip), valuePropName: "checked"},
         }),

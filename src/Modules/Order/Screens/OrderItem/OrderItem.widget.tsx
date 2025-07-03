@@ -81,8 +81,6 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                 return <Tag color={COLORS.ORDER_STATUS.SHIPPED}>{props.item.status}</Tag>;
             case ORDER_STATUS.RETURNED:
                 return <Tag color={COLORS.ORDER_STATUS.RETURNED}>{props.item.status}</Tag>;
-            case ORDER_STATUS.NEED_RETURN:
-                return <Tag color={COLORS.ORDER_STATUS.NEED_RETURN}>{props.item.status}</Tag>;
             case ORDER_STATUS.CREATE_DELIVERY:
                 return <Tag color={COLORS.ORDER_STATUS.CREATE_DELIVERY}>{props.item.status}</Tag>;
             case ORDER_STATUS.WAITING_FOR_RETURNED:

@@ -33,7 +33,6 @@ export const ORDER_SHIPPING_PARTNER = {
 export const ORDER_STATUS = {
     PLACED: "Chưa vận chuyển",
     CREATE_DELIVERY: "Đã tạo đơn",
-    NEED_RETURN: "Cần chuyển hoàn",
     SHIPPED: "Đã giao thành công",
     WAITING_FOR_RETURNED: "Chờ chuyển hoàn",
     RETURNED: "Đã chuyển hoàn",
@@ -64,7 +63,6 @@ export const COLORS = {
     ORDER_STATUS: {
         SHIPPED: "#2aa345",
         RETURNED: "#990505",
-        NEED_RETURN: "#cfbe04",
         CREATE_DELIVERY: "#9b0ead",
         WAITING_FOR_RETURNED: "#f79a72"
     },

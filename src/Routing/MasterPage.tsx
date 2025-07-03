@@ -1,47 +1,40 @@
 import {
-    CloudDownloadOutlined,
-    ExportOutlined,
-    ImportOutlined,
-    MenuOutlined,
-    UserOutlined,
-    TruckOutlined,
     BarChartOutlined,
-    DollarCircleOutlined,
-    UnorderedListOutlined
+    CloudDownloadOutlined,
+    MenuOutlined,
+    TruckOutlined,
+    UnorderedListOutlined,
+    UserOutlined
 } from "@ant-design/icons";
-import { ObjectPropertyHelper } from "@common/Helpers/ObjectProperty";
-import { Button } from "@components/Button";
-import { Input, TextArea } from "@components/Form/Input";
-import { Image } from "@components/Image";
-import { Box } from "@components/Layout/Box";
-import { Content } from "@components/Layout/Content";
-import { Header } from "@components/Layout/Header";
-import { Space } from "@components/Layout/Space";
-import { Stack } from "@components/Layout/Stack";
-import { Menu } from "@components/Menu";
-import { useMessage } from "@components/Message";
-import { Modal } from "@components/Modal";
-import { SmartForm, useSmartForm } from "@components/SmartForm";
-import { Tooltip } from "@components/Tootip";
-import { Typography } from "@components/Typography";
-import { useTheme, useToggle, useTrello } from "@hooks";
-import { addCustomer, resetCustomer, setCustomerState } from "@store/Reducers/CustomerReducer";
-import { RootState, store } from "@store/Store";
-import { Drawer, Flex, Layout, message } from "antd";
-import React, { useEffect, useRef, useState } from "react";
-import { CopyToClipboard } from 'react-copy-to-clipboard';
-import { useDispatch, useSelector } from "react-redux";
-import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import { RootRoutes } from "./RootRoutes";
+import {Button} from "@components/Button";
+import {Input} from "@components/Form/Input";
+import {Image} from "@components/Image";
+import {Box} from "@components/Layout/Box";
+import {Content} from "@components/Layout/Content";
+import {Header} from "@components/Layout/Header";
+import {Space} from "@components/Layout/Space";
+import {Stack} from "@components/Layout/Stack";
+import {Menu} from "@components/Menu";
+import {useMessage} from "@components/Message";
+import {Modal} from "@components/Modal";
+import {Tooltip} from "@components/Tootip";
+import {Typography} from "@components/Typography";
+import {useTheme, useToggle, useTrello} from "@hooks";
+import {setCustomerState} from "@store/Reducers/CustomerReducer";
+import {RootState, store} from "@store/Store";
+import {Drawer, Flex, Layout} from "antd";
+import React, {useEffect, useState} from "react";
+import {useDispatch, useSelector} from "react-redux";
+import {Outlet, useLocation, useNavigate} from "react-router-dom";
+import {RootRoutes} from "./RootRoutes";
 import Logo from "../../assets/icons/radio-cassette.png";
 import moment from "moment";
-import { orderBy } from "lodash";
-import { setOrderState } from "@store/Reducers/OrderReducer";
-import { Option, Select } from "@components/Form/Select";
-import { CUSTOMER_PROVINCES } from "@common/Constants/AppConstants";
-import { Tag } from "@components/Tag";
-import { AreaHelpers } from "@common/Helpers/AreaHelper";
-import { OrderHelper } from "@common/Helpers/OrderHelper";
+import {setOrderState, test} from "@store/Reducers/OrderReducer";
+import {Option, Select} from "@components/Form/Select";
+import {CUSTOMER_PROVINCES} from "@common/Constants/AppConstants";
+import {Tag} from "@components/Tag";
+import {AreaHelpers} from "@common/Helpers/AreaHelper";
+import {OrderHelper} from "@common/Helpers/OrderHelper";
 
 const layoutStyles: React.CSSProperties = {
     height: "100%"
@@ -52,6 +45,11 @@ const BACKUP_CARD_ID = "68498a4712a808a92bf59b01";
 export const MasterPage = () => {
     const theme = useTheme();
     const currentFeatureName = useSelector((state: RootState) => state.appContext.currentFeatureName);
+    const dispatch = useDispatch();
+
+    useEffect(() => {
+        dispatch(test());
+    }, []);
 
     const
         _featureIcon = () => {
