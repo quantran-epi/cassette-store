@@ -28,11 +28,13 @@ type UseOrder = {
     canMarkAsWaitingForReturn: (orderId: string) => boolean;
     canMarkAsReturned: (orderId: string) => boolean;
     canMarkAsShipped: (orderId: string) => boolean;
+    canMarkAsPayCOD: (orderId: string) => boolean;
     markOrderAsRefuseToReceive: (orderId: string) => Promise<string>;
     markOrderAsBrokenItems: (orderId: string) => Promise<string>;
     markOrderAsWaitingForReturn: (orderId: string) => string;
     markOrderAsReturned: (orderId: string) => string;
     markOrderAsShipped: (orderId: string) => Promise<string>;
+    markOrderAsPayCOD: (orderId: string) => void;
     changeShippingCode: (orderId: string, code: string) => Promise<string>;
     isPushedTrello: (orderId: string) => boolean;
     canPushToTrello: (orderId: string) => boolean;
@@ -172,6 +174,13 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
         }
     }
 
+    const markOrderAsPayCOD = (orderId: string): void => {
+        let order = _findOrderById(orderId);
+        let customer = _findCustomerById(order.customerId);
+        order.isPayCOD = true;
+        dispatch(editOrder({ order, customer }));
+    }
+
     const isRefuseToReceive = (orderId: string): boolean => {
         let order = _findOrderById(orderId);
         if (order === null) return false;
@@ -202,6 +211,12 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
         let order = _findOrderById(orderId);
         if (order === null) return false;
         return order.status !== ORDER_STATUS.SHIPPED;
+    }
+
+    const canMarkAsPayCOD = (orderId: string): boolean => {
+        let order = _findOrderById(orderId);
+        if (order === null) return false;
+        return order.isPayCOD === false;
     }
 
     const changeShippingCode = async (orderId: string, code: string): Promise<string> => {
@@ -485,6 +500,8 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
         getTotalAmountSoldAll,
         getTotalOrderSoldAll,
         getTotalAmountBomAll,
-        getTotalOrderBomAll
+        getTotalOrderBomAll,
+        canMarkAsPayCOD,
+        markOrderAsPayCOD
     }
 }

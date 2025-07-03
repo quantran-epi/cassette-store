@@ -31,6 +31,7 @@ import { Col, Row } from "@components/Grid";
 import { Divider } from "@components/Layout/Divider";
 import { Tag } from "@components/Tag";
 import { Box } from "@components/Layout/Box";
+import {Tooltip} from "@components/Tootip";
 
 export const OrderListScreen = () => {
     const orders = useSelector((state: RootState) => state.order.orders);
@@ -118,7 +119,9 @@ export const OrderListScreen = () => {
         <Divider orientation="left" style={{ marginBottom: 0 }}>Danh sách đơn hàng ({filteredOrders.length} đơn)</Divider>
         <Stack style={{marginTop: 5}} gap={5}>
             <Tag color={COLORS.ORDER_STATUS.SHIPPED}>Số băng: {cassetteAmount}</Tag>
-            <Tag color={COLORS.ORDER_STATUS.CREATE_DELIVERY}>Số tiền: {cashAmount.toLocaleString()}đ</Tag>
+            <Tooltip title={"Số tiền hàng"}>
+                <Tag color={COLORS.ORDER_STATUS.CREATE_DELIVERY}>Số tiền: {cashAmount.toLocaleString()}đ</Tag>
+            </Tooltip>
         </Stack>
         <List
             pagination={filteredOrders.length > 0 ? {

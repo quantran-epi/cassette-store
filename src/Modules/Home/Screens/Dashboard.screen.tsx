@@ -1,85 +1,126 @@
-import { RootRoutes } from "@routing/RootRoutes";
-import { Navigate } from "react-router-dom";
+import {RootRoutes} from "@routing/RootRoutes";
+import {Navigate} from "react-router-dom";
 import React from "react";
-import { useOrder, useScreenTitle } from "@hooks";
+import {useOrder, useScreenTitle} from "@hooks";
 import moment from "moment";
-import { Card } from "@components/Card";
-import { Statistic } from "antd";
-import { Stack } from "@components/Layout/Stack";
-import { COLORS } from "@common/Constants/AppConstants";
-import { Divider } from "@components/Layout/Divider";
-import { ArrowUpOutlined, ArrowDownOutlined } from "@ant-design/icons";
+import {Card} from "@components/Card";
+import {Statistic} from "antd";
+import {Stack} from "@components/Layout/Stack";
+import {
+    COLORS,
+    ORDER_ITEM_TYPE,
+    ORDER_PAYMENT_METHOD,
+    ORDER_RETURN_REASON,
+    ORDER_STATUS
+} from "@common/Constants/AppConstants";
+import {Divider} from "@components/Layout/Divider";
+import {ArrowUpOutlined, ArrowDownOutlined} from "@ant-design/icons";
+import {useSelector} from "react-redux";
+import {RootState} from "@store/Store";
+import {Col, Row} from "@components/Grid";
 
-moment.updateLocale('en', { week: { dow: 1 } });
+moment.updateLocale('en', {week: {dow: 1}});
 
 export const DashboardScreen = () => {
-    const { } = useScreenTitle({ value: "Thống kê", deps: [] });
+    const orders = useSelector((state: RootState) => state.order.orders);
+    const {} = useScreenTitle({value: "Thống kê", deps: []});
     const orderUtils = useOrder();
 
-    const thisMonthFrom = moment().startOf('month');
-    const thisMonthTo = moment().endOf('month');
-
     return <React.Fragment>
-        <Card bordered={false} title={"Tổng số"}>
-            <Stack fullwidth justify={"space-between"}>
+        <Divider>Thống kê số tiền, số băng</Divider>
+        <Card bordered={false} title={"Tổng"}>
+            <Stack fullwidth direction={"column"} align={"flex-start"}>
                 <Statistic
-                    title="Số tiền bán"
-                    value={orderUtils.getTotalAmountSoldAll()}
+                    title="Tổng COD"
+                    value={orders.reduce((prev, cur) => prev + cur.codAmount, 0)}
                     suffix="đ"
-                    valueStyle={{ color: COLORS.ORDER_STATUS.SHIPPED }}
+                    valueStyle={{color: COLORS.ORDER_STATUS.SHIPPED}}
                 />
                 <Statistic
-                    title="Số đơn bán"
-                    value={orderUtils.getTotalOrderSoldAll()}
-                    suffix="đơn"
-                    valueStyle={{ color: COLORS.ORDER_STATUS.SHIPPED }}
-                />
-            </Stack>
-            <Stack fullwidth justify={"space-between"}>
-                <Statistic
-                    title="Số tiền bom"
-                    value={orderUtils.getTotalAmountBomAll()}
+                    title="Tổng chuyển khoản"
+                    value={orders.filter(e => e.paymentMethod === ORDER_PAYMENT_METHOD.BANK_TRANSFER_IN_ADVANCE).reduce((prev, cur) => prev + cur.paymentAmount, 0)}
                     suffix="đ"
-                    valueStyle={{ color: COLORS.ORDER_STATUS.RETURNED }}
+                    valueStyle={{color: COLORS.ORDER_STATUS.SHIPPED}}
                 />
                 <Statistic
-                    title="Số đơn bom"
-                    value={orderUtils.getTotalOrderBomAll()}
-                    suffix="đơn"
-                    valueStyle={{ color: COLORS.ORDER_STATUS.RETURNED }}
+                    title="Tổng tiền đơn (số băng x đơn giá)"
+                    value={orders.reduce((prev, cur) => prev + cur.placedItems.reduce((prev1, cur1) => prev1 + (cur1.count * cur1.unitPrice), 0), 0)}
+                    suffix="đ"
+                    valueStyle={{color: COLORS.ORDER_STATUS.SHIPPED}}
+                />
+                <Statistic
+                    title="Tổng ship"
+                    value={orders.reduce((prev, cur) => prev + cur.shippingCost, 0)}
+                    suffix="đ"
+                    valueStyle={{color: COLORS.ORDER_STATUS.RETURNED}}
+                />
+                <Statistic
+                    title="Tổng số băng trên đơn"
+                    value={orders.reduce((prev, cur) => prev + cur.placedItems.reduce((prev1, cur1) => prev1 + cur1.count, 0), 0)}
+                    suffix=""
+                    valueStyle={{color: COLORS.ORDER_STATUS.PAY_COD}}
                 />
             </Stack>
         </Card>
-        {/* <br />
-        <Card bordered={false} title={"Tháng này"}>
-            <Stack fullwidth justify={"space-between"}>
+        <br/>
+        <Card bordered={false} title={"COD"}>
+            <Stack fullwidth direction={"column"} align={"flex-start"}>
                 <Statistic
-                    title="Số tiền bán"
-                    value={orderUtils.getTotalAmountSold(thisMonthFrom.toDate(), thisMonthTo.toDate())}
+                    title="Đã thu COD"
+                    value={orders.filter(e => e.isPayCOD === true).reduce((prev, cur) => prev + cur.codAmount, 0)}
                     suffix="đ"
-                    valueStyle={{ color: COLORS.ORDER_STATUS.SHIPPED }}
+                    valueStyle={{color: COLORS.ORDER_STATUS.SHIPPED}}
                 />
                 <Statistic
-                    title="Số đơn bán"
-                    value={orderUtils.getTotalOrderSold(thisMonthFrom.toDate(), thisMonthTo.toDate())}
-                    suffix="đơn"
-                    valueStyle={{ color: COLORS.ORDER_STATUS.SHIPPED }}
+                    title="Chưa thu COD (đã giao thành công)"
+                    value={orders.filter(e => e.status === ORDER_STATUS.SHIPPED && e.isPayCOD === false).reduce((prev, cur) => prev + cur.codAmount, 0)}
+                    suffix="đ"
+                    valueStyle={{color: COLORS.ORDER_STATUS.WAITING_FOR_RETURNED}}
+                />
+                <Statistic
+                    title="Chưa giao thành công"
+                    value={orders.filter(e => e.status !== ORDER_STATUS.SHIPPED).reduce((prev, cur) => prev + cur.codAmount, 0)}
+                    suffix="đ"
+                    valueStyle={{color: COLORS.ORDER_STATUS.PAY_COD}}
                 />
             </Stack>
-            <Stack fullwidth justify={"space-between"}>
+        </Card>
+        <br/>
+        <Card bordered={false} title={"Bom"}>
+            <Stack fullwidth direction={"column"} align={"flex-start"}>
                 <Statistic
-                    title="Số tiền bom"
-                    value={orderUtils.getTotalAmountBom(thisMonthFrom.toDate(), thisMonthTo.toDate())}
-                    suffix="đ"
-                    valueStyle={{ color: COLORS.ORDER_STATUS.RETURNED }}
+                    title="Số đơn"
+                    value={orders.filter(e => e.status === ORDER_STATUS.RETURNED && e.returnReason === ORDER_RETURN_REASON.REFUSE_TO_RECEIVE).length}
+                    suffix="đơn"
+                    valueStyle={{color: COLORS.ORDER_STATUS.RETURNED}}
                 />
                 <Statistic
-                    title="Số đơn bom"
-                    value={orderUtils.getTotalOrderBom(thisMonthFrom.toDate(), thisMonthTo.toDate())}
-                    suffix="đơn"
-                    valueStyle={{ color: COLORS.ORDER_STATUS.RETURNED }}
+                    title="Số băng"
+                    value={orders.filter(e => e.status === ORDER_STATUS.RETURNED && e.returnReason === ORDER_RETURN_REASON.REFUSE_TO_RECEIVE)
+                        .reduce((prev, cur) => prev + cur.placedItems.reduce((prev1, cur1) => prev1 + cur1.count, 0), 0)}
+                    suffix="băng"
+                    valueStyle={{color: COLORS.ORDER_STATUS.RETURNED}}
+                />
+                <Statistic
+                    title="Tiền ship"
+                    value={orders.filter(e => e.status === ORDER_STATUS.RETURNED && e.returnReason === ORDER_RETURN_REASON.REFUSE_TO_RECEIVE)
+                        .reduce((prev, cur) => prev + cur.shippingCost, 0)}
+                    suffix="đ"
+                    valueStyle={{color: COLORS.ORDER_STATUS.RETURNED}}
                 />
             </Stack>
-        </Card> */}
+        </Card>
+        <Divider>Thống kê loại băng</Divider>
+        <Card bordered={false} title={"Số băng bán"}>
+            <Stack fullwidth direction={"column"} align={"flex-start"}>
+                {Object.keys(ORDER_ITEM_TYPE).map(key => <Statistic
+                    title={key}
+                    value={orders
+                        .reduce((prev, cur) => prev + cur.placedItems.filter(c => c.type === key).reduce((prev1, cur1) => prev1 + cur1.count, 0), 0)}
+                    suffix=""
+                    valueStyle={{color: COLORS.ORDER_STATUS.SHIPPED}}
+                />)}
+            </Stack>
+        </Card>
     </React.Fragment>
 }

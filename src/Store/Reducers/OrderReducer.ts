@@ -59,10 +59,7 @@ export const orderSlice = createSlice({
             state.lastSequence = action.payload.lastSequence;
         },
         test: (state) => {
-            state.orders = state.orders.map(e=>({
-                ...e,
-                isPayCOD: false
-            }))
+
         }
     },
 })
