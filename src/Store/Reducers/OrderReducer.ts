@@ -66,6 +66,9 @@ export const orderSlice = createSlice({
         removeDoneOrder: (state, action: PayloadAction<string>) => {
             state.doneOrders = state.doneOrders.filter(e => e !== action.payload);
         },
+        removeAllDoneOrder: (state) => {
+            state.doneOrders = [];
+        },
         test: (state) => {
 
         }
@@ -92,7 +95,8 @@ export const {
     remove: removeOrder,
     reset: resetOrder,
     addDoneOrder,
-    removeDoneOrder
+    removeDoneOrder,
+    removeAllDoneOrder
 } = orderSlice.actions
 
 export default orderSlice.reducer

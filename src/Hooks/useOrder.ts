@@ -6,7 +6,7 @@ import {
 } from "@common/Constants/AppConstants";
 import {Order} from "@store/Models/Order";
 import {editCustomer} from "@store/Reducers/CustomerReducer";
-import {addDoneOrder, addOrder, editOrder, removeDoneOrder} from "@store/Reducers/OrderReducer";
+import {addDoneOrder, addOrder, editOrder, removeAllDoneOrder, removeDoneOrder} from "@store/Reducers/OrderReducer";
 import {RootState, store} from "@store/Store";
 import {cloneDeep, uniq} from "lodash";
 import {useDispatch, useSelector} from "react-redux";
@@ -465,6 +465,7 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
     }
 
     const refreshDoneOrders = async (): Promise<string> => {
+        dispatch(removeAllDoneOrder());
         let cards = await trello.getCardsByList(trello.TRELLO_LIST_IDS.TODO_LIST);
         let doneOrders = cards.filter(e => e.dueComplete == true).map(e => e.id);
         doneOrders.forEach(e => {
