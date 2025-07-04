@@ -166,18 +166,32 @@ export const DashboardScreen = () => {
             </Stack>
         </Card>
         <br/>
-        <Card bordered={false} title={"Top 10"}>
+        <Card bordered={false} title={"Top 10 số tiền"}>
             <List
                 pagination={false}
                 itemLayout="horizontal"
-                dataSource={orderBy(customers, ['buyAmount'], ['desc']).slice(0, 9)}
-                renderItem={(item, index) => <Space size={5}>
+                dataSource={orderBy(customers, ['buyAmount'], ['desc']).slice(0, 10)}
+                renderItem={(item, index) => <Space style={{marginBottom: 3}} size={5}>
                     <Space size={3}>
                         <Typography.Text>{index + 1}. {item.name}</Typography.Text>
                         {item.isVIP && <Tag color={COLORS.CUSTOMER.VIP}>VIP</Tag>}
                     </Space>
-                    <Tag>{item.buyCount} đơn</Tag>
                     <Tag>{item.buyAmount.toLocaleString()}đ</Tag>
+                </Space>}
+            />
+        </Card>
+        <br/>
+        <Card bordered={false} title={"Top 10 số lần mua"}>
+            <List
+                pagination={false}
+                itemLayout="horizontal"
+                dataSource={orderBy(customers, ['buyCount'], ['desc']).slice(0, 10)}
+                renderItem={(item, index) => <Space style={{marginBottom: 3}} size={5}>
+                    <Space size={3}>
+                        <Typography.Text>{index + 1}. {item.name}</Typography.Text>
+                        {item.isVIP && <Tag color={COLORS.CUSTOMER.VIP}>VIP</Tag>}
+                    </Space>
+                    <Tag>{item.buyCount}</Tag>
                 </Space>}
             />
         </Card>
