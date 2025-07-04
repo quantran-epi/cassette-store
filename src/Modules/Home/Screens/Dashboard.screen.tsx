@@ -179,7 +179,7 @@ export const DashboardScreen = () => {
                         {item.isVIP && <Tag color={COLORS.CUSTOMER.VIP}>VIP</Tag>}
                     </Space>
                     <Tag>{item.buyCount} đơn</Tag>
-                    <Tag>{item.buyAmount}đ</Tag>
+                    <Tag>{item.buyAmount.toLocaleString()}đ</Tag>
                 </Space>}
             />
         </Card>
