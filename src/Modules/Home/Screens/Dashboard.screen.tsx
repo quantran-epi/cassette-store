@@ -167,6 +167,7 @@ export const DashboardScreen = () => {
                 />
             </Stack>
         </Card>
+        <br />
         <Card bordered={false} title={"Top 10"}>
             <List
                 pagination={false}
