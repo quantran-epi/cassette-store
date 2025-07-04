@@ -61,7 +61,7 @@ export const orderSlice = createSlice({
             state.lastSequence = action.payload.lastSequence;
         },
         addDoneOrder: (state, action: PayloadAction<string>) => {
-            state.doneOrders = [...state.doneOrders, action.payload];
+            state.doneOrders = [...state.doneOrders || [], action.payload];
         },
         removeDoneOrder: (state, action: PayloadAction<string>) => {
             state.doneOrders = state.doneOrders.filter(e => e !== action.payload);

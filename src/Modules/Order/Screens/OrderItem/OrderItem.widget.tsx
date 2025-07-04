@@ -329,7 +329,7 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
             }>
             <List.Item.Meta
                 title={<Stack>
-                    {doneOrders.includes(props.item.trelloCardId) ? <Badge.Ribbon text={"Đã đóng hàng"}>
+                    {doneOrders?.includes(props.item.trelloCardId) ? <Badge.Ribbon text={"Đã đóng hàng"}>
                         <Tooltip title={props.item.name}>
                             <Button onClick={() => null}
                                     type="text"
