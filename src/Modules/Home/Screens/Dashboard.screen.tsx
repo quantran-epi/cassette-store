@@ -101,30 +101,28 @@ export const DashboardScreen = () => {
         </Card>
         <br/>
         <Card bordered={false} title={"Bom"}>
-            <Stack fullwidth direction={"column"} align={"flex-start"}>
-                <Stack fullwidth justify={"space-between"}>
-                    <Statistic
-                        title="Số đơn"
-                        value={orders.filter(e => e.status === ORDER_STATUS.RETURNED && e.returnReason === ORDER_RETURN_REASON.REFUSE_TO_RECEIVE).length}
-                        suffix=""
-                        valueStyle={{color: COLORS.ORDER_STATUS.RETURNED}}
-                    />
-                    <Statistic
-                        title="Số băng"
-                        value={orders.filter(e => e.status === ORDER_STATUS.RETURNED && e.returnReason === ORDER_RETURN_REASON.REFUSE_TO_RECEIVE)
-                            .reduce((prev, cur) => prev + cur.placedItems.reduce((prev1, cur1) => prev1 + cur1.count, 0), 0)}
-                        suffix=""
-                        valueStyle={{color: COLORS.ORDER_STATUS.RETURNED}}
-                    />
-                </Stack>
+            <Stack fullwidth justify={"space-between"}>
                 <Statistic
-                    title="Tiền ship"
+                    title="Số đơn"
+                    value={orders.filter(e => e.status === ORDER_STATUS.RETURNED && e.returnReason === ORDER_RETURN_REASON.REFUSE_TO_RECEIVE).length}
+                    suffix=""
+                    valueStyle={{color: COLORS.ORDER_STATUS.RETURNED}}
+                />
+                <Statistic
+                    title="Số băng"
                     value={orders.filter(e => e.status === ORDER_STATUS.RETURNED && e.returnReason === ORDER_RETURN_REASON.REFUSE_TO_RECEIVE)
-                        .reduce((prev, cur) => prev + cur.shippingCost, 0)}
-                    suffix="đ"
+                        .reduce((prev, cur) => prev + cur.placedItems.reduce((prev1, cur1) => prev1 + cur1.count, 0), 0)}
+                    suffix=""
                     valueStyle={{color: COLORS.ORDER_STATUS.RETURNED}}
                 />
             </Stack>
+            <Statistic
+                title="Tiền ship"
+                value={orders.filter(e => e.status === ORDER_STATUS.RETURNED && e.returnReason === ORDER_RETURN_REASON.REFUSE_TO_RECEIVE)
+                    .reduce((prev, cur) => prev + cur.shippingCost, 0)}
+                suffix="đ"
+                valueStyle={{color: COLORS.ORDER_STATUS.RETURNED}}
+            />
         </Card>
         <Divider>Thống kê loại băng</Divider>
         <Card bordered={false} title={"Số băng bán"}>
@@ -167,7 +165,7 @@ export const DashboardScreen = () => {
                 />
             </Stack>
         </Card>
-        <br />
+        <br/>
         <Card bordered={false} title={"Top 10"}>
             <List
                 pagination={false}
