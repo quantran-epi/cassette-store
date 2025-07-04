@@ -10,11 +10,13 @@ import {RootState} from '@store/Store';
 export interface OrderState {
     orders: Order[];
     lastSequence: number;
+    doneOrders: string[];
 }
 
 const initialState: OrderState = {
     orders: [],
-    lastSequence: 0
+    lastSequence: 0,
+    doneOrders: []
 }
 
 export const orderSlice = createSlice({
@@ -54,9 +56,15 @@ export const orderSlice = createSlice({
         reset: (state) => {
             state.orders = [];
         },
-        setState: (state, action: PayloadAction<OrderState>) =>{
+        setState: (state, action: PayloadAction<OrderState>) => {
             state.orders = action.payload.orders;
             state.lastSequence = action.payload.lastSequence;
+        },
+        addDoneOrder: (state, action: PayloadAction<string>) => {
+            state.doneOrders = [...state.doneOrders, action.payload];
+        },
+        removeDoneOrder: (state, action: PayloadAction<string>) => {
+            state.doneOrders = state.doneOrders.filter(e => e !== action.payload);
         },
         test: (state) => {
 
@@ -76,6 +84,15 @@ export const selectSortedPendingOrders = createSelector(
 );
 
 // Action creators are generated for each case reducer function
-export const {test, setState: setOrderState, add: addOrder, edit: editOrder, remove: removeOrder, reset: resetOrder} = orderSlice.actions
+export const {
+    test,
+    setState: setOrderState,
+    add: addOrder,
+    edit: editOrder,
+    remove: removeOrder,
+    reset: resetOrder,
+    addDoneOrder,
+    removeDoneOrder
+} = orderSlice.actions
 
 export default orderSlice.reducer

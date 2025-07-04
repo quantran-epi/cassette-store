@@ -1,6 +1,6 @@
 import {RootRoutes} from "@routing/RootRoutes";
 import {Navigate} from "react-router-dom";
-import React from "react";
+import React, {useEffect} from "react";
 import {useOrder, useScreenTitle} from "@hooks";
 import moment from "moment";
 import {Card} from "@components/Card";
@@ -24,6 +24,7 @@ import {orderBy, sortBy} from "lodash";
 import {Space} from "@components/Layout/Space";
 import {Typography} from "@components/Typography";
 import {Tag} from "@components/Tag";
+import {useMessage} from "@components/Message";
 
 moment.updateLocale('en', {week: {dow: 1}});
 
@@ -32,6 +33,12 @@ export const DashboardScreen = () => {
     const customers = useSelector((state: RootState) => state.customer.customers);
     const {} = useScreenTitle({value: "Thống kê", deps: []});
     const orderUtils = useOrder();
+    const message = useMessage();
+
+    useEffect(() => {
+        orderUtils.refreshDoneOrders().then(e => message.success("Đã cập nhật các đơn đóng hàng"))
+            .catch(e => message.error("Lỗi cập nhật các đơn đóng hàng"));
+    }, [])
 
     return <React.Fragment>
         <Divider>Thống kê số tiền, số băng</Divider>

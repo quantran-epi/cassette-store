@@ -44,6 +44,7 @@ import {OrderShippinInfoWidget} from "@modules/Order/Screens/OrderItem/OrderShip
 import {OrderAttachmentsWidget} from "@modules/Order/Screens/OrderItem/OrderAttachments.widget";
 import {OrderPriorityWidget} from "./OrderPriority.widget";
 import moment from "moment";
+import {Badge} from "antd";
 
 type OrderItemProps = {
     item: Order;
@@ -52,6 +53,7 @@ type OrderItemProps = {
 
 export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) => {
     const customers = useSelector((state: RootState) => state.customer.customers);
+    const doneOrders = useSelector((state: RootState) => state.order.doneOrders);
     const dispatch = useDispatch();
     const message = useMessage();
     const modal = useModal();
@@ -327,7 +329,18 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
             }>
             <List.Item.Meta
                 title={<Stack>
-                    <Tooltip title={props.item.name}>
+                    {doneOrders.includes(props.item.trelloCardId) ? <Badge.Ribbon text={"Đã đóng hàng"}>
+                        <Tooltip title={props.item.name}>
+                            <Button onClick={() => null}
+                                    type="text"
+                                    style={{paddingLeft: 0, fontWeight: "bold"}}>
+                                <Space>
+                                    <Typography.Text>{props.item.name}</Typography.Text>
+                                    {_renderOrderIcon()}
+                                </Space>
+                            </Button>
+                        </Tooltip>
+                    </Badge.Ribbon> : <Tooltip title={props.item.name}>
                         <Button onClick={() => null}
                                 type="text"
                                 style={{paddingLeft: 0, fontWeight: "bold"}}>
@@ -336,7 +349,7 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                                 {_renderOrderIcon()}
                             </Space>
                         </Button>
-                    </Tooltip>
+                    </Tooltip>}
                 </Stack>}
                 description={<Stack direction={"column"} align={"flex-start"} gap={4}>
                     <Space size={0}>
