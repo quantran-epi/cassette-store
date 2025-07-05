@@ -32,9 +32,11 @@ import { Divider } from "@components/Layout/Divider";
 import { Tag } from "@components/Tag";
 import { Box } from "@components/Layout/Box";
 import { Tooltip } from "@components/Tootip";
+import { Badge } from "@components/Badge";
 
 export const OrderListScreen = () => {
     const orders = useSelector((state: RootState) => state.order.orders);
+    const doneOrders = useSelector((state: RootState) => state.order.doneOrders);
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const toggleAddOrderModal = useToggle();
@@ -100,7 +102,9 @@ export const OrderListScreen = () => {
             onChange={_onChangeSearchStatuses}>
             <Row>
                 <Col span={13}>
-                    <Checkbox value={ORDER_STATUS.PLACED}>{ORDER_STATUS.PLACED} <Typography.Text style={{ fontSize: "0.6em" }}>({orders.filter(e => e.status === ORDER_STATUS.PLACED).length})</Typography.Text></Checkbox>
+                    <Badge count={doneOrders.length}>
+                        <Checkbox value={ORDER_STATUS.PLACED}>{ORDER_STATUS.PLACED} <Typography.Text style={{ fontSize: "0.6em" }}>({orders.filter(e => e.status === ORDER_STATUS.PLACED).length})</Typography.Text></Checkbox>
+                    </Badge>
                 </Col>
                 <Col span={11}>
                     <Checkbox value={ORDER_STATUS.CREATE_DELIVERY}>{ORDER_STATUS.CREATE_DELIVERY} <Typography.Text style={{ fontSize: "0.6em" }}>({orders.filter(e => e.status === ORDER_STATUS.CREATE_DELIVERY).length})</Typography.Text></Checkbox>
@@ -121,7 +125,7 @@ export const OrderListScreen = () => {
             <Stack gap={3}>
                 <Tag color={COLORS.ORDER_STATUS.SHIPPED}>Số băng: {cassetteAmount}</Tag>
                 <Tooltip title={"Dự kiến số tiền thu về"}>
-                    <Tag color={COLORS.ORDER_STATUS.CREATE_DELIVERY}>Thu về: {cashAmount.toLocaleString()}đ</Tag>
+                    <Tag color={COLORS.ORDER_STATUS.SHIPPED}>Thu về: {cashAmount.toLocaleString()}đ</Tag>
                 </Tooltip>
             </Stack>
             <Stack gap={3} wrap="wrap">
