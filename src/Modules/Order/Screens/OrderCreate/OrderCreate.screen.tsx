@@ -219,7 +219,7 @@ export const OrderCreateScreen = () => {
     }
 
     const _renderPreviewUploadFiles = () => {
-        return filePreviewUrls.length > 0 ? <Stack fullwidth={true} gap={5}>
+        return filePreviewUrls.length > 0 ? <Stack fullwidth={true} gap={5} wrap="wrap">
             {filePreviewUrls.map(e => <Image width={100} height={100} preview src={e}/>)}
         </Stack> : <Typography.Text type={"secondary"}>Chưa có ảnh đính kèm</Typography.Text>
     }
@@ -321,7 +321,6 @@ export const OrderCreateScreen = () => {
                     <Button type="primary" fullwidth onClick={_onSaveOrder} loading={toggleSaveLoading.value}>Lưu đơn
                         hàng</Button>
                 </SmartForm.Item>
-                <br/>
             </React.Fragment>}
         </SmartForm>
     </React.Fragment>

@@ -40,38 +40,72 @@ export const DashboardScreen = () => {
             .catch(e => message.error("Lỗi cập nhật các đơn đóng hàng"));
     }, [])
 
+    const shippingFeeInterest = () => orders.filter(e => e.status === ORDER_STATUS.SHIPPED && e.isPayCOD == true)
+        .reduce((prev, cur) => prev + (cur.paymentAmount - cur.placedItems.reduce((prev1, cur1) => prev1 + (cur1.count * cur1.unitPrice), 0)), 0)
+        - orders.reduce((prev, cur) => prev + cur.shippingCost, 0);
+
+    const actualInterest = () => orders.filter(e => e.status === ORDER_STATUS.SHIPPED && e.isPayCOD == true)
+        .reduce((prev, cur) => prev + cur.placedItems.reduce((prev1, cur1) => prev1 + (cur1.count * (cur1.unitPrice * 0.6)), 0), 0)
+        + shippingFeeInterest();
+
     const items: TabsProps['items'] = [
         {
             key: '1',
             label: 'Tổng',
-            children: <Card>
-                <Stack fullwidth direction={"column"} align={"flex-start"}>
-                    <Statistic
-                        title="Tổng COD"
-                        value={orders.reduce((prev, cur) => prev + cur.codAmount, 0)}
-                        suffix="đ"
-                        valueStyle={{ color: COLORS.ORDER_STATUS.SHIPPED }}
-                    />
-                    <Statistic
-                        title="Tổng chuyển khoản"
-                        value={orders.filter(e => e.paymentMethod === ORDER_PAYMENT_METHOD.BANK_TRANSFER_IN_ADVANCE).reduce((prev, cur) => prev + cur.paymentAmount, 0)}
-                        suffix="đ"
-                        valueStyle={{ color: COLORS.ORDER_STATUS.SHIPPED }}
-                    />
-                    <Statistic
-                        title="Tổng tiền đơn (số băng x đơn giá)"
-                        value={orders.reduce((prev, cur) => prev + cur.placedItems.reduce((prev1, cur1) => prev1 + (cur1.count * cur1.unitPrice), 0), 0)}
-                        suffix="đ"
-                        valueStyle={{ color: COLORS.ORDER_STATUS.SHIPPED }}
-                    />
-                    <Statistic
-                        title="Tổng ship"
-                        value={orders.reduce((prev, cur) => prev + cur.shippingCost, 0)}
-                        suffix="đ"
-                        valueStyle={{ color: COLORS.ORDER_STATUS.RETURNED }}
-                    />
-                </Stack>
-            </Card>,
+            children: <React.Fragment>
+                <Card title="Tổng tiền">
+                    <Stack fullwidth direction={"column"} align={"flex-start"}>
+                        <Statistic
+                            title="Tổng tiền theo số băng"
+                            value={orders.reduce((prev, cur) => prev + cur.placedItems.reduce((prev1, cur1) => prev1 + (cur1.count * cur1.unitPrice), 0), 0)}
+                            suffix="đ"
+                            valueStyle={{ color: COLORS.ORDER_STATUS.SHIPPED }}
+                        />
+                        <Statistic
+                            title="Tổng tiền chuyển khoản"
+                            value={orders.filter(e => e.paymentMethod === ORDER_PAYMENT_METHOD.BANK_TRANSFER_IN_ADVANCE).reduce((prev, cur) => prev + cur.paymentAmount, 0)}
+                            suffix="đ"
+                            valueStyle={{ color: COLORS.ORDER_STATUS.SHIPPED }}
+                        />
+                        <Statistic
+                            title="Tổng tiền COD"
+                            value={orders.reduce((prev, cur) => prev + cur.codAmount, 0)}
+                            suffix="đ"
+                            valueStyle={{ color: COLORS.ORDER_STATUS.SHIPPED }}
+                        />
+                        <Statistic
+                            title="Tổng phí ship"
+                            value={orders.reduce((prev, cur) => prev + cur.shippingCost, 0)}
+                            suffix="đ"
+                            valueStyle={{ color: COLORS.ORDER_STATUS.RETURNED }}
+                        />
+                    </Stack>
+                </Card>
+                <br />
+                <Card title="Lãi">
+                    <Stack fullwidth direction={"column"} align={"flex-start"}>
+                        <Statistic
+                            title="Thu về thực tế"
+                            value={orders.filter(e => e.status === ORDER_STATUS.SHIPPED && e.isPayCOD == true)
+                                .reduce((prev, cur) => prev + (cur.paymentAmount - cur.shippingCost), 0)}
+                            suffix="đ"
+                            valueStyle={{ color: COLORS.ORDER_STATUS.SHIPPED }}
+                        />
+                        <Statistic
+                            title="Lãi phí ship"
+                            value={shippingFeeInterest()}
+                            suffix="đ"
+                            valueStyle={{ color: shippingFeeInterest() > 0 ? COLORS.ORDER_STATUS.SHIPPED : COLORS.ORDER_STATUS.RETURNED }}
+                        />
+                        <Statistic
+                            title="Lãi thực tế (60%/băng)"
+                            value={actualInterest()}
+                            suffix="đ"
+                            valueStyle={{ color: actualInterest() > 0 ? COLORS.ORDER_STATUS.SHIPPED : COLORS.ORDER_STATUS.RETURNED }}
+                        />
+                    </Stack>
+                </Card>
+            </React.Fragment>,
         },
         {
             key: '2',
@@ -79,13 +113,24 @@ export const DashboardScreen = () => {
             children: <Card>
                 <Stack fullwidth direction={"column"} align={"flex-start"}>
                     <Statistic
-                        title="Đã thu COD"
+                        title="Số đơn COD"
+                        value={orders.filter(e => e.codAmount !== 0).length.toLocaleString().concat("/").concat(orders.length.toLocaleString())}
+                        valueStyle={{ color: COLORS.ORDER_STATUS.SHIPPED }}
+                    />
+                    <Statistic
+                        title="Tổng tiền COD trên đơn"
+                        value={orders.reduce((prev, cur) => prev + cur.codAmount, 0)}
+                        suffix="đ"
+                        valueStyle={{ color: COLORS.ORDER_STATUS.SHIPPED }}
+                    />
+                    <Statistic
+                        title="COD đã trả"
                         value={orders.filter(e => e.isPayCOD === true).reduce((prev, cur) => prev + cur.codAmount, 0)}
                         suffix="đ"
                         valueStyle={{ color: COLORS.ORDER_STATUS.SHIPPED }}
                     />
                     <Statistic
-                        title="Chưa thu COD (đã giao thành công)"
+                        title="COD chưa trả (đã giao thành công)"
                         value={orders.filter(e => e.status === ORDER_STATUS.SHIPPED && e.isPayCOD === false).reduce((prev, cur) => prev + cur.codAmount, 0)}
                         suffix="đ"
                         valueStyle={{ color: COLORS.ORDER_STATUS.WAITING_FOR_RETURNED }}
@@ -94,38 +139,34 @@ export const DashboardScreen = () => {
                         title="Chưa giao thành công"
                         value={orders.filter(e => e.status !== ORDER_STATUS.SHIPPED).reduce((prev, cur) => prev + cur.codAmount, 0)}
                         suffix="đ"
-                        valueStyle={{ color: COLORS.ORDER_STATUS.PAY_COD }}
+                    />
+                    <Statistic
+                        title="Tổng phí ship"
+                        value={orders.reduce((prev, cur) => prev + cur.shippingCost, 0)}
+                        suffix="đ"
+                        valueStyle={{ color: COLORS.ORDER_STATUS.RETURNED }}
                     />
                 </Stack>
             </Card>,
         },
         {
             key: '3',
-            label: 'Bom',
+            label: 'Chuyển khoản',
             children: <Card>
-                <Stack fullwidth align="flex-start" direction="column">
+                <Stack fullwidth direction={"column"} align={"flex-start"}>
                     <Statistic
-                        title="Số đơn"
-                        value={orders.filter(e => e.status === ORDER_STATUS.RETURNED && e.returnReason === ORDER_RETURN_REASON.REFUSE_TO_RECEIVE).length}
-                        suffix=""
-                        valueStyle={{ color: COLORS.ORDER_STATUS.RETURNED }}
+                        title="Tổng tiền đã chuyển khoản"
+                        value={orders.filter(e => e.paymentMethod === ORDER_PAYMENT_METHOD.BANK_TRANSFER_IN_ADVANCE).reduce((prev, cur) => prev + cur.paymentAmount, 0)}
+                        suffix="đ"
+                        valueStyle={{ color: COLORS.ORDER_STATUS.SHIPPED }}
                     />
                     <Statistic
-                        title="Số băng"
-                        value={orders.filter(e => e.status === ORDER_STATUS.RETURNED && e.returnReason === ORDER_RETURN_REASON.REFUSE_TO_RECEIVE)
-                            .reduce((prev, cur) => prev + cur.placedItems.reduce((prev1, cur1) => prev1 + cur1.count, 0), 0)}
-                        suffix=""
-                        valueStyle={{ color: COLORS.ORDER_STATUS.RETURNED }}
+                        title="Số đơn chuyển khoản"
+                        value={orders.filter(e => e.paymentMethod === ORDER_PAYMENT_METHOD.BANK_TRANSFER_IN_ADVANCE).length.toLocaleString().concat("/").concat(orders.length.toLocaleString())}
+                        valueStyle={{ color: COLORS.ORDER_STATUS.SHIPPED }}
                     />
                 </Stack>
-                <Statistic
-                    title="Tiền ship"
-                    value={orders.filter(e => e.status === ORDER_STATUS.RETURNED && e.returnReason === ORDER_RETURN_REASON.REFUSE_TO_RECEIVE)
-                        .reduce((prev, cur) => prev + cur.shippingCost, 0)}
-                    suffix="đ"
-                    valueStyle={{ color: COLORS.ORDER_STATUS.RETURNED }}
-                />
-            </Card>,
+            </Card>
         },
         {
             key: '4',
@@ -225,7 +266,35 @@ export const DashboardScreen = () => {
                     />
                 </Card>
             </React.Fragment>
-        }
+        },
+        {
+            key: '6',
+            label: 'Bom',
+            children: <Card>
+                <Stack fullwidth align="flex-start" direction="column">
+                    <Statistic
+                        title="Số đơn"
+                        value={orders.filter(e => e.status === ORDER_STATUS.RETURNED && e.returnReason === ORDER_RETURN_REASON.REFUSE_TO_RECEIVE).length}
+                        suffix=""
+                        valueStyle={{ color: COLORS.ORDER_STATUS.RETURNED }}
+                    />
+                    <Statistic
+                        title="Số băng"
+                        value={orders.filter(e => e.status === ORDER_STATUS.RETURNED && e.returnReason === ORDER_RETURN_REASON.REFUSE_TO_RECEIVE)
+                            .reduce((prev, cur) => prev + cur.placedItems.reduce((prev1, cur1) => prev1 + cur1.count, 0), 0)}
+                        suffix=""
+                        valueStyle={{ color: COLORS.ORDER_STATUS.RETURNED }}
+                    />
+                </Stack>
+                <Statistic
+                    title="Tiền ship"
+                    value={orders.filter(e => e.status === ORDER_STATUS.RETURNED && e.returnReason === ORDER_RETURN_REASON.REFUSE_TO_RECEIVE)
+                        .reduce((prev, cur) => prev + cur.shippingCost, 0)}
+                    suffix="đ"
+                    valueStyle={{ color: COLORS.ORDER_STATUS.RETURNED }}
+                />
+            </Card>,
+        },
     ];
 
     return <React.Fragment>

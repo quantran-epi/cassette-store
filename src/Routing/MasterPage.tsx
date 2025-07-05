@@ -58,6 +58,8 @@ export const MasterPage = () => {
                     return <UserOutlined style={{ fontSize: "1.5em" }} />;
                 case "Đơn hàng":
                     return <TruckOutlined style={{ fontSize: "1.5em" }} />;
+                    case "Thống kê":
+                    return <BarChartOutlined style={{ fontSize: "1.5em" }} />;
                 default:
                     return null;
             }
