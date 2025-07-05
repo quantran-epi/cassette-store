@@ -102,7 +102,7 @@ export const OrderListScreen = () => {
             onChange={_onChangeSearchStatuses}>
             <Row>
                 <Col span={13}>
-                    <Badge count={doneOrders.length}>
+                    <Badge count={doneOrders.length} size="small" offset={[-1,7]}>
                         <Checkbox value={ORDER_STATUS.PLACED}>{ORDER_STATUS.PLACED} <Typography.Text style={{ fontSize: "0.6em" }}>({orders.filter(e => e.status === ORDER_STATUS.PLACED).length})</Typography.Text></Checkbox>
                     </Badge>
                 </Col>

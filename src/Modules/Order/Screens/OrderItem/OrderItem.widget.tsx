@@ -16,35 +16,35 @@ import {
     HighlightOutlined,
     PaperClipOutlined, DropboxOutlined, RollbackOutlined, DoubleRightOutlined, CalendarOutlined
 } from "@ant-design/icons";
-import {COLORS, ORDER_PAYMENT_METHOD, ORDER_PRIORITY_STATUS, ORDER_STATUS} from "@common/Constants/AppConstants";
-import {Button} from "@components/Button";
-import {Dropdown} from "@components/Dropdown";
-import {Space} from "@components/Layout/Space";
-import {Stack} from "@components/Layout/Stack";
-import {List} from "@components/List";
-import {useMessage} from "@components/Message";
-import {useModal} from "@components/Modal/ModalProvider";
-import {Tag} from "@components/Tag";
-import {Tooltip} from "@components/Tootip";
-import {Typography} from "@components/Typography";
-import {Order} from "@store/Models/Order";
-import {editOrder, removeOrder} from "@store/Reducers/OrderReducer";
-import {RootState} from "@store/Store";
-import React, {FunctionComponent, useMemo} from "react";
-import {CopyToClipboard} from 'react-copy-to-clipboard';
-import {useDispatch, useSelector} from "react-redux";
-import {useToggle, useOrder} from "@hooks";
-import {Modal} from "@components/Modal";
-import {Input} from "@components/Form/Input";
-import {OrderChangeShippingCodeWidget} from "./OrderChangeShippingCode.widget";
-import {OrderCreateDeliveryAssistantWidget} from "@modules/Order/Screens/OrderItem/OrderCreateDeliveryAssistant.widget";
-import {OrderRefundWidget} from "@modules/Order/Screens/OrderItem/OrderRefund.widget";
-import {OrderPlacedItemsWidget} from "@modules/Order/Screens/OrderItem/OrderPlacedItems.widget";
-import {OrderShippinInfoWidget} from "@modules/Order/Screens/OrderItem/OrderShippingInfo.widget";
-import {OrderAttachmentsWidget} from "@modules/Order/Screens/OrderItem/OrderAttachments.widget";
-import {OrderPriorityWidget} from "./OrderPriority.widget";
+import { COLORS, ORDER_PAYMENT_METHOD, ORDER_PRIORITY_STATUS, ORDER_STATUS } from "@common/Constants/AppConstants";
+import { Button } from "@components/Button";
+import { Dropdown } from "@components/Dropdown";
+import { Space } from "@components/Layout/Space";
+import { Stack } from "@components/Layout/Stack";
+import { List } from "@components/List";
+import { useMessage } from "@components/Message";
+import { useModal } from "@components/Modal/ModalProvider";
+import { Tag } from "@components/Tag";
+import { Tooltip } from "@components/Tootip";
+import { Typography } from "@components/Typography";
+import { Order } from "@store/Models/Order";
+import { editOrder, removeOrder } from "@store/Reducers/OrderReducer";
+import { RootState } from "@store/Store";
+import React, { FunctionComponent, useMemo } from "react";
+import { CopyToClipboard } from 'react-copy-to-clipboard';
+import { useDispatch, useSelector } from "react-redux";
+import { useToggle, useOrder } from "@hooks";
+import { Modal } from "@components/Modal";
+import { Input } from "@components/Form/Input";
+import { OrderChangeShippingCodeWidget } from "./OrderChangeShippingCode.widget";
+import { OrderCreateDeliveryAssistantWidget } from "@modules/Order/Screens/OrderItem/OrderCreateDeliveryAssistant.widget";
+import { OrderRefundWidget } from "@modules/Order/Screens/OrderItem/OrderRefund.widget";
+import { OrderPlacedItemsWidget } from "@modules/Order/Screens/OrderItem/OrderPlacedItems.widget";
+import { OrderShippinInfoWidget } from "@modules/Order/Screens/OrderItem/OrderShippingInfo.widget";
+import { OrderAttachmentsWidget } from "@modules/Order/Screens/OrderItem/OrderAttachments.widget";
+import { OrderPriorityWidget } from "./OrderPriority.widget";
 import moment from "moment";
-import {Badge} from "antd";
+import { Badge } from "antd";
 
 type OrderItemProps = {
     item: Order;
@@ -104,7 +104,7 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
         switch (props.item.paymentMethod) {
             case ORDER_PAYMENT_METHOD.CASH_COD:
                 return <CopyToClipboard text={props.item.codAmount}
-                                        onCopy={() => message.success("Đã sao chép số tiền COD")}>
+                    onCopy={() => message.success("Đã sao chép số tiền COD")}>
                     <Tag color={COLORS.PAYMENT_METHOD.COD}>COD {props.item.codAmount.toLocaleString()}đ</Tag>
                 </CopyToClipboard>;
             case ORDER_PAYMENT_METHOD.BANK_TRANSFER_IN_ADVANCE:
@@ -236,104 +236,104 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                             {
                                 label: 'Đã giao hàng',
                                 key: 'mark-as-done',
-                                icon: <CheckCircleOutlined/>,
+                                icon: <CheckCircleOutlined />,
                                 disabled: !orderUtils.canMarkAsShipped(props.item.id)
                             },
                             {
                                 label: 'Đã trả COD',
                                 key: 'mark-as-payed-cod',
-                                icon: <DollarOutlined/>,
+                                icon: <DollarOutlined />,
                                 disabled: !orderUtils.canMarkAsPayCOD(props.item.id)
                             },
                             {
                                 label: 'Bom hàng',
                                 key: 'refuse-to-receive',
-                                icon: <CloseOutlined/>,
+                                icon: <CloseOutlined />,
                                 danger: true,
                                 disabled: orderUtils.isRefuseToReceive(props.item.id)
                             },
                             {
                                 label: 'Hàng lỗi, hoàn về',
                                 key: 'broken-items',
-                                icon: <ToolOutlined/>,
+                                icon: <ToolOutlined />,
                                 danger: true,
                                 disabled: orderUtils.isBrokenItems(props.item.id)
                             },
                             {
                                 label: 'Chờ chuyển hoàn',
                                 key: 'waiting-return-order',
-                                icon: <ClockCircleOutlined/>,
+                                icon: <ClockCircleOutlined />,
                                 disabled: !orderUtils.canMarkAsWaitingForReturn(props.item.id)
                             },
                             {
                                 label: 'Đã chuyển hoàn',
                                 key: 'returned-order',
-                                icon: <DoubleLeftOutlined/>,
+                                icon: <DoubleLeftOutlined />,
                                 disabled: !orderUtils.canMarkAsReturned(props.item.id)
                             }
                         ],
                         onClick: _onDeliveryActionClick
                     }} placement="bottom">
-                        <Button size="small" icon={<TruckOutlined/>}/>
+                        <Button size="small" icon={<TruckOutlined />} />
                     </Dropdown>,
                     <Dropdown menu={{
                         items: [
                             {
                                 label: 'Mã vận đơn',
                                 key: 'input-shipping-code',
-                                icon: <BarcodeOutlined/>,
+                                icon: <BarcodeOutlined />,
                                 disabled: !orderUtils.isPushedTrello(props.item.id)
                             },
                             {
                                 label: 'Hỗ trợ nhập đơn',
                                 key: 'create-delivery-bill-helpers',
-                                icon: <HighlightOutlined/>,
+                                icon: <HighlightOutlined />,
                             },
                             {
                                 label: 'Danh sách hàng hoá',
                                 key: 'place-items',
-                                icon: <DropboxOutlined/>,
+                                icon: <DropboxOutlined />,
                             },
                             {
                                 label: 'Độ ưu tiên',
                                 key: 'priority',
-                                icon: <DoubleRightOutlined/>,
+                                icon: <DoubleRightOutlined />,
                             },
                             {
                                 label: 'Ảnh đính kèm',
                                 key: 'file-attachment',
-                                icon: <PaperClipOutlined/>,
+                                icon: <PaperClipOutlined />,
                             },
                             {
                                 label: 'Vận chuyển',
                                 key: 'order-bill',
-                                icon: <TruckOutlined/>,
+                                icon: <TruckOutlined />,
                             },
                             {
                                 label: 'Hoàn tiền khách',
                                 key: 'refund',
-                                icon: <RollbackOutlined/>,
+                                icon: <RollbackOutlined />,
                             },
                             {
                                 label: 'Xoá đơn hàng',
                                 key: 'delete',
-                                icon: <DeleteOutlined/>,
+                                icon: <DeleteOutlined />,
                                 danger: true
                             },
                         ],
                         onClick: _onMoreActionClick
                     }} placement="bottom">
-                        <Button size="small" icon={<MoreOutlined/>}/>
+                        <Button size="small" icon={<MoreOutlined />} />
                     </Dropdown>
                 ]
             }>
             <List.Item.Meta
                 title={<Stack>
-                    {doneOrders?.includes(props.item.trelloCardId) ? <Badge count={"Tạo đơn"}>
+                    {doneOrders?.includes(props.item.trelloCardId) ? <Badge count={"Tạo đơn"} size="small" offset={[0, 3]}>
                         <Tooltip title={props.item.name}>
                             <Button onClick={() => null}
-                                    type="text"
-                                    style={{paddingLeft: 0, fontWeight: "bold"}}>
+                                type="text"
+                                style={{ paddingLeft: 0, fontWeight: "bold" }}>
                                 <Space>
                                     <Typography.Text>{props.item.name}</Typography.Text>
                                     {_renderOrderIcon()}
@@ -342,8 +342,8 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                         </Tooltip>
                     </Badge> : <Tooltip title={props.item.name}>
                         <Button onClick={() => null}
-                                type="text"
-                                style={{paddingLeft: 0, fontWeight: "bold"}}>
+                            type="text"
+                            style={{ paddingLeft: 0, fontWeight: "bold" }}>
                             <Space>
                                 <Typography.Text>{props.item.name}</Typography.Text>
                                 {_renderOrderIcon()}
@@ -360,20 +360,20 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                     </Space>
                     <Stack gap={2} direction="column" align={"flex-start"}>
                         <Space>
-                            <DollarOutlined/>
+                            <DollarOutlined />
                             <Space>
                                 <Typography.Text>Thu {props.item.paymentAmount.toLocaleString()}đ</Typography.Text>
                                 {_renderCODAmount()}
                             </Space>
                         </Space>
                         {props.item.isFreeShip && <Space>
-                            <TruckOutlined/>
-                            <Typography.Text style={{color: COLORS.FREE_SHIP}}>Miễn phí vận chuyển</Typography.Text>
+                            <TruckOutlined />
+                            <Typography.Text style={{ color: COLORS.FREE_SHIP }}>Miễn phí vận chuyển</Typography.Text>
                         </Space>}
                         {Boolean(props.item.shippingCode) && <CopyToClipboard text={props.item.shippingCode}
-                                                                              onCopy={() => message.success("Đã sao chép mã vận đơnn")}>
+                            onCopy={() => message.success("Đã sao chép mã vận đơnn")}>
                             <Space>
-                                <BarcodeOutlined/>
+                                <BarcodeOutlined />
                                 <Typography.Paragraph ellipsis style={{
                                     width: 300,
                                     marginBottom: 0,
@@ -383,9 +383,9 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                         </CopyToClipboard>}
                         {orderCustomer && <React.Fragment>
                             <CopyToClipboard text={orderCustomer.mobile}
-                                             onCopy={() => message.success("Đã sao chép số điện thoại")}>
+                                onCopy={() => message.success("Đã sao chép số điện thoại")}>
                                 <Space>
-                                    <PhoneOutlined/>
+                                    <PhoneOutlined />
                                     <Typography.Paragraph ellipsis style={{
                                         width: 300,
                                         marginBottom: 0
@@ -393,10 +393,10 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                                 </Space>
                             </CopyToClipboard>
                             <CopyToClipboard text={orderCustomer.address}
-                                             onCopy={() => message.success("Đã sao chép địa chỉ")}>
+                                onCopy={() => message.success("Đã sao chép địa chỉ")}>
                                 <Tooltip title={orderCustomer.address}>
                                     <Space>
-                                        <EnvironmentOutlined/>
+                                        <EnvironmentOutlined />
                                         <Typography.Paragraph ellipsis style={{
                                             width: 300,
                                             marginBottom: 0
@@ -406,11 +406,11 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                             </CopyToClipboard>
                         </React.Fragment>}
                         <Space>
-                            <CalendarOutlined/>
+                            <CalendarOutlined />
                             <Typography.Text>{moment(new Date(props.item.createdDate)).format("DD-MM-yyyy")}</Typography.Text>
                         </Space>
                     </Stack>
-                </Stack>}/>
+                </Stack>} />
         </List.Item>
 
         <OrderChangeShippingCodeWidget
@@ -418,30 +418,30 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
             open={toggleInputShippingCodeEditor.value}
             onClose={toggleInputShippingCodeEditor.hide}
             value={props.item.shippingCode}
-            onSave={_onChangeShippingCode}/>
+            onSave={_onChangeShippingCode} />
 
         <OrderCreateDeliveryAssistantWidget open={toggleOrderCreateDeliveryAssistant.value}
-                                            onClose={toggleOrderCreateDeliveryAssistant.hide}
-                                            order={props.item} customer={orderCustomer}/>
+            onClose={toggleOrderCreateDeliveryAssistant.hide}
+            order={props.item} customer={orderCustomer} />
         <OrderRefundWidget open={toggleOrderRefund.value}
-                           onClose={toggleOrderRefund.hide}
-                           order={props.item}/>
+            onClose={toggleOrderRefund.hide}
+            order={props.item} />
 
         <OrderPlacedItemsWidget open={toggleOrderPlacedItems.value}
-                                onClose={toggleOrderPlacedItems.hide}
-                                order={props.item}/>
+            onClose={toggleOrderPlacedItems.hide}
+            order={props.item} />
 
         <OrderShippinInfoWidget open={toggleOrderShippingInfo.value}
-                                onClose={toggleOrderShippingInfo.hide}
-                                order={props.item}/>
+            onClose={toggleOrderShippingInfo.hide}
+            order={props.item} />
 
         <OrderAttachmentsWidget open={toggleOrderAttachment.value}
-                                onClose={toggleOrderAttachment.hide}
-                                order={props.item}/>
+            onClose={toggleOrderAttachment.hide}
+            order={props.item} />
 
         <OrderPriorityWidget open={toggleOrderPriority.value}
-                             onClose={toggleOrderPriority.hide}
-                             order={props.item}/>
+            onClose={toggleOrderPriority.hide}
+            order={props.item} />
 
     </React.Fragment>
 }
