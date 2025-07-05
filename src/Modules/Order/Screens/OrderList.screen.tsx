@@ -124,11 +124,11 @@ export const OrderListScreen = () => {
                     <Tag color={COLORS.ORDER_STATUS.CREATE_DELIVERY}>Thu về: {cashAmount.toLocaleString()}đ</Tag>
                 </Tooltip>
             </Stack>
-            <Stack gap={3}>
-                {Object.keys(ORDER_ITEM_TYPE).filter(key => orders
+            <Stack gap={3} wrap="wrap">
+                {Object.keys(ORDER_ITEM_TYPE).filter(key => filteredOrders
                     .reduce((prev, cur) => prev + cur.placedItems.filter(c => c.type === key).reduce((prev1, cur1) => prev1 + cur1.count, 0), 0) > 0)
                     .map(key => <Tooltip title={"Số băng " + key}>
-                        <Tag>{key}:{orders
+                        <Tag>{key}:{filteredOrders
                             .reduce((prev, cur) => prev + cur.placedItems.filter(c => c.type === key).reduce((prev1, cur1) => prev1 + cur1.count, 0), 0)}</Tag>
                     </Tooltip>)}
             </Stack>
