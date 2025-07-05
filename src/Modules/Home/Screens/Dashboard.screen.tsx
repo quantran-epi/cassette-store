@@ -124,20 +124,26 @@ export const DashboardScreen = () => {
                         valueStyle={{ color: COLORS.ORDER_STATUS.SHIPPED }}
                     />
                     <Statistic
+                        title="Tổng tiền COD nhận về (trừ ship)"
+                        value={orders.reduce((prev, cur) => prev + (cur.codAmount - cur.shippingCost), 0)}
+                        suffix="đ"
+                        valueStyle={{ color: COLORS.ORDER_STATUS.SHIPPED }}
+                    />
+                    <Statistic
                         title="COD đã trả"
-                        value={orders.filter(e => e.isPayCOD === true).reduce((prev, cur) => prev + cur.codAmount, 0)}
+                        value={orders.filter(e => e.isPayCOD === true).reduce((prev, cur) => prev + (cur.codAmount - cur.shippingCost), 0)}
                         suffix="đ"
                         valueStyle={{ color: COLORS.ORDER_STATUS.SHIPPED }}
                     />
                     <Statistic
                         title="COD chưa trả (đã giao thành công)"
-                        value={orders.filter(e => e.status === ORDER_STATUS.SHIPPED && e.isPayCOD === false).reduce((prev, cur) => prev + cur.codAmount, 0)}
+                        value={orders.filter(e => e.status === ORDER_STATUS.SHIPPED && e.isPayCOD === false).reduce((prev, cur) => prev + (cur.codAmount - cur.shippingCost), 0)}
                         suffix="đ"
                         valueStyle={{ color: COLORS.ORDER_STATUS.WAITING_FOR_RETURNED }}
                     />
                     <Statistic
-                        title="Chưa giao thành công"
-                        value={orders.filter(e => e.status !== ORDER_STATUS.SHIPPED).reduce((prev, cur) => prev + cur.codAmount, 0)}
+                        title="COD chưa giao thành công"
+                        value={orders.filter(e => e.status !== ORDER_STATUS.SHIPPED).reduce((prev, cur) => prev + (cur.codAmount - cur.shippingCost), 0)}
                         suffix="đ"
                     />
                     <Statistic
