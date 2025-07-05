@@ -285,14 +285,14 @@ export const DashboardScreen = () => {
                         suffix=""
                         valueStyle={{ color: COLORS.ORDER_STATUS.RETURNED }}
                     />
-                </Stack>
-                <Statistic
+                    <Statistic
                     title="Tiền ship"
                     value={orders.filter(e => e.status === ORDER_STATUS.RETURNED && e.returnReason === ORDER_RETURN_REASON.REFUSE_TO_RECEIVE)
                         .reduce((prev, cur) => prev + cur.shippingCost, 0)}
                     suffix="đ"
                     valueStyle={{ color: COLORS.ORDER_STATUS.RETURNED }}
                 />
+                </Stack>
             </Card>,
         },
     ];
