@@ -23,7 +23,7 @@ import { OrderItemWidget } from "./OrderItem/OrderItem.widget";
 import { Typography } from "@components/Typography";
 import { Order } from "@store/Models/Order";
 import { Radio } from "@components/Form/Radio";
-import { COLORS, ORDER_STATUS } from "@common/Constants/AppConstants";
+import { COLORS, ORDER_ITEM_TYPE, ORDER_STATUS } from "@common/Constants/AppConstants";
 import { RadioChangeEvent } from "antd";
 import { Checkbox } from "@components/Form/Checkbox";
 import { Checkbox as AntCheckbox } from "antd";
@@ -31,7 +31,7 @@ import { Col, Row } from "@components/Grid";
 import { Divider } from "@components/Layout/Divider";
 import { Tag } from "@components/Tag";
 import { Box } from "@components/Layout/Box";
-import {Tooltip} from "@components/Tootip";
+import { Tooltip } from "@components/Tootip";
 
 export const OrderListScreen = () => {
     const orders = useSelector((state: RootState) => state.order.orders);
@@ -54,7 +54,7 @@ export const OrderListScreen = () => {
     }, [filteredOrders])
 
     const cashAmount = useMemo(() => {
-        return filteredOrders.reduce((prev, cur) => prev + cur.placedItems.reduce((prev1, cur1) => prev1 + cur1.count * cur1.unitPrice, 0), 0);
+        return filteredOrders.reduce((prev, cur) => prev + cur.paymentAmount - cur.shippingCost, 0);
     }, [filteredOrders])
 
     const _onAddOrder = () => {
@@ -117,11 +117,21 @@ export const OrderListScreen = () => {
             </Row>
         </AntCheckbox.Group>
         <Divider orientation="left" style={{ marginBottom: 0 }}>Danh sách đơn hàng ({filteredOrders.length} đơn)</Divider>
-        <Stack style={{marginTop: 5}} gap={5}>
-            <Tag color={COLORS.ORDER_STATUS.SHIPPED}>Số băng: {cassetteAmount}</Tag>
-            <Tooltip title={"Số tiền hàng"}>
-                <Tag color={COLORS.ORDER_STATUS.CREATE_DELIVERY}>Số tiền: {cashAmount.toLocaleString()}đ</Tag>
-            </Tooltip>
+        <Stack style={{ marginTop: 5 }} gap={7} direction="column" align="flex-start">
+            <Stack gap={3}>
+                <Tag color={COLORS.ORDER_STATUS.SHIPPED}>Số băng: {cassetteAmount}</Tag>
+                <Tooltip title={"Dự kiến số tiền thu về"}>
+                    <Tag color={COLORS.ORDER_STATUS.CREATE_DELIVERY}>Thu về: {cashAmount.toLocaleString()}đ</Tag>
+                </Tooltip>
+            </Stack>
+            <Stack gap={3}>
+                {Object.keys(ORDER_ITEM_TYPE).filter(key => orders
+                    .reduce((prev, cur) => prev + cur.placedItems.filter(c => c.type === key).reduce((prev1, cur1) => prev1 + cur1.count, 0), 0) > 0)
+                    .map(key => <Tooltip title={"Số băng " + key}>
+                        <Tag>{key}:{orders
+                            .reduce((prev, cur) => prev + cur.placedItems.filter(c => c.type === key).reduce((prev1, cur1) => prev1 + cur1.count, 0), 0)}</Tag>
+                    </Tooltip>)}
+            </Stack>
         </Stack>
         <List
             pagination={filteredOrders.length > 0 ? {
