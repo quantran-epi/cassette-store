@@ -40,11 +40,11 @@ export const DashboardScreen = () => {
             .catch(e => message.error("Lỗi cập nhật các đơn đóng hàng"));
     }, [])
 
-    const shippingFeeInterest = () => orders.filter(e => e.status === ORDER_STATUS.SHIPPED && e.isPayCOD == true)
+    const shippingFeeInterest = () => orders.filter(e => (e.status === ORDER_STATUS.SHIPPED && e.isPayCOD == true) || e.paymentMethod === ORDER_PAYMENT_METHOD.BANK_TRANSFER_IN_ADVANCE)
         .reduce((prev, cur) => prev + (cur.paymentAmount - cur.placedItems.reduce((prev1, cur1) => prev1 + (cur1.count * cur1.unitPrice), 0)), 0)
         - orders.reduce((prev, cur) => prev + cur.shippingCost, 0);
 
-    const actualInterest = () => orders.filter(e => e.status === ORDER_STATUS.SHIPPED && e.isPayCOD == true)
+    const actualInterest = () => orders.filter(e => (e.status === ORDER_STATUS.SHIPPED && e.isPayCOD == true) || e.paymentMethod === ORDER_PAYMENT_METHOD.BANK_TRANSFER_IN_ADVANCE)
         .reduce((prev, cur) => prev + cur.placedItems.reduce((prev1, cur1) => prev1 + (cur1.count * (cur1.unitPrice * 0.6)), 0), 0)
         + shippingFeeInterest();
 
@@ -86,7 +86,7 @@ export const DashboardScreen = () => {
                     <Stack fullwidth direction={"column"} align={"flex-start"}>
                         <Statistic
                             title="Thu về thực tế"
-                            value={orders.filter(e => e.status === ORDER_STATUS.SHIPPED && e.isPayCOD == true)
+                            value={orders.filter(e => (e.status === ORDER_STATUS.SHIPPED && e.isPayCOD == true) || e.paymentMethod === ORDER_PAYMENT_METHOD.BANK_TRANSFER_IN_ADVANCE)
                                 .reduce((prev, cur) => prev + (cur.paymentAmount - cur.shippingCost), 0)}
                             suffix="đ"
                             valueStyle={{ color: COLORS.ORDER_STATUS.SHIPPED }}
@@ -137,13 +137,13 @@ export const DashboardScreen = () => {
                     />
                     <Statistic
                         title="COD chưa trả (đã giao thành công)"
-                        value={orders.filter(e => e.status === ORDER_STATUS.SHIPPED && e.isPayCOD === false).reduce((prev, cur) => prev + (cur.codAmount - cur.shippingCost), 0)}
+                        value={orders.filter(e => e.paymentMethod === ORDER_PAYMENT_METHOD.CASH_COD && e.status === ORDER_STATUS.SHIPPED && e.isPayCOD === false).reduce((prev, cur) => prev + (cur.codAmount - cur.shippingCost), 0)}
                         suffix="đ"
                         valueStyle={{ color: COLORS.ORDER_STATUS.WAITING_FOR_RETURNED }}
                     />
                     <Statistic
                         title="COD chưa giao thành công"
-                        value={orders.filter(e => e.status !== ORDER_STATUS.SHIPPED).reduce((prev, cur) => prev + (cur.codAmount - cur.shippingCost), 0)}
+                        value={orders.filter(e => e.paymentMethod === ORDER_PAYMENT_METHOD.CASH_COD && e.status !== ORDER_STATUS.SHIPPED).reduce((prev, cur) => prev + (cur.codAmount - cur.shippingCost), 0)}
                         suffix="đ"
                     />
                     <Statistic

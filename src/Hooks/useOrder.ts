@@ -67,7 +67,6 @@ type UseOrder = {
     getTotalAmountBomAll: () => number;
     getTotalOrderBomAll: () => number;
 
-
     refreshDoneOrders: () => Promise<string>;
 }
 
