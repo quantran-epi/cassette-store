@@ -246,7 +246,7 @@ export const DashboardScreen = () => {
                             <Stack fullwidth style={{ marginBottom: 3 }} justify="space-between" gap={5}>
                                 <Space size={3}>
                                     <Typography.Paragraph ellipsis style={{
-                                        width: 200,
+                                        width: 220,
                                         marginBottom: 0
                                     }}>{index + 1}. {item.name.concat("-").concat(item.province)}</Typography.Paragraph>
                                     {item.isVIP && <Tag color={COLORS.CUSTOMER.VIP}>VIP</Tag>}
@@ -267,7 +267,7 @@ export const DashboardScreen = () => {
                             <Stack fullwidth style={{ marginBottom: 3 }} justify="space-between" gap={5}>
                                 <Space size={3}>
                                     <Typography.Paragraph ellipsis style={{
-                                        width: 250,
+                                        width: 280,
                                         marginBottom: 0
                                     }}>{index + 1}. {item.name.concat("-").concat(item.province)}</Typography.Paragraph>
                                     {item.isVIP && <Tag color={COLORS.CUSTOMER.VIP}>VIP</Tag>}
