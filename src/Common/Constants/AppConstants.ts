@@ -57,6 +57,7 @@ export const ORDER_ITEM_TYPE  = {
 export const COLORS = {
     CUSTOMER: {
         VIP: "#FFD700",
+        BUY_MUTIPLE_TIMES: "#f79a72",
         BLACK_LIST: "#990505",
         CONFIRMED: "#1877F2"
     },

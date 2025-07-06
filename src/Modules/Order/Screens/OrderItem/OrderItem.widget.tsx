@@ -14,7 +14,7 @@ import {
     TruckOutlined,
     ToolOutlined,
     HighlightOutlined,
-    PaperClipOutlined, DropboxOutlined, RollbackOutlined, DoubleRightOutlined, CalendarOutlined
+    PaperClipOutlined, DropboxOutlined, RollbackOutlined, DoubleRightOutlined, CalendarOutlined, CheckCircleTwoTone
 } from "@ant-design/icons";
 import { COLORS, ORDER_PAYMENT_METHOD, ORDER_PRIORITY_STATUS, ORDER_STATUS } from "@common/Constants/AppConstants";
 import { Button } from "@components/Button";
@@ -72,6 +72,9 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
 
     const _renderOrderIcon = () => {
         if (orderCustomer.isVIP) return <Tag color={COLORS.CUSTOMER.VIP}>VIP</Tag>;
+        else if (orderCustomer.buyCount > 0) return <Tooltip title={"Khách đã mua " + orderCustomer.buyCount + " đơn"}>
+            <CheckCircleTwoTone twoToneColor={COLORS.CUSTOMER.CONFIRMED} />
+        </Tooltip>;
         return undefined;
     }
 
@@ -80,7 +83,7 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
             case ORDER_STATUS.PLACED:
                 return <Tag>{props.item.status}</Tag>;
             case ORDER_STATUS.SHIPPED:
-                return <Tag color={COLORS.ORDER_STATUS.SHIPPED}>{props.item.status}</Tag>;
+                return <Tag color={COLORS.ORDER_STATUS.SHIPPED}>{"Giao thành công"}</Tag>;
             case ORDER_STATUS.RETURNED:
                 return <Tag color={COLORS.ORDER_STATUS.RETURNED}>{props.item.status}</Tag>;
             case ORDER_STATUS.CREATE_DELIVERY:
@@ -108,7 +111,7 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                     <Tag color={COLORS.PAYMENT_METHOD.COD}>COD {props.item.codAmount.toLocaleString()}đ</Tag>
                 </CopyToClipboard>;
             case ORDER_PAYMENT_METHOD.BANK_TRANSFER_IN_ADVANCE:
-                return <Tag color={COLORS.PAYMENT_METHOD.BANK_TRANSFER_IN_ADVANCE}>Bank</Tag>;
+                return <Tag color={COLORS.PAYMENT_METHOD.BANK_TRANSFER_IN_ADVANCE}>Chuyển khoản</Tag>;
             default:
                 return undefined;
         }
@@ -328,28 +331,23 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                 ]
             }>
             <List.Item.Meta
-                title={<Stack>
+                title={<Stack gap={5}>
                     {doneOrders?.includes(props.item.trelloCardId) ? <Badge count={"Tạo đơn"} size="small" offset={[0, 3]}>
                         <Tooltip title={props.item.name}>
                             <Button onClick={() => null}
                                 type="text"
-                                style={{ paddingLeft: 0, fontWeight: "bold" }}>
-                                <Space>
-                                    <Typography.Text>{props.item.name}</Typography.Text>
-                                    {_renderOrderIcon()}
-                                </Space>
+                                style={{ paddingInline: 0, fontWeight: "bold" }}>
+                                <Typography.Text>{props.item.name}</Typography.Text>
                             </Button>
                         </Tooltip>
                     </Badge> : <Tooltip title={props.item.name}>
                         <Button onClick={() => null}
                             type="text"
-                            style={{ paddingLeft: 0, fontWeight: "bold" }}>
-                            <Space>
-                                <Typography.Text>{props.item.name}</Typography.Text>
-                                {_renderOrderIcon()}
-                            </Space>
+                            style={{ paddingInline: 0, fontWeight: "bold" }}>
+                            <Typography.Text>{props.item.name}</Typography.Text>
                         </Button>
                     </Tooltip>}
+                    {_renderOrderIcon()}
                 </Stack>}
                 description={<Stack direction={"column"} align={"flex-start"} gap={4}>
                     <Space size={0}>
