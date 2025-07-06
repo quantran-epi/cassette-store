@@ -245,10 +245,13 @@ export const DashboardScreen = () => {
                         renderItem={(item, index) => <List.Item style={{ padding: 0, paddingBottom: 5, paddingTop: 5 }}>
                             <Stack fullwidth style={{ marginBottom: 3 }} justify="space-between" gap={5}>
                                 <Space size={3}>
-                                    <Typography.Text>{index + 1}. {item.name}</Typography.Text>
+                                    <Typography.Paragraph ellipsis style={{
+                                        width: 200,
+                                        marginBottom: 0
+                                    }}>{index + 1}. {item.name.concat("-").concat(item.province)}</Typography.Paragraph>
                                     {item.isVIP && <Tag color={COLORS.CUSTOMER.VIP}>VIP</Tag>}
                                 </Space>
-                                <Tag>{item.buyAmount.toLocaleString()}đ</Tag>
+                                <Tag>{item.buyAmount.toLocaleString()} đ</Tag>
                             </Stack>
                         </List.Item>}
                     />
@@ -263,7 +266,10 @@ export const DashboardScreen = () => {
                         renderItem={(item, index) => <List.Item style={{ padding: 0, paddingBottom: 5, paddingTop: 5 }}>
                             <Stack fullwidth style={{ marginBottom: 3 }} justify="space-between" gap={5}>
                                 <Space size={3}>
-                                    <Typography.Text>{index + 1}. {item.name}</Typography.Text>
+                                    <Typography.Paragraph ellipsis style={{
+                                        width: 250,
+                                        marginBottom: 0
+                                    }}>{index + 1}. {item.name.concat("-").concat(item.province)}</Typography.Paragraph>
                                     {item.isVIP && <Tag color={COLORS.CUSTOMER.VIP}>VIP</Tag>}
                                 </Space>
                                 <Tag>{item.buyCount}</Tag>
@@ -292,12 +298,12 @@ export const DashboardScreen = () => {
                         valueStyle={{ color: COLORS.ORDER_STATUS.RETURNED }}
                     />
                     <Statistic
-                    title="Tiền ship"
-                    value={orders.filter(e => e.status === ORDER_STATUS.RETURNED && e.returnReason === ORDER_RETURN_REASON.REFUSE_TO_RECEIVE)
-                        .reduce((prev, cur) => prev + cur.shippingCost, 0)}
-                    suffix="đ"
-                    valueStyle={{ color: COLORS.ORDER_STATUS.RETURNED }}
-                />
+                        title="Tiền ship"
+                        value={orders.filter(e => e.status === ORDER_STATUS.RETURNED && e.returnReason === ORDER_RETURN_REASON.REFUSE_TO_RECEIVE)
+                            .reduce((prev, cur) => prev + cur.shippingCost, 0)}
+                        suffix="đ"
+                        valueStyle={{ color: COLORS.ORDER_STATUS.RETURNED }}
+                    />
                 </Stack>
             </Card>,
         },
