@@ -110,26 +110,26 @@ export const OrderListScreen = () => {
             style={{ marginTop: 7 }}
             onChange={_onChangeSearchStatuses}>
             <Row>
-                <Col span={13}>
+                <Col span={14}>
                     <Badge count={doneOrders.length} size="small" offset={[-1, 7]}>
                         <Checkbox value={ORDER_STATUS.PLACED}>{ORDER_STATUS.PLACED} <Typography.Text style={{ fontSize: "0.6em" }}>({orders.filter(e => e.status === ORDER_STATUS.PLACED).length})</Typography.Text></Checkbox>
                     </Badge>
                 </Col>
-                <Col span={11}>
+                <Col span={10}>
                     <Checkbox value={ORDER_STATUS.CREATE_DELIVERY}>{ORDER_STATUS.CREATE_DELIVERY} <Typography.Text style={{ fontSize: "0.6em" }}>({orders.filter(e => e.status === ORDER_STATUS.CREATE_DELIVERY).length})</Typography.Text></Checkbox>
                 </Col>
-                <Col span={13}>
+                <Col span={14}>
                     <Checkbox value={ORDER_STATUS.SHIPPED}>{ORDER_STATUS.SHIPPED} <Typography.Text style={{ fontSize: "0.6em" }}>({orders.filter(e => e.status === ORDER_STATUS.SHIPPED).length})</Typography.Text></Checkbox>
                 </Col>
-                <Col span={11}>
+                <Col span={10}>
                     <Checkbox value={ORDER_STATUS.RETURNED}>{ORDER_STATUS.RETURNED} <Typography.Text style={{ fontSize: "0.6em" }}>({orders.filter(e => e.status === ORDER_STATUS.RETURNED).length})</Typography.Text></Checkbox>
                 </Col>
-                <Col span={13}>
+                <Col span={14}>
                     <Checkbox value={ORDER_STATUS.WAITING_FOR_RETURNED}>{ORDER_STATUS.WAITING_FOR_RETURNED} <Typography.Text style={{ fontSize: "0.6em" }}>({orders.filter(e => e.status === ORDER_STATUS.WAITING_FOR_RETURNED).length})</Typography.Text></Checkbox>
                 </Col>
             </Row>
         </AntCheckbox.Group>
-        <Divider orientation="left" style={{ marginBottom: 0, marginTop: 7 }}>COD</Divider>
+        <Divider orientation="left" style={{ marginBottom: 0, marginTop: 5 }}>COD</Divider>
         <AntRadio.Group
             style={{ marginTop: 7 }}
             defaultValue={"0"}
