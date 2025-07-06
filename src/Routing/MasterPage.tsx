@@ -101,7 +101,7 @@ const SidebarDrawer = () => {
     const dispatch = useDispatch();
     const message = useMessage();
     const toggleLoading = useToggle();
-    const [linkBackup, setLinkBackup] = useState("");
+    const [linkBackup, setLinkBackup] = useState("https://raw.githubusercontent.com/quantran-epi/cassette-store/refs/heads/main/docs/data");
 
     const showDrawer = () => {
         setOpen(true);

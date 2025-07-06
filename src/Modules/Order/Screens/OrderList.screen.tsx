@@ -131,10 +131,10 @@ export const OrderListScreen = () => {
             defaultValue={"0"}
             onChange={_onChangeStatusPayCOD}>
             <Row>
-                <Col span={5}>
+                <Col span={6}>
                     <Radio value="0">Tất cả</Radio>
                 </Col>
-                <Col span={9}>
+                <Col span={8}>
                     <Radio value="1">Đã trả COD</Radio>
                 </Col>
                 <Col span={10}>
