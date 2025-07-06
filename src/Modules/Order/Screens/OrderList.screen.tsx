@@ -60,6 +60,10 @@ export const OrderListScreen = () => {
         return filteredOrders.reduce((prev, cur) => prev + cur.paymentAmount - cur.shippingCost, 0);
     }, [filteredOrders])
 
+    const codReceivedAmount = useMemo(() => {
+        return filteredOrders.reduce((prev, cur) => prev + cur.codAmount - cur.shippingCost, 0);
+    }, [filteredOrders])
+
     const _onAddOrder = () => {
         toggleAddOrderModal.show();
     }
@@ -148,6 +152,9 @@ export const OrderListScreen = () => {
                 <Tag color={COLORS.ORDER_STATUS.SHIPPED}>Số băng: {cassetteAmount}</Tag>
                 <Tooltip title={"Dự kiến số tiền thu về"}>
                     <Tag color={COLORS.ORDER_STATUS.SHIPPED}>Thu về: {cashAmount.toLocaleString()}đ</Tag>
+                </Tooltip>
+                <Tooltip title={"Dự kiến số tiền COD thu về"}>
+                    <Tag color={COLORS.ORDER_STATUS.SHIPPED}>COD thu về: {codReceivedAmount.toLocaleString()}đ</Tag>
                 </Tooltip>
             </Stack>
             <Stack gap={3} wrap="wrap">
