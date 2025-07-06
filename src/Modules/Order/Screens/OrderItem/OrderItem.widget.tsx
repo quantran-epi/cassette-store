@@ -277,7 +277,7 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                         ],
                         onClick: _onDeliveryActionClick
                     }} placement="bottom">
-                        <Button size="small" icon={<TruckOutlined />} />
+                        <Button icon={<TruckOutlined />} />
                     </Dropdown>,
                     <Dropdown menu={{
                         items: [
@@ -293,7 +293,7 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                                 icon: <HighlightOutlined />,
                             },
                             {
-                                label: 'Danh sách hàng hoá',
+                                label: 'Danh sách hàng',
                                 key: 'place-items',
                                 icon: <DropboxOutlined />,
                             },
@@ -326,7 +326,7 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                         ],
                         onClick: _onMoreActionClick
                     }} placement="bottom">
-                        <Button size="small" icon={<MoreOutlined />} />
+                        <Button icon={<MoreOutlined />} />
                     </Dropdown>
                 ]
             }>
