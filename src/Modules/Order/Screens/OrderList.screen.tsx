@@ -2,7 +2,7 @@ import {
     PlusOutlined,
     UserOutlined
 } from "@ant-design/icons";
-import { COLORS, ORDER_ITEM_TYPE, ORDER_STATUS } from "@common/Constants/AppConstants";
+import { COLORS, ORDER_ITEM_TYPE, ORDER_PAYMENT_METHOD, ORDER_STATUS } from "@common/Constants/AppConstants";
 import { Badge } from "@components/Badge";
 import { Button } from "@components/Button";
 import { Checkbox } from "@components/Form/Checkbox";
@@ -48,7 +48,7 @@ export const OrderListScreen = () => {
     const filteredOrders = useMemo<Order[]>(() => {
         return orderBy(orders.filter(e => e.name.trim().toLowerCase().includes(searchText.trim().toLowerCase()) &&
             (searchStatuses.length === 0 || searchStatuses.includes(e.status))
-            && (searchPayCODStatus === "0" ? true : (searchPayCODStatus === "1" ? e.isPayCOD == true : (searchPayCODStatus === "2" ? e.isPayCOD == false : true)))
+            && (searchPayCODStatus === "0" ? true : (searchPayCODStatus === "1" ? e.isPayCOD == true : (searchPayCODStatus === "2" ? e.isPayCOD == false && e.paymentMethod === ORDER_PAYMENT_METHOD.CASH_COD : true)))
         ), ["createdDate"], ["desc"]);
     }, [orders, searchText, searchStatuses, searchPayCODStatus])
 
