@@ -31,6 +31,7 @@ import { useNavigate } from "react-router-dom";
 import { CustomerSearchWidget } from "./OrderCreate/CustomerSearch.widget";
 import { OrderItemWidget } from "./OrderItem/OrderItem.widget";
 import { Radio } from "@components/Form/Radio";
+import { Popover } from "@components/Popover";
 
 export const OrderListScreen = () => {
     const orders = useSelector((state: RootState) => state.order.orders);
@@ -149,21 +150,21 @@ export const OrderListScreen = () => {
         <Divider orientation="left" style={{ marginBottom: 0 }}>Danh sách đơn hàng ({filteredOrders.length} đơn)</Divider>
         <Stack style={{ marginTop: 5 }} gap={7} direction="column" align="flex-start">
             <Stack gap={3}>
-                <Tag color={COLORS.ORDER_STATUS.SHIPPED}>{cassetteAmount} băng</Tag>
+                <Popover title="Chi tiết các loại băng" content={<List
+                    size="small"
+                    dataSource={Object.keys(ORDER_ITEM_TYPE).filter(key => filteredOrders
+                        .reduce((prev, cur) => prev + cur.placedItems.filter(c => c.type === key).reduce((prev1, cur1) => prev1 + cur1.count, 0), 0) > 0)}
+                    renderItem={(key, index) => <List.Item style={{ padding: 0, paddingBottom: 2, paddingTop: 2 }}>{index + 1}. {key}: <Typography.Text strong>{filteredOrders
+                        .reduce((prev, cur) => prev + cur.placedItems.filter(c => c.type === key).reduce((prev1, cur1) => prev1 + cur1.count, 0), 0)}</Typography.Text></List.Item>}
+                />}>
+                    <Tag color={COLORS.ORDER_STATUS.SHIPPED}>{cassetteAmount} băng</Tag>
+                </Popover>
                 <Tooltip title={"Dự kiến số tiền thu về"}>
                     <Tag color={COLORS.ORDER_STATUS.SHIPPED}>Thu: {cashAmount.toLocaleString()}đ</Tag>
                 </Tooltip>
                 <Tooltip title={"Dự kiến số tiền COD thu về"}>
                     <Tag color={COLORS.ORDER_STATUS.SHIPPED}>COD: {codReceivedAmount.toLocaleString()}đ</Tag>
                 </Tooltip>
-            </Stack>
-            <Stack gap={3} wrap="wrap">
-                {Object.keys(ORDER_ITEM_TYPE).filter(key => filteredOrders
-                    .reduce((prev, cur) => prev + cur.placedItems.filter(c => c.type === key).reduce((prev1, cur1) => prev1 + cur1.count, 0), 0) > 0)
-                    .map(key => <Tooltip title={"Số băng " + key}>
-                        <Tag>{key}:{filteredOrders
-                            .reduce((prev, cur) => prev + cur.placedItems.filter(c => c.type === key).reduce((prev1, cur1) => prev1 + cur1.count, 0), 0)}</Tag>
-                    </Tooltip>)}
             </Stack>
         </Stack>
         <List
