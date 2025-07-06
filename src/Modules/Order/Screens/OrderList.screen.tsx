@@ -129,7 +129,7 @@ export const OrderListScreen = () => {
                 </Col>
             </Row>
         </AntCheckbox.Group>
-        <Divider orientation="left" style={{ marginBottom: 0 }}>COD</Divider>
+        <Divider orientation="left" style={{ marginBottom: 0, marginTop: 7 }}>COD</Divider>
         <AntRadio.Group
             style={{ marginTop: 7 }}
             defaultValue={"0"}
@@ -149,12 +149,12 @@ export const OrderListScreen = () => {
         <Divider orientation="left" style={{ marginBottom: 0 }}>Danh sách đơn hàng ({filteredOrders.length} đơn)</Divider>
         <Stack style={{ marginTop: 5 }} gap={7} direction="column" align="flex-start">
             <Stack gap={3}>
-                <Tag color={COLORS.ORDER_STATUS.SHIPPED}>Số băng: {cassetteAmount}</Tag>
+                <Tag color={COLORS.ORDER_STATUS.SHIPPED}>{cassetteAmount} băng</Tag>
                 <Tooltip title={"Dự kiến số tiền thu về"}>
-                    <Tag color={COLORS.ORDER_STATUS.SHIPPED}>Thu về: {cashAmount.toLocaleString()}đ</Tag>
+                    <Tag color={COLORS.ORDER_STATUS.SHIPPED}>Thu: {cashAmount.toLocaleString()}đ</Tag>
                 </Tooltip>
                 <Tooltip title={"Dự kiến số tiền COD thu về"}>
-                    <Tag color={COLORS.ORDER_STATUS.SHIPPED}>COD thu về: {codReceivedAmount.toLocaleString()}đ</Tag>
+                    <Tag color={COLORS.ORDER_STATUS.SHIPPED}>COD: {codReceivedAmount.toLocaleString()}đ</Tag>
                 </Tooltip>
             </Stack>
             <Stack gap={3} wrap="wrap">
