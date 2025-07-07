@@ -28,6 +28,13 @@ export const OrderCreateDeliveryAssistantWidget: FunctionComponent<OrderCreateDe
         </Space>
     } destroyOnClose={true} onCancel={props.onClose} footer={null}>
         <Stack direction={"column"} align={"flex-start"}>
+            <CopyToClipboard text={props.order.name}
+                             onCopy={() => message.success("Đã sao chép Tên đơn hàng")}>
+                <Typography.Text>
+                    <Typography.Text strong>Tên đơn hàng: </Typography.Text>
+                    <Typography.Text>{props.order.name}</Typography.Text>
+                </Typography.Text>
+            </CopyToClipboard>
             <CopyToClipboard text={props.customer.name}
                              onCopy={() => message.success("Đã sao chép Tên khách hàng")}>
                     <Typography.Text>

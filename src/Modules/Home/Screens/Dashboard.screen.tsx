@@ -34,13 +34,27 @@ export const DashboardScreen = () => {
     const {} = useScreenTitle({value: "Thống kê", deps: []});
     const orderUtils = useOrder();
     const message = useMessage();
+    const refreshDoneOrderMessageKey = "refreshDoneOrderMessageKey";
 
     useEffect(() => {
+        message.loading({
+            key: refreshDoneOrderMessageKey,
+            content: "Đang kiểm tra đơn đóng hàng"
+        });
         orderUtils.refreshDoneOrders().then(doneOrderCount => {
-            if (doneOrderCount > 0) message.warning("Có " + doneOrderCount + " đơn đã đóng hàng");
-            else message.info("Không có đơn đã đóng hàng");
+            if (doneOrderCount > 0) message.warning({
+                key: refreshDoneOrderMessageKey,
+                content: "Có " + doneOrderCount + " đơn đã đóng hàng"
+            });
+            else message.info({
+                key: refreshDoneOrderMessageKey,
+                content: "Không có đơn đã đóng hàng"
+            });
         })
-            .catch(e => message.error("Lỗi cập nhật các đơn đóng hàng"));
+            .catch(e => message.error({
+                key: refreshDoneOrderMessageKey,
+                content: "Lỗi cập nhật các đơn đóng hàng"
+            }));
     }, [])
 
     const shippingFeeInterest = () => orders.filter(e => (e.status === ORDER_STATUS.SHIPPED && e.isPayCOD == true) || e.paymentMethod === ORDER_PAYMENT_METHOD.BANK_TRANSFER_IN_ADVANCE)

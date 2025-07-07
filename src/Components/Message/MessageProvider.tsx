@@ -8,6 +8,7 @@ type MessageProviderContextData = {
     success: (content?: JointContent, duration?: number | VoidFunction, onClose?: VoidFunction) => Function;
     info: (content: JointContent, duration?: number | VoidFunction, onClose?: VoidFunction) => Function;
     warning: (content: JointContent, duration?: number | VoidFunction, onClose?: VoidFunction) => Function;
+    loading: (content: JointContent, duration?: number | VoidFunction, onClose?: VoidFunction) => Function;
 }
 
 type MessageProviderProps = {
@@ -18,7 +19,8 @@ const MessageContext = React.createContext<MessageProviderContextData>({
     error: () => () => { },
     success: () => () => { },
     info: () => () => { },
-    warning: () => () => { }
+    warning: () => () => { },
+    loading: () => () => { },
 });
 
 export const MessageProvider: React.FunctionComponent<MessageProviderProps> = (props) => {
@@ -42,11 +44,16 @@ export const MessageProvider: React.FunctionComponent<MessageProviderProps> = (p
         return messageApi.warning(content, duration, onClose);
     }
 
+    const loading = (content: JointContent, duration?: number | VoidFunction, onClose?: VoidFunction) => {
+        return messageApi.loading(content, duration, onClose);
+    }
+
     return <MessageContext.Provider value={{
         error,
         success,
         info,
-        warning
+        warning,
+        loading
     }}>
         {props.children}
         {contextHolder}
