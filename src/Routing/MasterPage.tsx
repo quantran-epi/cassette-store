@@ -1,6 +1,6 @@
 import {
     BarChartOutlined,
-    CloudDownloadOutlined,
+    CloudDownloadOutlined, CloudUploadOutlined, DropboxOutlined,
     MenuOutlined,
     TruckOutlined,
     UnorderedListOutlined,
@@ -19,10 +19,10 @@ import {useMessage} from "@components/Message";
 import {Modal} from "@components/Modal";
 import {Tooltip} from "@components/Tootip";
 import {Typography} from "@components/Typography";
-import {useTheme, useToggle, useTrello} from "@hooks";
+import {useOrder, useTheme, useToggle, useTrello} from "@hooks";
 import {setCustomerState} from "@store/Reducers/CustomerReducer";
 import {RootState, store} from "@store/Store";
-import {Drawer, Flex, Layout} from "antd";
+import {Drawer, Flex, FloatButton, Layout} from "antd";
 import React, {useEffect, useState} from "react";
 import {useDispatch, useSelector} from "react-redux";
 import {Outlet, useLocation, useNavigate} from "react-router-dom";
@@ -35,6 +35,7 @@ import {CUSTOMER_PROVINCES} from "@common/Constants/AppConstants";
 import {Tag} from "@components/Tag";
 import {AreaHelpers} from "@common/Helpers/AreaHelper";
 import {OrderHelper} from "@common/Helpers/OrderHelper";
+import {useModal} from "@components/Modal/ModalProvider";
 
 const layoutStyles: React.CSSProperties = {
     height: "100%"
@@ -55,11 +56,11 @@ export const MasterPage = () => {
         _featureIcon = () => {
             switch (currentFeatureName) {
                 case "Khách hàng":
-                    return <UserOutlined style={{ fontSize: "1.5em" }} />;
+                    return <UserOutlined style={{fontSize: "1.5em"}}/>;
                 case "Đơn hàng":
-                    return <TruckOutlined style={{ fontSize: "1.5em" }} />;
-                    case "Thống kê":
-                    return <BarChartOutlined style={{ fontSize: "1.5em" }} />;
+                    return <TruckOutlined style={{fontSize: "1.5em"}}/>;
+                case "Thống kê":
+                    return <BarChartOutlined style={{fontSize: "1.5em"}}/>;
                 default:
                     return null;
             }
@@ -75,23 +76,24 @@ export const MasterPage = () => {
         }}>
             <Stack justify="space-between" align="center">
                 <Stack>
-                    <SidebarDrawer />
+                    <SidebarDrawer/>
                     <Tooltip title={currentFeatureName}>
                         <Typography.Paragraph
-                            style={{ fontFamily: "kanit", fontSize: 24, fontWeight: "500", marginBottom: 0, width: 230 }}
+                            style={{fontFamily: "kanit", fontSize: 24, fontWeight: "500", marginBottom: 0, width: 230}}
                             ellipsis>{currentFeatureName}</Typography.Paragraph>
                     </Tooltip>
                 </Stack>
-                <Box style={{ marginTop: 5 }}>
+                <Box style={{marginTop: 5}}>
                     {_featureIcon()}
                 </Box>
             </Stack>
         </Header>
         <Content>
-            <Outlet />
+            <Outlet/>
         </Content>
-        <BottomTabNavigator />
-        <BackUpDataTrello />
+        <BottomTabNavigator/>
+        <BackUpDataTrello/>
+        <AppNoti/>
     </Layout>
 }
 
@@ -128,46 +130,47 @@ const SidebarDrawer = () => {
             message.success("Đồng bộ thành công");
         } catch (e) {
             message.error(e?.message);
-        }
-        finally {
+        } finally {
             toggleLoading.hide();
         }
     }
 
     return (
         <React.Fragment>
-            <Button type="primary" onClick={showDrawer} icon={<MenuOutlined />} />
-            <Drawer placement="left" title={<Typography.Text style={{ fontFamily: "kanit", fontSize: 24 }}>Cửa hàng
-                Cassette</Typography.Text>} onClose={onClose} open={open} styles={{ body: { padding: 0 } }}>
-                <Flex vertical justify="space-between" style={{ height: "100%" }}>
+            <Button type="primary" onClick={showDrawer} icon={<MenuOutlined/>}/>
+            <Drawer placement="left" title={<Typography.Text style={{fontFamily: "kanit", fontSize: 24}}>Cửa hàng
+                Cassette</Typography.Text>} onClose={onClose} open={open} styles={{body: {padding: 0}}}>
+                <Flex vertical justify="space-between" style={{height: "100%"}}>
                     <Menu
                         items={[
                             {
                                 key: "home", label: <Flex align="center" gap={5}>
-                                    <BarChartOutlined style={{ fontSize: "1.2em" }} />
+                                    <BarChartOutlined style={{fontSize: "1.2em"}}/>
                                     {"Home"}
                                 </Flex>, onClick: () => onNavigate(RootRoutes.AuthorizedRoutes.Root())
                             },
                             {
                                 key: "orders", label: <Flex align="center" gap={5}>
-                                    <TruckOutlined style={{ fontSize: "1.2em" }} />
+                                    <TruckOutlined style={{fontSize: "1.2em"}}/>
                                     {"Đơn hàng"}
                                 </Flex>, onClick: () => onNavigate(RootRoutes.AuthorizedRoutes.OrderRoutes.List())
                             },
                             {
                                 key: "customers", label: <Flex align="center" gap={5}>
-                                    <UserOutlined style={{ fontSize: "1.2em" }} />
+                                    <UserOutlined style={{fontSize: "1.2em"}}/>
                                     {"Khách hàng"}
                                 </Flex>, onClick: () => onNavigate(RootRoutes.AuthorizedRoutes.CustomerRoutes.List())
                             },
                         ]}
                     />
                     <Stack direction="column" align={"center"}>
-                        <Input placeholder="Nhập link file dữ liệu" onChange={(e) => setLinkBackup(e.target.value)} value={linkBackup} />
-                        <Button loading={toggleLoading.value} icon={<CloudDownloadOutlined />} onClick={_onRehydrateData}>Đồng bộ dữ liệu đã lưu trữ</Button>
+                        <Input placeholder="Nhập link file dữ liệu" onChange={(e) => setLinkBackup(e.target.value)}
+                               value={linkBackup}/>
+                        <Button loading={toggleLoading.value} icon={<CloudDownloadOutlined/>}
+                                onClick={_onRehydrateData}>Đồng bộ dữ liệu đã lưu trữ</Button>
                     </Stack>
-                    <Box style={{ overflow: "hidden" }}>
-                        <Image src={Logo} width={350} preview={false} style={{ marginLeft: 90, opacity: 0.4 }} />
+                    <Box style={{overflow: "hidden"}}>
+                        <Image src={Logo} width={350} preview={false} style={{marginLeft: 90, opacity: 0.4}}/>
                     </Box>
                 </Flex>
             </Drawer>
@@ -235,22 +238,23 @@ const BottomTabNavigator = () => {
 
     return <React.Fragment>
         <Stack justify="space-around" style={_containerStyles()}>
-            <Button type="text" style={_buttonStyles()} icon={<BarChartOutlined style={{ fontSize: "1.2em" }} />} onClick={() => onNavigate(RootRoutes.AuthorizedRoutes.Root())}>
+            <Button type="text" style={_buttonStyles()} icon={<BarChartOutlined style={{fontSize: "1.2em"}}/>}
+                    onClick={() => onNavigate(RootRoutes.AuthorizedRoutes.Root())}>
                 <Typography.Text style={_textStyles(RootRoutes.AuthorizedRoutes.Root())}>Home</Typography.Text>
             </Button>
             <Button type="text" style={_buttonStyles()}
-                icon={<TruckOutlined style={{ fontSize: "1.2em" }} />}
-                onClick={() => onNavigate(RootRoutes.AuthorizedRoutes.OrderRoutes.List())}>
+                    icon={<TruckOutlined style={{fontSize: "1.2em"}}/>}
+                    onClick={() => onNavigate(RootRoutes.AuthorizedRoutes.OrderRoutes.List())}>
                 <Typography.Text style={_textStyles(RootRoutes.AuthorizedRoutes.OrderRoutes.List())}>Đơn
                     hàng</Typography.Text>
             </Button>
-            <Button type="text" style={_buttonStyles()} icon={<UserOutlined style={{ fontSize: "1.2em" }} />}
-                onClick={() => onNavigate(RootRoutes.AuthorizedRoutes.CustomerRoutes.List())}>
+            <Button type="text" style={_buttonStyles()} icon={<UserOutlined style={{fontSize: "1.2em"}}/>}
+                    onClick={() => onNavigate(RootRoutes.AuthorizedRoutes.CustomerRoutes.List())}>
                 <Typography.Text style={_textStyles(RootRoutes.AuthorizedRoutes.CustomerRoutes.List())}>Khách
                     hàng</Typography.Text>
             </Button>
-            <Button type="text" style={_buttonStyles()} icon={<UnorderedListOutlined style={{ fontSize: "1.2em" }} />}
-                onClick={_onCalculateShipCost}>
+            <Button type="text" style={_buttonStyles()} icon={<UnorderedListOutlined style={{fontSize: "1.2em"}}/>}
+                    onClick={_onCalculateShipCost}>
                 <Typography.Text>Phí ship</Typography.Text>
             </Button>
         </Stack>
@@ -269,11 +273,12 @@ const BottomTabNavigator = () => {
                     if (!option?.children) return false;
                     return option?.children?.toString().toLowerCase().includes(inputValue.toLowerCase());
                 }}
-                style={{ width: '100%', marginBottom: 7 }}
+                style={{width: '100%', marginBottom: 7}}
             >
                 {CUSTOMER_PROVINCES.map(p => <Option key={p} value={p}>{p}</Option>)}
             </Select>
-            <Typography.Text>Phí ship là: <Typography.Text type="success">{shippingCost.toLocaleString()}đ</Typography.Text></Typography.Text>
+            <Typography.Text>Phí ship là: <Typography.Text
+                type="success">{shippingCost.toLocaleString()}đ</Typography.Text></Typography.Text>
         </Modal>
     </React.Fragment>
 }
@@ -286,6 +291,44 @@ const BackUpDataTrello = () => {
         backup();
     }, [])
 
+
+    return null;
+}
+
+const AppNoti = () => {
+    const trello = useTrello();
+    const orderUtils = useOrder();
+    const message = useMessage();
+    const refreshDoneOrderMessageKey = "refreshDoneOrderMessageKey";
+    const backupMessageKey = "backupMessageKey";
+    const modal = useModal();
+
+    useEffect(() => {
+        backup();
+        _refreshDoneOrder();
+    }, [])
+
+    const _refreshDoneOrder = () => {
+        message.loading({
+            key: refreshDoneOrderMessageKey,
+            content: "Đang kiểm tra đơn đóng hàng"
+        });
+        orderUtils.refreshDoneOrders().then(doneOrderCount => {
+            if (doneOrderCount > 0) message.warning({
+                key: refreshDoneOrderMessageKey,
+                content: "Có " + doneOrderCount + " đơn đã đóng hàng"
+            });
+            else message.info({
+                key: refreshDoneOrderMessageKey,
+                content: "Không có đơn đã đóng hàng"
+            });
+        })
+            .catch(e => message.error({
+                key: refreshDoneOrderMessageKey,
+                content: "Lỗi cập nhật các đơn đóng hàng"
+            }));
+    }
+
     const backup = async () => {
         const lastCheck = localStorage.getItem('lastCheckTime');
 
@@ -295,14 +338,21 @@ const BackUpDataTrello = () => {
             const hoursPassed = (now - lastTime) / (1000 * 60 * 60); // Convert ms to hours
 
             if (hoursPassed >= 4) {
-                const fileBlob = new Blob([JSON.stringify(store.getState())], { type: 'text/plain' });
+                message.loading({
+                    key: backupMessageKey,
+                    content: "Đang đồng bộ dữ liệu lên trello"
+                });
+                const fileBlob = new Blob([JSON.stringify(store.getState())], {type: 'text/plain'});
                 await trello.createAttachment({
                     name: moment().toLocaleString(),
                     mimeType: "text/plain",
                     file: fileBlob
                 }, BACKUP_CARD_ID);
                 localStorage.setItem('lastCheckTime', now.toString()); // Reset the time
-                message.success("Backup success");
+                message.success({
+                    key: backupMessageKey,
+                    content: "Đồng bộ lên trello thành công"
+                });
             }
         } else {
             // First time, save the current time
@@ -317,5 +367,13 @@ const BackUpDataTrello = () => {
         }
     }
 
-    return null;
+    return <FloatButton.Group
+        trigger="click"
+        type="primary"
+        style={{insetInlineEnd: 24}}
+        icon={<MenuOutlined/>}
+    >
+        <FloatButton icon={<CloudUploadOutlined/>} onClick={backup}/>
+        <FloatButton icon={<DropboxOutlined/>} onClick={_refreshDoneOrder}/>
+    </FloatButton.Group>;
 }

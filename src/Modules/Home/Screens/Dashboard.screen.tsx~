@@ -32,6 +32,9 @@ export const DashboardScreen = () => {
     const orders = useSelector((state: RootState) => state.order.orders);
     const customers = useSelector((state: RootState) => state.customer.customers);
     const {} = useScreenTitle({value: "Thống kê", deps: []});
+    const orderUtils = useOrder();
+    const message = useMessage();
+    const refreshDoneOrderMessageKey = "refreshDoneOrderMessageKey";
 
     const shippingFeeInterest = () => orders.filter(e => (e.status === ORDER_STATUS.SHIPPED && e.isPayCOD == true) || e.paymentMethod === ORDER_PAYMENT_METHOD.BANK_TRANSFER_IN_ADVANCE)
             .reduce((prev, cur) => prev + (cur.paymentAmount - cur.placedItems.reduce((prev1, cur1) => prev1 + (cur1.count * cur1.unitPrice), 0)), 0)
