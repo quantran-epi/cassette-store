@@ -35,7 +35,6 @@ type ChangeShippingCodeWidgetProps = {
 
 export const OrderChangeShippingCodeWidget: FunctionComponent<ChangeShippingCodeWidgetProps> = (props) => {
     const [code, setCode] = useState<string>(props.value);
-    const inputRef = useRef(null);
 
     useEffect(() => {
         setCode(props.value);
@@ -46,12 +45,12 @@ export const OrderChangeShippingCodeWidget: FunctionComponent<ChangeShippingCode
             <BarcodeOutlined />
             {props.order.name}
         </Space>
-    } destroyOnClose={true} afterOpenChange={() => inputRef.current?.focus()} onCancel={props.onClose} footer={<Stack fullwidth justify="flex-end">
+    } destroyOnClose={true} onCancel={props.onClose} footer={<Stack fullwidth justify="flex-end">
         <Button loading={props.loading} type="primary" onClick={() => props.onSave(code)}>Lưu mã</Button>
     </Stack>}>
         <SmartForm itemDefinitions={null} layout="vertical">
             <SmartForm.Item label="Mã vận đơn">
-                <Input ref={inputRef} allowClear autoFocus value={code} onChange={e => setCode(e.target.value)} />
+                <Input allowClear autoFocus value={code} onChange={e => setCode(e.target.value)} />
             </SmartForm.Item>
         </SmartForm>
     </Modal>
