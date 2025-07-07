@@ -101,7 +101,7 @@ export const OrderAttachmentsWidget: FunctionComponent<OrderAttachmentsWidgetPro
         </Stack> : <Typography.Text type={"secondary"}>Chưa có ảnh đính kèm</Typography.Text>
     }
 
-    return <Modal open={props.open} destroyOnClose={true} onCancel={props.onClose}
+    return <Modal title={props.order.name} open={props.open} destroyOnClose={true} onCancel={props.onClose}
                   footer={<Stack fullwidth justify="flex-end">
                       <Button loading={toggleLoading.value} type="primary" onClick={_onSave}>Lưu</Button>
                   </Stack>}>

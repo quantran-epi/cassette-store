@@ -84,7 +84,7 @@ export const OrderShippinInfoWidget: FunctionComponent<OrderShippingInfoWidgetPr
         } else message.error("Lỗi lưu thông tin vận chuyển")
     }
 
-    return <Modal title={"Thông tin vận chuyển"} open={props.open} destroyOnClose={true} onCancel={props.onClose}
+    return <Modal title={props.order.name} open={props.open} destroyOnClose={true} onCancel={props.onClose}
                   footer={<Stack fullwidth justify="flex-end">
                       <Button loading={toggleLoading.value} type="primary" onClick={_onSave}>Lưu</Button>
                   </Stack>}>

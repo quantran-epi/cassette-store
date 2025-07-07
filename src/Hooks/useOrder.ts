@@ -392,7 +392,7 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
 
     const isCustomerReturnLessThan4 = (order: Order): boolean => {
         let customer = _findCustomerById(order.customerId);
-        return customer.buyCount > 1 && customer.buyCount < 4;
+        return customer.buyCount > 1 && customer.buyCount <= 4;
     }
 
     const isBankTransferInAdvance = (order: Order): boolean => {

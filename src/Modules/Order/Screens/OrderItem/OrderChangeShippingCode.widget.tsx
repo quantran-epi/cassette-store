@@ -1,6 +1,6 @@
-import { Space } from "@components/Layout/Space";
-import { Modal } from "@components/Modal";
-import { FunctionComponent, useEffect, useState } from "react";
+import {Space} from "@components/Layout/Space";
+import {Modal} from "@components/Modal";
+import {FunctionComponent, useEffect, useState} from "react";
 import {
     BarcodeOutlined,
     CheckCircleOutlined,
@@ -17,11 +17,14 @@ import {
     TruckOutlined,
     ToolOutlined
 } from "@ant-design/icons";
-import { Input } from "antd";
-import { Stack } from "@components/Layout/Stack";
-import { Button } from "@components/Button";
+import {Input} from "antd";
+import {Stack} from "@components/Layout/Stack";
+import {Button} from "@components/Button";
+import {Order} from "@store/Models/Order";
+import {Typography} from "@components/Typography";
 
 type ChangeShippingCodeWidgetProps = {
+    order: Order;
     loading: boolean;
     value: string;
     open: boolean;
@@ -38,12 +41,13 @@ export const OrderChangeShippingCodeWidget: FunctionComponent<ChangeShippingCode
 
     return <Modal open={props.open} title={
         <Space>
-            <BarcodeOutlined />
+            <BarcodeOutlined/>
             Mã vận đơn
         </Space>
     } destroyOnClose={true} onCancel={props.onClose} footer={<Stack fullwidth justify="flex-end">
         <Button loading={props.loading} type="primary" onClick={() => props.onSave(code)}>Lưu mã</Button>
     </Stack>}>
-        <Input allowClear autoFocus value={code} onChange={e => setCode(e.target.value)} />
+        <Typography.Title>{props.order.name}</Typography.Title>
+        <Input allowClear autoFocus value={code} onChange={e => setCode(e.target.value)}/>
     </Modal>
 }

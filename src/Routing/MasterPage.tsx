@@ -1,6 +1,6 @@
 import {
     BarChartOutlined,
-    CloudDownloadOutlined, CloudUploadOutlined, DropboxOutlined,
+    CloudDownloadOutlined, CloudUploadOutlined, DollarOutlined, DropboxOutlined,
     MenuOutlined,
     TruckOutlined,
     UnorderedListOutlined,
@@ -252,7 +252,7 @@ const BottomTabNavigator = () => {
                 <Typography.Text style={_textStyles(RootRoutes.AuthorizedRoutes.CustomerRoutes.List())}>Khách
                     hàng</Typography.Text>
             </Button>
-            <Button type="text" style={_buttonStyles()} icon={<UnorderedListOutlined style={{fontSize: "1.2em"}}/>}
+            <Button type="text" style={_buttonStyles()} icon={<DollarOutlined style={{fontSize: "1.2em"}}/>}
                     onClick={_onCalculateShipCost}>
                 <Typography.Text>Phí ship</Typography.Text>
             </Button>
@@ -361,7 +361,7 @@ const AppNoti = () => {
     return <FloatButton.Group
         trigger="click"
         type="primary"
-        style={{insetInlineEnd: 24, marginBottom: 30}}
+        style={{insetInlineEnd: 24, marginBottom: 40}}
         icon={<MenuOutlined/>}
     >
         <FloatButton icon={<CloudUploadOutlined/>} onClick={backupNow}/>

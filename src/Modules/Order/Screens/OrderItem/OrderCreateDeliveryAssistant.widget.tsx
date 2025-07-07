@@ -10,12 +10,14 @@ import {Tooltip} from "@components/Tootip";
 import {Typography} from "@components/Typography";
 import {CopyToClipboard} from 'react-copy-to-clipboard';
 import {useMessage} from "@components/Message";
+import {Button} from "@components/Button";
 
 type OrderCreateDeliveryAssistantWidgetProps = {
     open: boolean;
     onClose: () => void;
     order: Order;
     customer: Customer;
+    onAddShippingCode: () => void;
 }
 
 export const OrderCreateDeliveryAssistantWidget: FunctionComponent<OrderCreateDeliveryAssistantWidgetProps> = (props) => {
@@ -26,7 +28,7 @@ export const OrderCreateDeliveryAssistantWidget: FunctionComponent<OrderCreateDe
             <TruckOutlined />
             Hỗ trợ nhập đơn
         </Space>
-    } destroyOnClose={true} onCancel={props.onClose} footer={null}>
+    } destroyOnClose={true} onCancel={props.onClose} footer={<Button type={"primary"} onClick={props.onAddShippingCode}>Nhập mã vận đơn</Button>}>
         <Stack direction={"column"} align={"flex-start"}>
             <CopyToClipboard text={props.order.name}
                              onCopy={() => message.success("Đã sao chép Tên đơn hàng")}>

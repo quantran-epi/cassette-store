@@ -84,7 +84,7 @@ export const OrderPlacedItemsWidget: FunctionComponent<OrderPlacedItemsWidgetPro
         } else message.error("Lỗi lưu danh sách băng")
     }
 
-    return <Modal open={props.open} destroyOnClose={true} onCancel={props.onClose}
+    return <Modal title={props.order.name} open={props.open} destroyOnClose={true} onCancel={props.onClose}
                   footer={<Stack fullwidth justify="flex-end">
                       <Button loading={toggleLoading.value} type="primary" onClick={_onSave}>Lưu</Button>
                   </Stack>}>

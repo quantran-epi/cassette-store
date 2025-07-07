@@ -42,6 +42,7 @@ export const OrderRefundWidget: FunctionComponent<OrderRefundWidgetProps> = prop
     } destroyOnClose={true} onCancel={props.onClose} footer={<Stack fullwidth justify="flex-end">
         <Button type="primary" onClick={_onSave}>Lưu</Button>
     </Stack>}>
+        <Typography.Title>{props.order.name}</Typography.Title>
         <SmartForm.Item>
             <InputNumber onChange={(value) => setAmount(value as any)} style={{width: "100%"}}
                          placeholder="Nhập số tiền hoàn"

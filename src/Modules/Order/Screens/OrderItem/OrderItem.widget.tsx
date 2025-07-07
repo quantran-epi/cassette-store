@@ -230,6 +230,10 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
         }
     }
 
+    const _onFirstAddShippingCode = () => {
+        toggleInputShippingCodeEditor.show();
+    }
+
     return <React.Fragment>
         <List.Item
             actions={
@@ -412,6 +416,7 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
         </List.Item>
 
         <OrderChangeShippingCodeWidget
+            order={props.item}
             loading={toggleLoadingChangeShippingCode.value}
             open={toggleInputShippingCodeEditor.value}
             onClose={toggleInputShippingCodeEditor.hide}
@@ -420,12 +425,15 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
 
         <OrderCreateDeliveryAssistantWidget open={toggleOrderCreateDeliveryAssistant.value}
             onClose={toggleOrderCreateDeliveryAssistant.hide}
-            order={props.item} customer={orderCustomer} />
+            order={props.item} customer={orderCustomer}
+            onAddShippingCode={_onFirstAddShippingCode}/>
+
         <OrderRefundWidget open={toggleOrderRefund.value}
             onClose={toggleOrderRefund.hide}
             order={props.item} />
 
-        <OrderPlacedItemsWidget open={toggleOrderPlacedItems.value}
+        <OrderPlacedItemsWidget
+            open={toggleOrderPlacedItems.value}
             onClose={toggleOrderPlacedItems.hide}
             order={props.item} />
 
