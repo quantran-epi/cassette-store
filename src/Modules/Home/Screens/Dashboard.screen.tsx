@@ -279,20 +279,20 @@ export const DashboardScreen = () => {
                 <Stack fullwidth align="flex-start" direction="column">
                     <Statistic
                         title="Số đơn"
-                        value={orders.filter(e => e.status === ORDER_STATUS.RETURNED && e.returnReason === ORDER_RETURN_REASON.REFUSE_TO_RECEIVE).length}
+                        value={orders.filter(e => (e.status === ORDER_STATUS.RETURNED || e.status === ORDER_STATUS.WAITING_FOR_RETURNED) && e.returnReason === ORDER_RETURN_REASON.REFUSE_TO_RECEIVE).length}
                         suffix=""
                         valueStyle={{color: COLORS.ORDER_STATUS.RETURNED}}
                     />
                     <Statistic
                         title="Số băng"
-                        value={orders.filter(e => e.status === ORDER_STATUS.RETURNED && e.returnReason === ORDER_RETURN_REASON.REFUSE_TO_RECEIVE)
+                        value={orders.filter(e => (e.status === ORDER_STATUS.RETURNED || e.status === ORDER_STATUS.WAITING_FOR_RETURNED) && e.returnReason === ORDER_RETURN_REASON.REFUSE_TO_RECEIVE)
                             .reduce((prev, cur) => prev + cur.placedItems.reduce((prev1, cur1) => prev1 + cur1.count, 0), 0)}
                         suffix=""
                         valueStyle={{color: COLORS.ORDER_STATUS.RETURNED}}
                     />
                     <Statistic
                         title="Tiền ship"
-                        value={orders.filter(e => e.status === ORDER_STATUS.RETURNED && e.returnReason === ORDER_RETURN_REASON.REFUSE_TO_RECEIVE)
+                        value={orders.filter(e => (e.status === ORDER_STATUS.RETURNED || e.status === ORDER_STATUS.WAITING_FOR_RETURNED) && e.returnReason === ORDER_RETURN_REASON.REFUSE_TO_RECEIVE)
                             .reduce((prev, cur) => prev + cur.shippingCost, 0)}
                         suffix="đ"
                         valueStyle={{color: COLORS.ORDER_STATUS.RETURNED}}
