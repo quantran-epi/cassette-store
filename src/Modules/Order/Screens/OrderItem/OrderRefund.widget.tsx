@@ -37,13 +37,12 @@ export const OrderRefundWidget: FunctionComponent<OrderRefundWidgetProps> = prop
     return <Modal open={props.open} centered title={
         <Space>
             <DollarOutlined/>
-            Hoàn tiền khách hàng
+            {props.order.name}
         </Space>
     } destroyOnClose={true} onCancel={props.onClose} footer={<Stack fullwidth justify="flex-end">
         <Button type="primary" onClick={_onSave}>Lưu</Button>
     </Stack>}>
-        <Typography.Title>{props.order.name}</Typography.Title>
-        <SmartForm.Item>
+        <SmartForm.Item label="Hoàn tiền khách hàng">
             <InputNumber onChange={(value) => setAmount(value as any)} style={{width: "100%"}}
                          placeholder="Nhập số tiền hoàn"
                          value={amount}
