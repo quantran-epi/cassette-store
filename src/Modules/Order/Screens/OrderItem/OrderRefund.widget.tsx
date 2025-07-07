@@ -42,13 +42,11 @@ export const OrderRefundWidget: FunctionComponent<OrderRefundWidgetProps> = prop
     } destroyOnClose={true} onCancel={props.onClose} footer={<Stack fullwidth justify="flex-end">
         <Button type="primary" onClick={_onSave}>Lưu</Button>
     </Stack>}>
-        <SmartForm itemDefinitions={null} layout="vertical">
             <SmartForm.Item label="Hoàn tiền khách hàng">
                 <InputNumber onChange={(value) => setAmount(value as any)} style={{ width: "100%" }}
                     placeholder="Nhập số tiền hoàn"
                     value={amount}
                     formatter={(value) => `đ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} />
             </SmartForm.Item>
-        </SmartForm>
     </Modal>
 }
