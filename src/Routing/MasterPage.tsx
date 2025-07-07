@@ -357,7 +357,7 @@ const AppNoti = () => {
     return <FloatButton.Group
         trigger="click"
         type="primary"
-        style={{insetInlineEnd: 24}}
+        style={{insetInlineEnd: 24, marginBottom: 30}}
         icon={<MenuOutlined/>}
     >
         <FloatButton icon={<CloudUploadOutlined/>} onClick={backup}/>
