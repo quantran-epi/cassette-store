@@ -92,7 +92,6 @@ export const MasterPage = () => {
             <Outlet/>
         </Content>
         <BottomTabNavigator/>
-        <BackUpDataTrello/>
         <AppNoti/>
     </Layout>
 }
@@ -281,18 +280,6 @@ const BottomTabNavigator = () => {
                 type="success">{shippingCost.toLocaleString()}đ</Typography.Text></Typography.Text>
         </Modal>
     </React.Fragment>
-}
-
-const BackUpDataTrello = () => {
-    const trello = useTrello();
-    const message = useMessage();
-
-    useEffect(() => {
-        backup();
-    }, [])
-
-
-    return null;
 }
 
 const AppNoti = () => {
