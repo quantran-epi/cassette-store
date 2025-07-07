@@ -67,7 +67,7 @@ type UseOrder = {
     getTotalAmountBomAll: () => number;
     getTotalOrderBomAll: () => number;
 
-    refreshDoneOrders: () => Promise<string>;
+    refreshDoneOrders: () => Promise<number>;
 }
 
 type UseOrderProps = {}
@@ -463,14 +463,14 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
         return orders.filter(o => o.status === ORDER_STATUS.RETURNED && o.returnReason === ORDER_RETURN_REASON.REFUSE_TO_RECEIVE).length;
     }
 
-    const refreshDoneOrders = async (): Promise<string> => {
+    const refreshDoneOrders = async (): Promise<number> => {
         dispatch(removeAllDoneOrder());
         let cards = await trello.getCardsByList(trello.TRELLO_LIST_IDS.TODO_LIST);
         let doneOrders = cards.filter(e => e.dueComplete == true).map(e => e.id);
         doneOrders.forEach(e => {
             dispatch(addDoneOrder(e));
         })
-        return "";
+        return doneOrders.length || 0;
     }
 
     return {
