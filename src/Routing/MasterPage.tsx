@@ -325,21 +325,7 @@ const AppNoti = () => {
             const hoursPassed = (now - lastTime) / (1000 * 60 * 60); // Convert ms to hours
 
             if (hoursPassed >= 4) {
-                message.loading({
-                    key: backupMessageKey,
-                    content: "Đang đồng bộ dữ liệu lên trello"
-                });
-                const fileBlob = new Blob([JSON.stringify(store.getState())], {type: 'text/plain'});
-                await trello.createAttachment({
-                    name: moment().toLocaleString(),
-                    mimeType: "text/plain",
-                    file: fileBlob
-                }, BACKUP_CARD_ID);
-                localStorage.setItem('lastCheckTime', now.toString()); // Reset the time
-                message.success({
-                    key: backupMessageKey,
-                    content: "Đồng bộ lên trello thành công"
-                });
+                await backupNow();
             }
         } else {
             // First time, save the current time
@@ -354,13 +340,31 @@ const AppNoti = () => {
         }
     }
 
+    const backupNow = async () => {
+        message.loading({
+            key: backupMessageKey,
+            content: "Đang đồng bộ dữ liệu lên trello"
+        });
+        const fileBlob = new Blob([JSON.stringify(store.getState())], {type: 'text/plain'});
+        await trello.createAttachment({
+            name: moment().toLocaleString(),
+            mimeType: "text/plain",
+            file: fileBlob
+        }, BACKUP_CARD_ID);
+        localStorage.setItem('lastCheckTime', Date.now().toString()); // Reset the time
+        message.success({
+            key: backupMessageKey,
+            content: "Đồng bộ lên trello thành công"
+        });
+    }
+
     return <FloatButton.Group
         trigger="click"
         type="primary"
         style={{insetInlineEnd: 24, marginBottom: 30}}
         icon={<MenuOutlined/>}
     >
-        <FloatButton icon={<CloudUploadOutlined/>} onClick={backup}/>
+        <FloatButton icon={<CloudUploadOutlined/>} onClick={backupNow}/>
         <FloatButton icon={<DropboxOutlined/>} onClick={_refreshDoneOrder}/>
     </FloatButton.Group>;
 }
