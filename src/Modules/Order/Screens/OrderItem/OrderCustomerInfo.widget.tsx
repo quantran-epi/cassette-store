@@ -26,12 +26,12 @@ export const OrderCustomerInfoWidget: FunctionComponent<OrderCustomerInfoWidgetP
     const _renderCustomerRank = () => {
         if(props.customer.isVIP) return <Tag color={COLORS.CUSTOMER.VIP}>VIP</Tag>
         else if(props.customer.isInBlacklist) return <Tag color={COLORS.CUSTOMER.BLACK_LIST}>Danh sách đen</Tag>
-        else <Tag>Thông thường</Tag>
+        else return <Tag>Thông thường</Tag>
     }
 
     return <Modal open={props.open} centered title={
         <Space>
-            <TruckOutlined />
+            <UserOutlined />
             {props.order.name}
         </Space>
     } destroyOnClose={true} onCancel={props.onClose} footer={null}>
