@@ -9,7 +9,7 @@ import {Input, List, TabsProps, Transfer} from "antd";
 import {useOrder, useToggle} from "@hooks";
 import {Tabs} from "@components/Tabs";
 import {Option, Select} from "@components/Form/Select";
-import {CUSTOMER_PROVINCES, ORDER_STATUS} from "@common/Constants/AppConstants";
+import {CUSTOMER_PROVINCES, ORDER_PAYMENT_METHOD, ORDER_STATUS} from "@common/Constants/AppConstants";
 import {useSelector} from "react-redux";
 import {RootState} from "@store/Store";
 import {Order} from "@store/Models/Order";
@@ -18,6 +18,7 @@ import {useMessage} from "@components/Message";
 import {CodPaymentCycle} from "@store/Models/CodPaymentCycle";
 import {nanoid} from "nanoid";
 import {useModal} from "@components/Modal/ModalProvider";
+import { orderBy } from "lodash";
 
 type OrderCodPaymentCreateWidgetProps = {
     open: boolean;
@@ -35,16 +36,16 @@ export const OrderCodPaymentCreateWidget: FunctionComponent<OrderCodPaymentCreat
     const modal = useModal();
 
     const shippedAndNotPayCodOrders = useMemo(() => {
-        return orders.filter(e => e.status === ORDER_STATUS.SHIPPED
+        return orderBy(orders.filter(e => e.status === ORDER_STATUS.SHIPPED
             && !e.isPayCOD
-            && !payCodOrders.map(o => o.id).includes(e.id));
+            && e.paymentMethod === ORDER_PAYMENT_METHOD.CASH_COD
+            && !payCodOrders.map(o => o.id).includes(e.id)), ["createdDate"], ["desc"]);
     }, [orders, payCodOrders])
 
     const debitShipNotSelectedOrders = useMemo(() => {
-        return orders.filter(e =>  e.status !== ORDER_STATUS.PLACED
-            && moment(new Date(e.createdDate)).isAfter(moment("07/07/2025", "DD/MM/yyyy"))
+        return orderBy(orders.filter(e =>  e.status !== ORDER_STATUS.PLACED
             && !codPaymentCycles.map(c => c.debitFeeOrders).flat().includes(e.id)
-            && !debitShipOrders.map(o => o.id).includes(e.id));
+            && !debitShipOrders.map(o => o.id).includes(e.id)), ["createdDate"], ["desc"]);
     }, [orders, debitShipOrders])
 
     const _onSave = () => {
