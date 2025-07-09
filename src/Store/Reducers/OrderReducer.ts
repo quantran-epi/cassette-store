@@ -6,17 +6,20 @@ import {ORDER_STATUS} from "@common/Constants/AppConstants";
 import {Customer} from "@store/Models/Customer";
 import {cloneDeep} from 'lodash';
 import {RootState} from '@store/Store';
+import {CodPaymentCycle} from "@store/Models/CodPaymentCycle";
 
 export interface OrderState {
     orders: Order[];
     lastSequence: number;
     doneOrders: string[];
+    codPayments: CodPaymentCycle[];
 }
 
 const initialState: OrderState = {
     orders: [],
     lastSequence: 0,
-    doneOrders: []
+    doneOrders: [],
+    codPayments: []
 }
 
 export const orderSlice = createSlice({
@@ -71,7 +74,10 @@ export const orderSlice = createSlice({
         },
         test: (state) => {
 
-        }
+        },
+        addCodPayment: (state, action: PayloadAction<CodPaymentCycle>) => {
+            state.codPayments = [...state.codPayments, action.payload];
+        },
     },
 })
 
@@ -86,6 +92,14 @@ export const selectSortedPendingOrders = createSelector(
     }
 );
 
+export const selectAlreadyDebitFeeOrders = createSelector(
+    [selectOrders, (state: RootState) => state.order.codPayments],
+    (orders, payments) => {
+        return orders
+            .filter(order => payments.map(e => e.debitFeeOrders).flat().includes(order.id));
+    }
+);
+
 // Action creators are generated for each case reducer function
 export const {
     test,
@@ -96,7 +110,8 @@ export const {
     reset: resetOrder,
     addDoneOrder,
     removeDoneOrder,
-    removeAllDoneOrder
+    removeAllDoneOrder,
+    addCodPayment
 } = orderSlice.actions
 
 export default orderSlice.reducer

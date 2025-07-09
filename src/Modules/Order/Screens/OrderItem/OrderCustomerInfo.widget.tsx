@@ -67,7 +67,7 @@ export const OrderCustomerInfoWidget: FunctionComponent<OrderCustomerInfoWidgetP
             </Typography.Text>
             <Typography.Text>
                 <Typography.Text strong>Số tiền đã mua: </Typography.Text>
-                <Typography.Text>{props.customer.buyAmount}</Typography.Text>
+                <Typography.Text>{props.customer.buyAmount.toLocaleString()} đ</Typography.Text>
             </Typography.Text>
             <Typography.Text>
                 <Typography.Text strong>Ghi chú: </Typography.Text>

@@ -78,20 +78,21 @@ export const DashboardScreen = () => {
                 <Card title="Lãi">
                     <Stack fullwidth direction={"column"} align={"flex-start"}>
                         <Statistic
-                            title="Thu về thực tế"
+                            title="Thu về thực tế (tổng đã thu về - tổng ship)"
                             value={orders.filter(e => (e.status === ORDER_STATUS.SHIPPED && e.isPayCOD == true) || e.paymentMethod === ORDER_PAYMENT_METHOD.BANK_TRANSFER_IN_ADVANCE)
-                                .reduce((prev, cur) => prev + (cur.paymentAmount - cur.shippingCost), 0)}
+                                .reduce((prev, cur) => prev + cur.paymentAmount, 0)
+                        - orders.reduce((prev, cur) => prev + cur.shippingCost, 0)}
                             suffix="đ"
                             valueStyle={{color: COLORS.ORDER_STATUS.SHIPPED}}
                         />
                         <Statistic
-                            title="Lãi phí ship"
+                            title="Lãi phí ship (tổng ship thu - tổng ship trả )"
                             value={shippingFeeInterest()}
                             suffix="đ"
                             valueStyle={{color: shippingFeeInterest() > 0 ? COLORS.ORDER_STATUS.SHIPPED : COLORS.ORDER_STATUS.RETURNED}}
                         />
                         <Statistic
-                            title="Lãi thực tế (60%/băng)"
+                            title="Lãi thực tế (60%/băng, lãi theo băng + lãi ship)"
                             value={actualInterest()}
                             suffix="đ"
                             valueStyle={{color: actualInterest() > 0 ? COLORS.ORDER_STATUS.SHIPPED : COLORS.ORDER_STATUS.RETURNED}}

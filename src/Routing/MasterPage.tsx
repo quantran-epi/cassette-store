@@ -2,9 +2,8 @@ import {
     BarChartOutlined,
     CloudDownloadOutlined, CloudUploadOutlined, DollarOutlined, DropboxOutlined,
     MenuOutlined,
-    TruckOutlined,
-    UnorderedListOutlined,
-    UserOutlined
+    TruckOutlined,CalculatorOutlined,
+    UserOutlined,CreditCardOutlined
 } from "@ant-design/icons";
 import {Button} from "@components/Button";
 import {Input} from "@components/Form/Input";
@@ -252,9 +251,9 @@ const BottomTabNavigator = () => {
                 <Typography.Text style={_textStyles(RootRoutes.AuthorizedRoutes.CustomerRoutes.List())}>Khách
                     hàng</Typography.Text>
             </Button>
-            <Button type="text" style={_buttonStyles()} icon={<DollarOutlined style={{fontSize: "1.2em"}}/>}
+            <Button type="text" style={_buttonStyles()} icon={<CalculatorOutlined style={{fontSize: "1.2em"}}/>}
                     onClick={_onCalculateShipCost}>
-                <Typography.Text>Phí ship</Typography.Text>
+                <Typography.Text>Tính ship</Typography.Text>
             </Button>
         </Stack>
 
@@ -289,6 +288,7 @@ const AppNoti = () => {
     const refreshDoneOrderMessageKey = "refreshDoneOrderMessageKey";
     const backupMessageKey = "backupMessageKey";
     const modal = useModal();
+    const navigate = useNavigate();
 
     useEffect(() => {
         backup();
@@ -358,12 +358,17 @@ const AppNoti = () => {
         });
     }
 
+    const _onNavigateToOrderPaymentList = () => {
+        navigate(RootRoutes.AuthorizedRoutes.OrderRoutes.CodPaymentList());
+    }
+
     return <FloatButton.Group
         trigger="click"
         type="primary"
         style={{insetInlineEnd: 24, marginBottom: 40}}
         icon={<MenuOutlined/>}
     >
+        <FloatButton icon={<CreditCardOutlined />} onClick={_onNavigateToOrderPaymentList}/>
         <FloatButton icon={<CloudUploadOutlined/>} onClick={backupNow}/>
         <FloatButton icon={<DropboxOutlined/>} onClick={_refreshDoneOrder}/>
     </FloatButton.Group>;

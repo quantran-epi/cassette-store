@@ -8,6 +8,7 @@ import { MasterPage } from "./MasterPage";
 import {DashboardScreen} from "@modules/Home/Screens/Dashboard.screen";
 import {OrderCreateScreen} from "@modules/Order/Screens/OrderCreate/OrderCreate.screen";
 import {OrderListScreen} from "@modules/Order/Screens/OrderList.screen";
+import {OrderCodPaymentListScreen} from "@modules/Order/Screens/OrderCodPayment/OrderCodPaymentList.screen";
 
 export const RootRouter = () => {
     return <BrowserRouter basename="/cassette-store">
@@ -17,6 +18,7 @@ export const RootRouter = () => {
                 <Route path={RootRoutes.AuthorizedRoutes.OrderRoutes.Root()} element={<CustomerRouter />}>
                     <Route path={RootRoutes.AuthorizedRoutes.OrderRoutes.List()} element={<OrderListScreen />} />
                     <Route path={RootRoutes.AuthorizedRoutes.OrderRoutes.Create()} element={<OrderCreateScreen />} />
+                    <Route path={RootRoutes.AuthorizedRoutes.OrderRoutes.CodPaymentList()} element={<OrderCodPaymentListScreen />} />
                 </Route>
                 <Route path={RootRoutes.AuthorizedRoutes.CustomerRoutes.Root()} element={<CustomerRouter />}>
                     <Route path={RootRoutes.AuthorizedRoutes.CustomerRoutes.List()} element={<CustomerListScreen />} />

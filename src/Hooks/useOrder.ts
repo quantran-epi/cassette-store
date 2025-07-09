@@ -6,7 +6,14 @@ import {
 } from "@common/Constants/AppConstants";
 import {Order} from "@store/Models/Order";
 import {editCustomer} from "@store/Reducers/CustomerReducer";
-import {addDoneOrder, addOrder, editOrder, removeAllDoneOrder, removeDoneOrder} from "@store/Reducers/OrderReducer";
+import {
+    addCodPayment,
+    addDoneOrder,
+    addOrder,
+    editOrder,
+    removeAllDoneOrder,
+    removeDoneOrder
+} from "@store/Reducers/OrderReducer";
 import {RootState, store} from "@store/Store";
 import {cloneDeep, uniq} from "lodash";
 import {useDispatch, useSelector} from "react-redux";
@@ -20,6 +27,7 @@ import {RcFile} from "antd/es/upload";
 import {TrelloAttachment} from "./Trello/Models/TrelloAttachment";
 import {nanoid} from "nanoid";
 import moment from "moment";
+import {CodPaymentCycle} from "@store/Models/CodPaymentCycle";
 
 type UseOrder = {
     isShipped: (orderId: string) => boolean;
@@ -68,6 +76,7 @@ type UseOrder = {
     getTotalOrderBomAll: () => number;
 
     refreshDoneOrders: () => Promise<number>;
+    addPaymentOrderCycle: (paymentCycle: CodPaymentCycle) => void;
 }
 
 type UseOrderProps = {}
@@ -473,6 +482,17 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
         return doneOrders.length || 0;
     }
 
+    const addPaymentOrderCycle = (paymentCycle: CodPaymentCycle): void => {
+        dispatch(addCodPayment(paymentCycle));
+        paymentCycle.paymentOrders.forEach(orderId => {
+            let order = _findOrderById(orderId);
+            let customer = _findCustomerById(order.customerId);
+            order.isPayCOD = true;
+            dispatch(editOrder({order, customer}));
+        });
+    }
+
+
     return {
         markOrderAsRefuseToReceive,
         isRefuseToReceive,
@@ -516,6 +536,7 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
         getTotalOrderBomAll,
         canMarkAsPayCOD,
         markOrderAsPayCOD,
-        refreshDoneOrders
+        refreshDoneOrders,
+        addPaymentOrderCycle
     }
 }
