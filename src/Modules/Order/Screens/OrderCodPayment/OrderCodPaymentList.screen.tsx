@@ -27,7 +27,7 @@ export const OrderCodPaymentListScreen = () => {
     const toggleAddPayment = useToggle();
 
     const filteredPayments = useMemo<CodPaymentCycle[]>(() => {
-        return orderBy(payments.filter(e => e.name.trim().toLowerCase().includes(searchText.trim().toLowerCase())
+        return orderBy((payments || []).filter(e => e.name.trim().toLowerCase().includes(searchText.trim().toLowerCase())
         ), ["cycleDate"], ["desc"]);
     }, [payments, searchText])
 
@@ -41,7 +41,7 @@ export const OrderCodPaymentListScreen = () => {
             <Button onClick={_onAddPayment} icon={<PlusOutlined/>}/>
         </Stack.Compact>
         <List
-            pagination={payments.length > 0 ? {
+            pagination={filteredPayments.length > 0 ? {
                 position: "bottom", align: "center", pageSize: 10
             } : false}
             itemLayout="horizontal"
