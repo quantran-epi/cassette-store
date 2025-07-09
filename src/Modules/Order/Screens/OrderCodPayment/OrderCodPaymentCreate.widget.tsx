@@ -41,7 +41,8 @@ export const OrderCodPaymentCreateWidget: FunctionComponent<OrderCodPaymentCreat
     }, [orders, payCodOrders])
 
     const debitShipNotSelectedOrders = useMemo(() => {
-        return orders.filter(e => moment(new Date(e.createdDate)).isAfter(moment("07/07/2025", "dd/mm/yyyy"))
+        return orders.filter(e =>  e.status !== ORDER_STATUS.PLACED
+            && moment(new Date(e.createdDate)).isAfter(moment("07/07/2025", "DD/MM/yyyy"))
             && !codPaymentCycles.map(c => c.debitFeeOrders).flat().includes(e.id)
             && !debitShipOrders.map(o => o.id).includes(e.id));
     }, [orders, debitShipOrders])
@@ -86,6 +87,7 @@ export const OrderCodPaymentCreateWidget: FunctionComponent<OrderCodPaymentCreat
             label: 'Trả COD',
             children: <React.Fragment>
                 <Select
+                value={payCodOrders}
                     showSearch
                     mode={"multiple"}
                     placeholder="Chọn"
@@ -118,6 +120,7 @@ export const OrderCodPaymentCreateWidget: FunctionComponent<OrderCodPaymentCreat
             label: 'Thu phí ship',
             children: <React.Fragment>
                 <Select
+                value={debitShipOrders}
                     showSearch
                     mode={"multiple"}
                     placeholder="Chọn"
@@ -150,7 +153,7 @@ export const OrderCodPaymentCreateWidget: FunctionComponent<OrderCodPaymentCreat
     return <Modal open={props.open} title={
         <Space>
             <CreditCardOutlined/>
-            Tạo kỳ thanh toán COD {moment().format("dd/mm/yyyy")}
+            Tạo kỳ thanh toán COD {moment().format("DD/MM/yyyy")}
         </Space>
     } destroyOnClose={true} onCancel={props.onClose} footer={<Stack fullwidth justify="flex-end">
         <Button loading={toggleLoading.value} type="primary" onClick={_onSave}>Lưu</Button>
