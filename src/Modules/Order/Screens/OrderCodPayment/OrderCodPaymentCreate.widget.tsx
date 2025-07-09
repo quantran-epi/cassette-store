@@ -88,7 +88,7 @@ export const OrderCodPaymentCreateWidget: FunctionComponent<OrderCodPaymentCreat
             label: 'Trả COD',
             children: <React.Fragment>
                 <Select
-                value={payCodOrders}
+                value={payCodOrders.map(e=>e.id)}
                     showSearch
                     mode={"multiple"}
                     placeholder="Chọn"
@@ -121,7 +121,7 @@ export const OrderCodPaymentCreateWidget: FunctionComponent<OrderCodPaymentCreat
             label: 'Thu phí ship',
             children: <React.Fragment>
                 <Select
-                value={debitShipOrders}
+                value={debitShipOrders.map(e=>e.id)}
                     showSearch
                     mode={"multiple"}
                     placeholder="Chọn"
