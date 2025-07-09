@@ -26,7 +26,7 @@ type OrderCodPaymentCreateWidgetProps = {
 
 export const OrderCodPaymentCreateWidget: FunctionComponent<OrderCodPaymentCreateWidgetProps> = (props) => {
     const orders = useSelector((state: RootState) => state.order.orders);
-    const codPaymentCycles = useSelector((state: RootState) => state.order.codPayments);
+    const codPaymentCycles = useSelector((state: RootState) => state.order.codPayments || []);
     const toggleLoading = useToggle();
     const [payCodOrders, setPayCodOrders] = useState<Order[]>([]);
     const [debitShipOrders, setDebitShipOrders] = useState<Order[]>([]);
