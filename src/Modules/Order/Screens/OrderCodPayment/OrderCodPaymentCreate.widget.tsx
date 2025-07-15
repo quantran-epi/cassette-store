@@ -44,7 +44,7 @@ export const OrderCodPaymentCreateWidget: FunctionComponent<OrderCodPaymentCreat
 
     const debitShipNotSelectedOrders = useMemo(() => {
         return orderBy(orders.filter(e =>  e.status !== ORDER_STATUS.PLACED
-            && !codPaymentCycles.map(c => c.debitFeeOrders).flat().includes(e.id)
+            && !codPaymentCycles.map(c => c.debitFeeOrders).flat().includes(e.id) && e.sequence > 49
             && !debitShipOrders.map(o => o.id).includes(e.id)), ["createdDate"], ["desc"]);
     }, [orders, debitShipOrders])
 
@@ -54,7 +54,7 @@ export const OrderCodPaymentCreateWidget: FunctionComponent<OrderCodPaymentCreat
             onOk: () => {
                 let payment: CodPaymentCycle = {
                     id: moment().format("ddmmyyyy").concat(nanoid(5)),
-                    name: "Kỳ trả COD" + moment().format("dd/mm/yyyy"),
+                    name: "Kỳ trả COD " + moment().format("DD/MM/yyyy"),
                     cycleDate: new Date().toUTCString(),
                     debitFeeOrders: debitShipOrders.map(e => e.id),
                     paymentOrders: payCodOrders.map(e => e.id)
