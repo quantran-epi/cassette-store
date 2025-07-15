@@ -47,7 +47,7 @@ export const OrderListScreen = () => {
     const [prefilledCustomer, setPrefilledCustomer] = useState<Partial<Customer>>();
 
     const filteredOrders = useMemo<Order[]>(() => {
-        return orderBy(orders.filter(e => e.name.trim().toLowerCase().includes(searchText.trim().toLowerCase()) &&
+        return orderBy(orders.filter(e => (e.name.trim().toLowerCase().includes(searchText.trim().toLowerCase()) || e.shippingCode.includes(searchText)) &&
             (searchStatuses.length === 0 || searchStatuses.includes(e.status))
             && (searchPayCODStatus === "0" ? true : (searchPayCODStatus === "1" ? e.isPayCOD == true : (searchPayCODStatus === "2" ? e.isPayCOD == false && e.paymentMethod === ORDER_PAYMENT_METHOD.CASH_COD : true)))
         ), ["createdDate"], ["desc"]);

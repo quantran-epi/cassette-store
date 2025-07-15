@@ -76,7 +76,7 @@ export const orderSlice = createSlice({
 
         },
         addCodPayment: (state, action: PayloadAction<CodPaymentCycle>) => {
-            state.codPayments = [...state.codPayments, action.payload];
+            state.codPayments = [...state.codPayments||[], action.payload];
         },
     },
 })
