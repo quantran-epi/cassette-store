@@ -54,11 +54,11 @@ export const OrderCodPaymentListScreen = () => {
                     description={<Stack gap={4} direction={"column"} align={"flex-start"}>
                         <Space>
                             <DollarOutlined />
-                            <Typography.Text>Trả COD: {orders.filter(e => item.paymentOrders.includes(e.id)).reduce((prev, cur) => prev + cur.codAmount, 0)}</Typography.Text>
+                            <Typography.Text>Trả COD: {(orders.filter(e => item.paymentOrders.includes(e.id)).reduce((prev, cur) => prev + cur.codAmount, 0) - orders.filter(e => item.debitFeeOrders.includes(e.id)).reduce((prev, cur) => prev + cur.shippingCost, 0)).toLocaleString()} đ</Typography.Text>
                         </Space>
                         <Space>
                             <TruckOutlined />
-                            <Typography.Text>Phí ship: {orders.filter(e => item.debitFeeOrders.includes(e.id)).reduce((prev, cur) => prev + cur.shippingCost, 0)}</Typography.Text>
+                            <Typography.Text>Phí ship: {orders.filter(e => item.debitFeeOrders.includes(e.id)).reduce((prev, cur) => prev + cur.shippingCost, 0).toLocaleString()} đ</Typography.Text>
                         </Space>
                         <Space>
                             <CalendarOutlined />
