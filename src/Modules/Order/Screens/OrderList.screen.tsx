@@ -113,20 +113,20 @@ export const OrderListScreen = () => {
             <Row>
                 <Col span={13}>
                     <Badge count={doneOrders.length} size="small" offset={[-1, 7]}>
-                        <Checkbox value={ORDER_STATUS.PLACED}>{ORDER_STATUS.PLACED} <Typography.Text style={{ fontSize: "0.7em" }}>({orders.filter(e => e.status === ORDER_STATUS.PLACED).length})</Typography.Text></Checkbox>
+                        <Checkbox value={ORDER_STATUS.PLACED}>{ORDER_STATUS.PLACED} <Typography.Text style={{ fontSize: "0.6em" }}>({orders.filter(e => e.status === ORDER_STATUS.PLACED).length})</Typography.Text></Checkbox>
                     </Badge>
                 </Col>
                 <Col span={11}>
-                    <Checkbox value={ORDER_STATUS.CREATE_DELIVERY}>{ORDER_STATUS.CREATE_DELIVERY} <Typography.Text style={{ fontSize: "0.7em" }}>({orders.filter(e => e.status === ORDER_STATUS.CREATE_DELIVERY).length})</Typography.Text></Checkbox>
+                    <Checkbox value={ORDER_STATUS.CREATE_DELIVERY}>{ORDER_STATUS.CREATE_DELIVERY} <Typography.Text style={{ fontSize: "0.6em" }}>({orders.filter(e => e.status === ORDER_STATUS.CREATE_DELIVERY).length})</Typography.Text></Checkbox>
                 </Col>
                 <Col span={13}>
-                    <Checkbox value={ORDER_STATUS.SHIPPED}>{"Thành công"} <Typography.Text style={{ fontSize: "0.7em" }}>({orders.filter(e => e.status === ORDER_STATUS.SHIPPED).length})</Typography.Text></Checkbox>
+                    <Checkbox value={ORDER_STATUS.SHIPPED}>{"Thành công"} <Typography.Text style={{ fontSize: "0.6em" }}>({orders.filter(e => e.status === ORDER_STATUS.SHIPPED).length})</Typography.Text></Checkbox>
                 </Col>
                 <Col span={11}>
-                    <Checkbox value={ORDER_STATUS.RETURNED}>{"Chuyển hoàn"} <Typography.Text style={{ fontSize: "0.7em" }}>({orders.filter(e => e.status === ORDER_STATUS.RETURNED).length})</Typography.Text></Checkbox>
+                    <Checkbox value={ORDER_STATUS.RETURNED}>{"Chuyển hoàn"} <Typography.Text style={{ fontSize: "0.6em" }}>({orders.filter(e => e.status === ORDER_STATUS.RETURNED).length})</Typography.Text></Checkbox>
                 </Col>
                 <Col span={13}>
-                    <Checkbox value={ORDER_STATUS.WAITING_FOR_RETURNED}>{ORDER_STATUS.WAITING_FOR_RETURNED} <Typography.Text style={{ fontSize: "0.7em" }}>({orders.filter(e => e.status === ORDER_STATUS.WAITING_FOR_RETURNED).length})</Typography.Text></Checkbox>
+                    <Checkbox value={ORDER_STATUS.WAITING_FOR_RETURNED}>{ORDER_STATUS.WAITING_FOR_RETURNED} <Typography.Text style={{ fontSize: "0.6em" }}>({orders.filter(e => e.status === ORDER_STATUS.WAITING_FOR_RETURNED).length})</Typography.Text></Checkbox>
                 </Col>
             </Row>
         </AntCheckbox.Group>
@@ -136,13 +136,13 @@ export const OrderListScreen = () => {
             defaultValue={"0"}
             onChange={_onChangeStatusPayCOD}>
             <Row>
-                <Col span={6}>
+                <Col span={7}>
                     <Radio value="0">Tất cả</Radio>
                 </Col>
                 <Col span={8}>
                     <Radio value="1">Đã trả</Radio>
                 </Col>
-                <Col span={10}>
+                <Col span={9}>
                     <Radio value="2">Chưa trả</Radio>
                 </Col>
             </Row>
