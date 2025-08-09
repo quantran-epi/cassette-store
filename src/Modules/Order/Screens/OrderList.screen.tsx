@@ -120,10 +120,10 @@ export const OrderListScreen = () => {
                     <Checkbox value={ORDER_STATUS.CREATE_DELIVERY}>{ORDER_STATUS.CREATE_DELIVERY} <Typography.Text style={{ fontSize: "0.7em" }}>({orders.filter(e => e.status === ORDER_STATUS.CREATE_DELIVERY).length})</Typography.Text></Checkbox>
                 </Col>
                 <Col span={13}>
-                    <Checkbox value={ORDER_STATUS.SHIPPED}>{"Giao thành công"} <Typography.Text style={{ fontSize: "0.7em" }}>({orders.filter(e => e.status === ORDER_STATUS.SHIPPED).length})</Typography.Text></Checkbox>
+                    <Checkbox value={ORDER_STATUS.SHIPPED}>{"Thành công"} <Typography.Text style={{ fontSize: "0.7em" }}>({orders.filter(e => e.status === ORDER_STATUS.SHIPPED).length})</Typography.Text></Checkbox>
                 </Col>
                 <Col span={11}>
-                    <Checkbox value={ORDER_STATUS.RETURNED}>{ORDER_STATUS.RETURNED} <Typography.Text style={{ fontSize: "0.7em" }}>({orders.filter(e => e.status === ORDER_STATUS.RETURNED).length})</Typography.Text></Checkbox>
+                    <Checkbox value={ORDER_STATUS.RETURNED}>{"Chuyển hoàn"} <Typography.Text style={{ fontSize: "0.7em" }}>({orders.filter(e => e.status === ORDER_STATUS.RETURNED).length})</Typography.Text></Checkbox>
                 </Col>
                 <Col span={13}>
                     <Checkbox value={ORDER_STATUS.WAITING_FOR_RETURNED}>{ORDER_STATUS.WAITING_FOR_RETURNED} <Typography.Text style={{ fontSize: "0.7em" }}>({orders.filter(e => e.status === ORDER_STATUS.WAITING_FOR_RETURNED).length})</Typography.Text></Checkbox>
@@ -140,10 +140,10 @@ export const OrderListScreen = () => {
                     <Radio value="0">Tất cả</Radio>
                 </Col>
                 <Col span={8}>
-                    <Radio value="1">Đã trả COD</Radio>
+                    <Radio value="1">Đã trả</Radio>
                 </Col>
                 <Col span={10}>
-                    <Radio value="2">Chưa trả COD</Radio>
+                    <Radio value="2">Chưa trả</Radio>
                 </Col>
             </Row>
         </AntRadio.Group>
