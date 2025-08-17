@@ -1,6 +1,6 @@
 import { Space } from "@components/Layout/Space";
 import { Modal } from "@components/Modal";
-import { FunctionComponent, useEffect, useState } from "react";
+import { FunctionComponent, useEffect, useRef, useState } from "react";
 import {
     BarcodeOutlined
 } from "@ant-design/icons";
@@ -23,7 +23,7 @@ type ChangeShippingCodeWidgetProps = {
 export const OrderChangeShippingCodeWidget: FunctionComponent<ChangeShippingCodeWidgetProps> = (props) => {
     const [code, setCode] = useState<string>(props.value);
     const [clipboardCode, setClipboardCode] = useState<string>("");
-    let interval: NodeJS.Timer = null;
+    const interval = useRef<NodeJS.Timer>(null);
 
     useEffect(() => {
         setCode(props.value);
@@ -31,13 +31,13 @@ export const OrderChangeShippingCodeWidget: FunctionComponent<ChangeShippingCode
 
     useEffect(() => {
         if (props.open)
-            interval = setInterval(() => {
+            interval.current = setInterval(() => {
                 navigator.clipboard.readText().then(text => setClipboardCode(code => text));
             }, 500);
-        else if (interval) clearInterval(interval);
+        else if (interval?.current) clearInterval(interval.current);
 
         return () => {
-            if (interval) clearInterval(interval);
+            if (interval?.current) clearInterval(interval.current);
         }
     }, [props.open])
 
