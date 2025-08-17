@@ -1,28 +1,15 @@
 import { Space } from "@components/Layout/Space";
 import { Modal } from "@components/Modal";
-import { FunctionComponent, useEffect, useRef, useState } from "react";
+import { FunctionComponent, useEffect, useState } from "react";
 import {
-    BarcodeOutlined,
-    CheckCircleOutlined,
-    ClockCircleOutlined,
-    CloseOutlined,
-    CloudUploadOutlined,
-    DeleteOutlined,
-    DollarOutlined,
-    DoubleLeftOutlined,
-    EnvironmentOutlined,
-    FileTextOutlined,
-    MoreOutlined,
-    PhoneOutlined,
-    TruckOutlined,
-    ToolOutlined
+    BarcodeOutlined
 } from "@ant-design/icons";
 import { Input } from "antd";
 import { Stack } from "@components/Layout/Stack";
 import { Button } from "@components/Button";
 import { Order } from "@store/Models/Order";
-import { Typography } from "@components/Typography";
 import { SmartForm } from "@components/SmartForm";
+import { Tag } from "@components/Tag";
 
 type ChangeShippingCodeWidgetProps = {
     order: Order;
@@ -35,10 +22,24 @@ type ChangeShippingCodeWidgetProps = {
 
 export const OrderChangeShippingCodeWidget: FunctionComponent<ChangeShippingCodeWidgetProps> = (props) => {
     const [code, setCode] = useState<string>(props.value);
+    const [clipboardCode, setClipboardCode] = useState<string>("");
+    let interval: NodeJS.Timer = null;
 
     useEffect(() => {
         setCode(props.value);
     }, [props.value])
+
+    useEffect(() => {
+        if (props.open)
+            interval = setInterval(() => {
+                navigator.clipboard.readText().then(text => setClipboardCode(code => text));
+            }, 500);
+        else if (interval) clearInterval(interval);
+
+        return () => {
+            if (interval) clearInterval(interval);
+        }
+    }, [props.open])
 
     return <Modal open={props.open} title={
         <Space>
@@ -48,8 +49,11 @@ export const OrderChangeShippingCodeWidget: FunctionComponent<ChangeShippingCode
     } destroyOnClose={true} onCancel={props.onClose} footer={<Stack fullwidth justify="flex-end">
         <Button loading={props.loading} type="primary" onClick={() => props.onSave(code)}>Lưu mã</Button>
     </Stack>}>
-            <SmartForm.Item label="Mã vận đơn">
-                <Input allowClear autoFocus value={code} onChange={e => setCode(e.target.value)} />
-            </SmartForm.Item>
+        <SmartForm.Item label="Mã vận đơn">
+            <Input allowClear autoFocus value={code} onChange={e => setCode(e.target.value)} />
+        </SmartForm.Item>
+        {Boolean(clipboardCode) && <Tag onClick={() => {
+            setCode(clipboardCode);
+        }}>{clipboardCode}</Tag>}
     </Modal>
 }
