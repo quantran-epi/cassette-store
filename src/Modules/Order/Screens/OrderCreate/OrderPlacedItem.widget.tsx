@@ -100,7 +100,7 @@ export const OrderPlacedItem: FunctionComponent<OrderPlacedItemProps> = (props) 
                                 onChange={_onChangeCount}
                                 popupMatchSelectWidth={100}
                                 style={{ width: '100%' }}>
-                                {new Array(10).fill(1).map((v, i) => <Option key={i + 1} value={i + 1}>{i + 1} băng</Option>)}
+                                {new Array(50).fill(1).map((v, i) => <Option key={i + 1} value={i + 1}>{i + 1} băng</Option>)}
                             </Select>
                         </SmartForm.Item>
                     </Col>
