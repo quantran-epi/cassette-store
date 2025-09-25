@@ -173,7 +173,7 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
             customer.buyAmount += order.placedItems.reduce((prev, cur) => {
                 return prev + (cur.count * cur.unitPrice);
             }, 0)
-            if (customer.buyCount > 4) customer.isVIP = true;
+            if ((customer.buyCount > 4 && customer.buyAmount >= 2000000) || customer.buyAmount >= 3000000) customer.isVIP = true;
 
             dispatch(editOrder({order, customer}));
             dispatch(editCustomer(customer));

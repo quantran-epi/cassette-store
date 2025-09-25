@@ -160,10 +160,10 @@ export const OrderListScreen = () => {
                     <Tag color={COLORS.ORDER_STATUS.SHIPPED}>{cassetteAmount} băng</Tag>
                 </Popover>
                 <Tooltip title={"Dự kiến số tiền thu về"}>
-                    <Tag color={COLORS.ORDER_STATUS.SHIPPED}>Thu: {cashAmount.toLocaleString()}đ</Tag>
+                    <Tag color={COLORS.ORDER_STATUS.SHIPPED}>Thu: {cashAmount.toLocaleString()}</Tag>
                 </Tooltip>
                 <Tooltip title={"Dự kiến số tiền COD thu về"}>
-                    <Tag color={COLORS.ORDER_STATUS.SHIPPED}>COD: {codReceivedAmount.toLocaleString()}đ</Tag>
+                    <Tag color={COLORS.ORDER_STATUS.SHIPPED}>COD: {codReceivedAmount.toLocaleString()}</Tag>
                 </Tooltip>
             </Stack>
         </Stack>
