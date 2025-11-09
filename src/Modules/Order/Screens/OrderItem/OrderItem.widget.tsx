@@ -358,7 +358,7 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                                 <Button onClick={() => null}
                                         type="text"
                                         style={{paddingInline: 0, fontWeight: "bold", textAlign: "left"}}>
-                                    <Typography.Paragraph ellipsis style={{width: 320, marginBottom: 0, textAlign: "left"}}>{props.item.name}
+                                    <Typography.Paragraph ellipsis style={{width: 320,marginRight: 5, marginBottom: 0, textAlign: "left"}}>{props.item.name}
                     {_renderOrderIcon()}
                                     </Typography.Paragraph>
                                 </Button>
@@ -367,7 +367,7 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                             <Button onClick={() => null}
                                     type="text"
                                     style={{paddingInline: 0, fontWeight: "bold", textAlign: "left"}}>
-                                <Typography.Paragraph ellipsis style={{width: 320, marginBottom: 0, textAlign: "left"}}>{props.item.name}
+                                <Typography.Paragraph ellipsis style={{width: 320, marginRight: 5, marginBottom: 0, textAlign: "left"}}>{props.item.name}
                     {_renderOrderIcon()}
                                 </Typography.Paragraph>
                             </Button>
