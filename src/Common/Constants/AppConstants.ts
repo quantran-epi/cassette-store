@@ -51,7 +51,11 @@ export const ORDER_ITEM_TYPE  = {
     "MAXELL-90p-100K": 100000,
     "TDK-90p-80K": 80000,
     "TDK-120p-100K": 100000,
-    "TDK-150p-120K": 120000
+    "TDK-150p-120K": 120000,
+    "TDK": 0,
+    "SONY": 0,
+    "MAXELL": 0,
+    "LOẠI KHÁC": 0
 }
 
 export const COLORS = {
