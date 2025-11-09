@@ -358,14 +358,14 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                                 <Button onClick={() => null}
                                         type="text"
                                         style={{paddingInline: 0, fontWeight: "bold"}}>
-                                    <Typography.Paragraph ellipsis style={{width: 310, marginBottom: 0}}>{props.item.name}</Typography.Paragraph>
+                                    <Typography.Paragraph ellipsis style={{width: 350, marginBottom: 0}}>{props.item.name}</Typography.Paragraph>
                                 </Button>
                             </Tooltip>
                         </Badge> : <Tooltip title={props.item.name}>
                             <Button onClick={() => null}
                                     type="text"
                                     style={{paddingInline: 0, fontWeight: "bold"}}>
-                                <Typography.Paragraph ellipsis style={{width: 310, marginBottom: 0}}>{props.item.name}</Typography.Paragraph>
+                                <Typography.Paragraph ellipsis style={{width: 350, marginBottom: 0}}>{props.item.name}</Typography.Paragraph>
                             </Button>
                         </Tooltip>}
                     {_renderOrderIcon()}
