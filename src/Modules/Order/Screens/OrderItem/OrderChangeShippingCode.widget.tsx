@@ -10,6 +10,7 @@ import { Button } from "@components/Button";
 import { Order } from "@store/Models/Order";
 import { SmartForm } from "@components/SmartForm";
 import { Tag } from "@components/Tag";
+import { ORDER_STATUS } from "@common/Constants/AppConstants";
 
 type ChangeShippingCodeWidgetProps = {
     order: Order;
@@ -22,38 +23,26 @@ type ChangeShippingCodeWidgetProps = {
 
 export const OrderChangeShippingCodeWidget: FunctionComponent<ChangeShippingCodeWidgetProps> = (props) => {
     const [code, setCode] = useState<string>(props.value);
-    const [clipboardCode, setClipboardCode] = useState<string>("");
+    // const [clipboardCode, setClipboardCode] = useState<string>("");
     const interval = useRef<NodeJS.Timer>(null);
 
     useEffect(() => {
         setCode(props.value);
     }, [props.value])
 
-    useEffect(() => {
-        if (props.open)
-            interval.current = setInterval(() => {
-                navigator.clipboard.readText().then(text => setClipboardCode(code => text));
-            }, 500);
-        else if (interval?.current) clearInterval(interval.current);
-
-        return () => {
-            if (interval?.current) clearInterval(interval.current);
-        }
-    }, [props.open])
-
     return <Modal open={props.open} title={
         <Space>
             <BarcodeOutlined />
             {props.order.name}
         </Space>
-    } destroyOnClose={true} onCancel={props.onClose} footer={<Stack fullwidth justify="flex-end">
+    } destroyOnClose={true} afterOpenChange={() => {
+        if (props.order.status === ORDER_STATUS.PLACED )
+            navigator.clipboard.readText().then(text => setCode(code => text))
+    }} onCancel={props.onClose} footer={<Stack fullwidth justify="flex-end">
         <Button loading={props.loading} type="primary" onClick={() => props.onSave(code)}>Lưu mã</Button>
     </Stack>}>
         <SmartForm.Item label="Mã vận đơn">
             <Input allowClear autoFocus value={code} onChange={e => setCode(e.target.value)} />
         </SmartForm.Item>
-        {Boolean(clipboardCode) && <Tag onClick={() => {
-            setCode(clipboardCode);
-        }}>{clipboardCode}</Tag>}
     </Modal>
 }
