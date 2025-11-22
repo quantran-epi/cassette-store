@@ -60,6 +60,7 @@ type OrderItemProps = {
 
 export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) => {
     const customers = useSelector((state: RootState) => state.customer.customers);
+    const orders = useSelector((state: RootState) => state.order.orders);
     const doneOrders = useSelector((state: RootState) => state.order.doneOrders);
     const dispatch = useDispatch();
     const message = useMessage();
@@ -244,6 +245,10 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
         toggleInputShippingCodeEditor.show();
     }
 
+    const _getBuyAmount = () => {
+        return orders.filter(e => e.status === ORDER_STATUS.SHIPPED && e.customerId === props.item.customerId).reduce((prev, cur) => prev + cur.paymentAmount, 0);
+    }
+
     return <React.Fragment>
         <List.Item
             actions={
@@ -353,7 +358,7 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                 title={<Stack gap={5}>
                     {doneOrders?.includes(props.item.trelloCardId) ?
                         <Badge count={"Tạo đơn"} size="small" offset={[0, 3]}>
-                            <Tooltip title={props.item.name + " (" + orderCustomer.buyCount + " đơn" + "-" + orderCustomer.buyAmount.toLocaleString() + "đ)"}>
+                            <Tooltip title={props.item.name + " (" + orderCustomer.buyCount + " đơn" + "-" + _getBuyAmount().toLocaleString() + "đ)"}>
                                 <Button onClick={() => null}
                                     type="text"
                                     style={{ paddingInline: 0, fontWeight: "bold", textAlign: "left" }}>
@@ -361,7 +366,7 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                                     </Typography.Paragraph>
                                 </Button>
                             </Tooltip>
-                        </Badge> : <Tooltip title={props.item.name + " (" + orderCustomer.buyCount + " đơn" + "-" + orderCustomer.buyAmount.toLocaleString() + "đ)"}>
+                        </Badge> : <Tooltip title={props.item.name + " (" + orderCustomer.buyCount + " đơn" + "-" + _getBuyAmount().toLocaleString() + "đ)"}>
                             <Button onClick={() => null}
                                 type="text"
                                 style={{ paddingInline: 0, fontWeight: "bold", textAlign: "left" }}>

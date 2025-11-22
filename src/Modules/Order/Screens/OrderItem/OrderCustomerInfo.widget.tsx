@@ -1,18 +1,20 @@
-import {Order} from "@store/Models/Order";
-import {Customer} from "@store/Models/Customer";
-import React, {FunctionComponent} from "react";
-import {Space} from "@components/Layout/Space";
-import {EditOutlined, EnvironmentOutlined, TruckOutlined, UserOutlined} from "@ant-design/icons";
-import {CustomerAddWidget} from "@modules/Customer/Screens/CustomerAdd.widget";
-import {Modal} from "@components/Modal";
-import {Stack} from "@components/Layout/Stack";
-import {Tooltip} from "@components/Tootip";
-import {Typography} from "@components/Typography";
-import {CopyToClipboard} from 'react-copy-to-clipboard';
-import {useMessage} from "@components/Message";
-import {Button} from "@components/Button";
-import {Tag} from "@components/Tag";
-import {COLORS} from "@common/Constants/AppConstants";
+import { Order } from "@store/Models/Order";
+import { Customer } from "@store/Models/Customer";
+import React, { FunctionComponent } from "react";
+import { Space } from "@components/Layout/Space";
+import { EditOutlined, EnvironmentOutlined, TruckOutlined, UserOutlined } from "@ant-design/icons";
+import { CustomerAddWidget } from "@modules/Customer/Screens/CustomerAdd.widget";
+import { Modal } from "@components/Modal";
+import { Stack } from "@components/Layout/Stack";
+import { Tooltip } from "@components/Tootip";
+import { Typography } from "@components/Typography";
+import { CopyToClipboard } from 'react-copy-to-clipboard';
+import { useMessage } from "@components/Message";
+import { Button } from "@components/Button";
+import { Tag } from "@components/Tag";
+import { COLORS, ORDER_STATUS } from "@common/Constants/AppConstants";
+import { useSelector } from "react-redux";
+import { RootState } from "@store/Store";
 
 type OrderCustomerInfoWidgetProps = {
     open: boolean;
@@ -22,11 +24,16 @@ type OrderCustomerInfoWidgetProps = {
 }
 
 export const OrderCustomerInfoWidget: FunctionComponent<OrderCustomerInfoWidgetProps> = (props) => {
+    const orders = useSelector((state: RootState) => state.order.orders);
     const message = useMessage();
     const _renderCustomerRank = () => {
-        if(props.customer.isVIP) return <Tag color={COLORS.CUSTOMER.VIP}>VIP</Tag>
-        else if(props.customer.isInBlacklist) return <Tag color={COLORS.CUSTOMER.BLACK_LIST}>Danh sách đen</Tag>
+        if (props.customer.isVIP) return <Tag color={COLORS.CUSTOMER.VIP}>VIP</Tag>
+        else if (props.customer.isInBlacklist) return <Tag color={COLORS.CUSTOMER.BLACK_LIST}>Danh sách đen</Tag>
         else return <Tag>Thông thường</Tag>
+    }
+
+    const _getBuyAmount = () => {
+        return orders.filter(e => e.status === ORDER_STATUS.SHIPPED && e.customerId === props.customer.id).reduce((prev, cur) => prev + cur.paymentAmount, 0);
     }
 
     return <Modal open={props.open} centered title={
@@ -37,21 +44,21 @@ export const OrderCustomerInfoWidget: FunctionComponent<OrderCustomerInfoWidgetP
     } destroyOnClose={true} onCancel={props.onClose} footer={null}>
         <Stack direction={"column"} align={"flex-start"}>
             <CopyToClipboard text={props.order.name}
-                             onCopy={() => message.success("Đã sao chép Tên đơn hàng")}>
+                onCopy={() => message.success("Đã sao chép Tên đơn hàng")}>
                 <Typography.Text>
                     <Typography.Text strong>Tên khách hàng: </Typography.Text>
                     <Typography.Text>{props.customer.name}</Typography.Text>
                 </Typography.Text>
             </CopyToClipboard>
             <CopyToClipboard text={props.customer.mobile}
-                             onCopy={() => message.success("Đã sao chép Số điện thoại")}>
+                onCopy={() => message.success("Đã sao chép Số điện thoại")}>
                 <Typography.Text>
                     <Typography.Text strong>Số điện thoại: </Typography.Text>
                     <Typography.Text>{props.customer.mobile}</Typography.Text>
                 </Typography.Text>
             </CopyToClipboard>
             <CopyToClipboard text={props.customer.address}
-                             onCopy={() => message.success("Đã sao chép Địa chỉ")}>
+                onCopy={() => message.success("Đã sao chép Địa chỉ")}>
                 <Typography.Text>
                     <Typography.Text strong>Địa chỉ: </Typography.Text>
                     <Typography.Text>{props.customer.address}</Typography.Text>
@@ -67,7 +74,7 @@ export const OrderCustomerInfoWidget: FunctionComponent<OrderCustomerInfoWidgetP
             </Typography.Text>
             <Typography.Text>
                 <Typography.Text strong>Số tiền đã mua: </Typography.Text>
-                <Typography.Text>{props.customer.buyAmount.toLocaleString()} đ</Typography.Text>
+                <Typography.Text>{_getBuyAmount().toLocaleString()} đ</Typography.Text>
             </Typography.Text>
             <Typography.Text>
                 <Typography.Text strong>Ghi chú: </Typography.Text>
