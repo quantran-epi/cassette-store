@@ -123,7 +123,7 @@ export const OrderListScreen = () => {
                     <Checkbox value={ORDER_STATUS.SHIPPED}>{"Thành công"} <Typography.Text style={{ fontSize: "0.6em" }}>({orders.filter(e => e.status === ORDER_STATUS.SHIPPED).length})</Typography.Text></Checkbox>
                 </Col>
                 <Col span={10}>
-                    <Checkbox value={ORDER_STATUS.RETURNED}>{"Chuyển hoàn"} <Typography.Text style={{ fontSize: "0.6em" }}>({orders.filter(e => e.status === ORDER_STATUS.RETURNED).length})</Typography.Text></Checkbox>
+                    <Checkbox value={ORDER_STATUS.RETURNED}>{"Hoàn về"} <Typography.Text style={{ fontSize: "0.6em" }}>({orders.filter(e => e.status === ORDER_STATUS.RETURNED).length})</Typography.Text></Checkbox>
                 </Col>
                 <Col span={14}>
                     <Checkbox value={ORDER_STATUS.WAITING_FOR_RETURNED}>{ORDER_STATUS.WAITING_FOR_RETURNED} <Typography.Text style={{ fontSize: "0.6em" }}>({orders.filter(e => e.status === ORDER_STATUS.WAITING_FOR_RETURNED).length})</Typography.Text></Checkbox>
@@ -149,7 +149,7 @@ export const OrderListScreen = () => {
         </AntRadio.Group>
         <Divider orientation="left" style={{ marginBottom: 0 }}>Danh sách đơn hàng ({filteredOrders.length} đơn)</Divider>
         <Stack style={{ marginTop: 5 }} gap={7} direction="column" align="flex-start">
-            <Stack gap={3}>
+            <Stack gap={0}>
                 <Popover title="Chi tiết các loại băng" content={<List
                     size="small"
                     dataSource={Object.keys(ORDER_ITEM_TYPE).filter(key => filteredOrders
@@ -160,10 +160,10 @@ export const OrderListScreen = () => {
                     <Tag color={COLORS.ORDER_STATUS.SHIPPED}>{cassetteAmount} băng</Tag>
                 </Popover>
                 <Tooltip title={"Dự kiến số tiền thu về"}>
-                    <Tag color={COLORS.ORDER_STATUS.SHIPPED}>Thu: {cashAmount.toLocaleString()}</Tag>
+                    <Tag color={COLORS.ORDER_STATUS.SHIPPED}>Thu:{cashAmount.toLocaleString()}</Tag>
                 </Tooltip>
                 <Tooltip title={"Dự kiến số tiền COD thu về"}>
-                    <Tag color={COLORS.ORDER_STATUS.SHIPPED}>COD: {codReceivedAmount.toLocaleString()}</Tag>
+                    <Tag color={COLORS.ORDER_STATUS.SHIPPED}>COD:{codReceivedAmount.toLocaleString()}</Tag>
                 </Tooltip>
             </Stack>
         </Stack>

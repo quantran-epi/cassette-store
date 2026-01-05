@@ -25,6 +25,7 @@ import { Space } from "@components/Layout/Space";
 import { Typography } from "@components/Typography";
 import { Tag } from "@components/Tag";
 import { useMessage } from "@components/Message";
+import { Customer } from "@store/Models/Customer";
 
 moment.updateLocale('en', { week: { dow: 1 } });
 
@@ -45,6 +46,13 @@ export const DashboardScreen = () => {
         return orders.filter(e => e.status === ORDER_STATUS.SHIPPED && e.customerId === customerId).reduce((prev, cur) => prev + cur.paymentAmount, 0);
     }
 
+    const _getColor = (orderCustomer: Customer) => {
+        if (orderCustomer.isVIP) return COLORS.CUSTOMER.VIP;
+        else if (orderCustomer.buyCount > 3) return COLORS.CUSTOMER.BUY_MUTIPLE_TIMES;
+        else if (orderCustomer.buyCount > 0) return COLORS.CUSTOMER.CONFIRMED;
+        else return undefined;
+    }
+
     const items: TabsProps['items'] = [
         {
             key: '1',
@@ -52,12 +60,6 @@ export const DashboardScreen = () => {
             children: <React.Fragment>
                 <Card title="Tổng tiền">
                     <Stack fullwidth direction={"column"} align={"flex-start"}>
-                        <Statistic
-                            title="Tổng tiền theo số băng"
-                            value={orders.reduce((prev, cur) => prev + cur.placedItems.reduce((prev1, cur1) => prev1 + (cur1.count * cur1.unitPrice), 0), 0)}
-                            suffix="đ"
-                            valueStyle={{ color: COLORS.ORDER_STATUS.SHIPPED }}
-                        />
                         <Statistic
                             title="Tổng tiền chuyển khoản"
                             value={orders.filter(e => e.paymentMethod === ORDER_PAYMENT_METHOD.BANK_TRANSFER_IN_ADVANCE).reduce((prev, cur) => prev + cur.paymentAmount, 0)}
@@ -94,12 +96,6 @@ export const DashboardScreen = () => {
                             value={shippingFeeInterest()}
                             suffix="đ"
                             valueStyle={{ color: shippingFeeInterest() > 0 ? COLORS.ORDER_STATUS.SHIPPED : COLORS.ORDER_STATUS.RETURNED }}
-                        />
-                        <Statistic
-                            title="Lãi thực tế (60%/băng, lãi theo băng + lãi ship)"
-                            value={actualInterest()}
-                            suffix="đ"
-                            valueStyle={{ color: actualInterest() > 0 ? COLORS.ORDER_STATUS.SHIPPED : COLORS.ORDER_STATUS.RETURNED }}
                         />
                     </Stack>
                 </Card>
@@ -245,9 +241,9 @@ export const DashboardScreen = () => {
                                 <Space size={3}>
                                     <Typography.Paragraph ellipsis style={{
                                         width: 220,
-                                        marginBottom: 0
+                                        marginBottom: 0,
+                                        color: _getColor(item)
                                     }}>{index + 1}. {item.name.concat("-").concat(item.province)}</Typography.Paragraph>
-                                    {item.isVIP && <Tag color={COLORS.CUSTOMER.VIP}>VIP</Tag>}
                                 </Space>
                                 <Tag>{_getBuyAmount(item.id).toLocaleString()} đ</Tag>
                             </Stack>
@@ -266,9 +262,9 @@ export const DashboardScreen = () => {
                                 <Space size={3}>
                                     <Typography.Paragraph ellipsis style={{
                                         width: 280,
-                                        marginBottom: 0
+                                        marginBottom: 0,
+                                        color: _getColor(item)
                                     }}>{index + 1}. {item.name.concat("-").concat(item.province)}</Typography.Paragraph>
-                                    {item.isVIP && <Tag color={COLORS.CUSTOMER.VIP}>VIP</Tag>}
                                 </Space>
                                 <Tag>{item.buyCount}</Tag>
                             </Stack>
