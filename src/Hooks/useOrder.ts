@@ -318,23 +318,23 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
     }
 
     const createOrder = async (order: Order, customer: Customer, fileAttachments: RcFile[]): Promise<TrelloCard> => {
-        let previousPendingOrders = orders.filter(o => o.status === ORDER_STATUS.PLACED);
+        // let previousPendingOrders = orders.filter(o => o.status === ORDER_STATUS.PLACED);
         dispatch(addOrder({order: order, customer})); // add first to get position
         let createdOrder = store.getState().order.orders.find(e => e.id === order.id);
         let trelloCard = await pushToTrelloToDoList(createdOrder);
 
-        //update all other pending orders's position
-        let currentPendingOrders = store.getState().order.orders.filter(o => o.status === ORDER_STATUS.PLACED);
-        const oldPosMap = new Map(previousPendingOrders.map(order => [order.id, order.position]));
-        let changedPositionOrders = currentPendingOrders.filter(order => {
-            const oldPos = oldPosMap.get(order.id);
-            return oldPos !== undefined && oldPos !== order.position;
-        });
-        let promises = changedPositionOrders.map(o => trello.updateCard({
-            id: o.trelloCardId,
-            pos: o.position
-        }));
-        await Promise.all(promises);
+        // //update all other pending orders's position
+        // let currentPendingOrders = store.getState().order.orders.filter(o => o.status === ORDER_STATUS.PLACED);
+        // const oldPosMap = new Map(previousPendingOrders.map(order => [order.id, order.position]));
+        // let changedPositionOrders = currentPendingOrders.filter(order => {
+        //     const oldPos = oldPosMap.get(order.id);
+        //     return oldPos !== undefined && oldPos !== order.position;
+        // });
+        // let promises = changedPositionOrders.map(o => trello.updateCard({
+        //     id: o.trelloCardId,
+        //     pos: o.position
+        // }));
+        // await Promise.all(promises);
 
         //save trello card id
         createdOrder = cloneDeep(createdOrder);
