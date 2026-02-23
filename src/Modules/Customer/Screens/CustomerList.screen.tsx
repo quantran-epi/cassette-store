@@ -41,7 +41,8 @@ export const CustomerListScreen = () => {
     const [searchText, setSearchText] = useState("");
 
     const filteredCustomers = useMemo(() => {
-        return sortBy(customers.filter(e => e.name.trim().toLowerCase().includes(searchText.trim().toLowerCase())
+        return sortBy(customers.filter(e => e.address.trim().toLowerCase().includes(searchText.trim().toLowerCase()) 
+        || e.name.trim().toLowerCase().includes(searchText.trim().toLowerCase())
             || e.mobile.includes(searchText.trim().toLowerCase())), "name");
     }, [customers, searchText])
 
