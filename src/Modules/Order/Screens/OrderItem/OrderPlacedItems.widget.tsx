@@ -74,6 +74,13 @@ export const OrderPlacedItemsWidget: FunctionComponent<OrderPlacedItemsWidgetPro
         });
     }
 
+    const _onChangeImportant = (e: ChangeEvent<HTMLInputElement>) => {
+        setOrder({
+            ...order,
+            important: e.target.value
+        });
+    }
+
     const _onSave = async () => {
         toggleLoading.show();
         let card = await orderUtils.updateOrder(order);
@@ -111,6 +118,9 @@ export const OrderPlacedItemsWidget: FunctionComponent<OrderPlacedItemsWidgetPro
             <SmartForm.Item label={"Ghi chú thông tin hàng"}>
                 <TextArea rows={3} onChange={_onChangeNote} value={order.note}/>
             </SmartForm.Item>
+            <SmartForm.Item label={"Thông tin quan trọng"}>
+                <Input placeholder="Nhập thông tin quan trọng" value={order.important} onChange={_onChangeImportant}/>
+                </SmartForm.Item>
         </SmartForm>
     </Modal>
 }

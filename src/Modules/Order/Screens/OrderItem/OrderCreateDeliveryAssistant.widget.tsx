@@ -11,6 +11,9 @@ import {Typography} from "@components/Typography";
 import {CopyToClipboard} from 'react-copy-to-clipboard';
 import {useMessage} from "@components/Message";
 import {Button} from "@components/Button";
+import { ORDER_PAYMENT_METHOD } from "@common/Constants/AppConstants";
+import { Tag } from "antd";
+import { Popover } from "@components/Popover";
 
 type OrderCreateDeliveryAssistantWidgetProps = {
     open: boolean;
@@ -30,6 +33,9 @@ export const OrderCreateDeliveryAssistantWidget: FunctionComponent<OrderCreateDe
         </Space>
     } destroyOnClose={true} onCancel={props.onClose} footer={<Button type={"primary"} onClick={props.onAddShippingCode}>Nhập mã vận đơn</Button>}>
         <Stack direction={"column"} align={"flex-start"}>
+            <Stack direction={"row"} align={"center"}>
+            <span>{props.order.paymentMethod === ORDER_PAYMENT_METHOD.BANK_TRANSFER_IN_ADVANCE && <Tag color="blue">Chuyển khoản trước</Tag>}</span>
+        </Stack>
             <CopyToClipboard text={props.order.name}
                              onCopy={() => message.success("Đã sao chép Tên đơn hàng")}>
                 <Typography.Text>
@@ -69,7 +75,7 @@ export const OrderCreateDeliveryAssistantWidget: FunctionComponent<OrderCreateDe
                              onCopy={() => message.success("Đã sao chép Ghi chú")}>
                 <Typography.Text>
                     <Typography.Text strong>Ghi chú: </Typography.Text>
-                    <Typography.Text>Cho xem hàng, KHÔNG DÙNG THỬ</Typography.Text>
+                    {props.order.paymentMethod !== ORDER_PAYMENT_METHOD.BANK_TRANSFER_IN_ADVANCE && <Typography.Text>Cho xem hàng, KHÔNG DÙNG THỬ</Typography.Text>}
                 </Typography.Text>
             </CopyToClipboard>
             <CopyToClipboard text={"băng cát sét"}
@@ -79,6 +85,19 @@ export const OrderCreateDeliveryAssistantWidget: FunctionComponent<OrderCreateDe
                     <Typography.Text>băng cát sét</Typography.Text>
                 </Typography.Text>
             </CopyToClipboard>
+            <CopyToClipboard text={props.order.important || "Không có thông tin quan trọng nào"}
+                             onCopy={() => message.success("Đã sao chép Thông tin quan trọng")}>
+                <Typography.Text>
+                    <Typography.Text strong>Thông tin quan trọng: </Typography.Text>
+                    <Typography.Text style={{color: "red"}}>{props.order.important || ""}</Typography.Text>
+                </Typography.Text>
+            </CopyToClipboard>
+            <Typography.Text>
+                <Typography.Text strong>Ghi chú hàng: </Typography.Text>
+                    {props.order.note? <Popover content={props.order.note}>
+                        <Button type={"link"}>Xem ghi chú</Button>
+                    </Popover> : <Typography.Text>Không có ghi chú nào</Typography.Text>}
+            </Typography.Text>
         </Stack>
     </Modal>
 }

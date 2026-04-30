@@ -150,7 +150,7 @@ export const OrderListScreen = () => {
         <Divider orientation="left" style={{ marginBottom: 0 }}>Danh sách đơn hàng ({filteredOrders.length} đơn)</Divider>
         <Stack style={{ marginTop: 5 }} gap={7} direction="column" align="flex-start">
             <Stack gap={0}>
-                <Popover title="Chi tiết các loại băng" content={<List
+                {/* <Popover title="Chi tiết các loại băng" content={<List
                     size="small"
                     dataSource={Object.keys(ORDER_ITEM_TYPE).filter(key => filteredOrders
                         .reduce((prev, cur) => prev + cur.placedItems.filter(c => c.type === key).reduce((prev1, cur1) => prev1 + cur1.count, 0), 0) > 0)}
@@ -158,12 +158,12 @@ export const OrderListScreen = () => {
                         .reduce((prev, cur) => prev + cur.placedItems.filter(c => c.type === key).reduce((prev1, cur1) => prev1 + cur1.count, 0), 0)}</Typography.Text></List.Item>}
                 />}>
                     <Tag color={COLORS.ORDER_STATUS.SHIPPED}>{cassetteAmount} băng</Tag>
-                </Popover>
+                </Popover> */}
                 <Tooltip title={"Dự kiến số tiền thu về"}>
-                    <Tag color={COLORS.ORDER_STATUS.SHIPPED}>Thu:{cashAmount.toLocaleString()}</Tag>
+                    <Tag color={COLORS.ORDER_STATUS.SHIPPED}>Thu: {cashAmount.toLocaleString()}</Tag>
                 </Tooltip>
                 <Tooltip title={"Dự kiến số tiền COD thu về"}>
-                    <Tag color={COLORS.ORDER_STATUS.SHIPPED}>COD:{codReceivedAmount.toLocaleString()}</Tag>
+                    <Tag color={COLORS.ORDER_STATUS.SHIPPED}>COD: {codReceivedAmount.toLocaleString()}</Tag>
                 </Tooltip>
             </Stack>
         </Stack>

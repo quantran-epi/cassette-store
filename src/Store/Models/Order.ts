@@ -26,6 +26,7 @@ export type Order = {
     note: string;
     isFreeShip: boolean;
     isPayCOD: boolean;
+    important?: string;
 }
 
 export type ChangeItem = {

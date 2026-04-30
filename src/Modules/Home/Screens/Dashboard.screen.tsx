@@ -80,25 +80,6 @@ export const DashboardScreen = () => {
                         />
                     </Stack>
                 </Card>
-                <br />
-                <Card title="Lãi">
-                    <Stack fullwidth direction={"column"} align={"flex-start"}>
-                        <Statistic
-                            title="Thu về thực tế (tổng đã thu về - tổng ship)"
-                            value={orders.filter(e => (e.status === ORDER_STATUS.SHIPPED && e.isPayCOD == true) || e.paymentMethod === ORDER_PAYMENT_METHOD.BANK_TRANSFER_IN_ADVANCE)
-                                .reduce((prev, cur) => prev + cur.paymentAmount, 0)
-                                - orders.reduce((prev, cur) => prev + cur.shippingCost, 0)}
-                            suffix="đ"
-                            valueStyle={{ color: COLORS.ORDER_STATUS.SHIPPED }}
-                        />
-                        <Statistic
-                            title="Lãi phí ship (tổng ship thu - tổng ship trả )"
-                            value={shippingFeeInterest()}
-                            suffix="đ"
-                            valueStyle={{ color: shippingFeeInterest() > 0 ? COLORS.ORDER_STATUS.SHIPPED : COLORS.ORDER_STATUS.RETURNED }}
-                        />
-                    </Stack>
-                </Card>
             </React.Fragment>,
         },
         {
@@ -168,27 +149,27 @@ export const DashboardScreen = () => {
                 </Stack>
             </Card>
         },
-        {
-            key: '4',
-            label: 'Loại băng',
-            children: <Card>
-                <Stack fullwidth direction={"column"} align={"flex-start"}>
-                    <Statistic
-                        title="Tổng số băng"
-                        value={orders.reduce((prev, cur) => prev + cur.placedItems.reduce((prev1, cur1) => prev1 + cur1.count, 0), 0)}
-                        suffix=""
-                        valueStyle={{ color: COLORS.ORDER_STATUS.PAY_COD }}
-                    />
-                    {Object.keys(ORDER_ITEM_TYPE).map(key => <Statistic
-                        title={key}
-                        value={orders
-                            .reduce((prev, cur) => prev + cur.placedItems.filter(c => c.type === key).reduce((prev1, cur1) => prev1 + cur1.count, 0), 0)}
-                        suffix=""
-                        valueStyle={{ color: COLORS.ORDER_STATUS.SHIPPED }}
-                    />)}
-                </Stack>
-            </Card>
-        },
+        // {
+        //     key: '4',
+        //     label: 'Loại băng',
+        //     children: <Card>
+        //         <Stack fullwidth direction={"column"} align={"flex-start"}>
+        //             <Statistic
+        //                 title="Tổng số băng"
+        //                 value={orders.reduce((prev, cur) => prev + cur.placedItems.reduce((prev1, cur1) => prev1 + cur1.count, 0), 0)}
+        //                 suffix=""
+        //                 valueStyle={{ color: COLORS.ORDER_STATUS.PAY_COD }}
+        //             />
+        //             {Object.keys(ORDER_ITEM_TYPE).map(key => <Statistic
+        //                 title={key}
+        //                 value={orders
+        //                     .reduce((prev, cur) => prev + cur.placedItems.filter(c => c.type === key).reduce((prev1, cur1) => prev1 + cur1.count, 0), 0)}
+        //                 suffix=""
+        //                 valueStyle={{ color: COLORS.ORDER_STATUS.SHIPPED }}
+        //             />)}
+        //         </Stack>
+        //     </Card>
+        // },
         {
             key: '5',
             label: "Khách hàng",

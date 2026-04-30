@@ -89,7 +89,8 @@ export const OrderCreateScreen = () => {
             position: null,
             note: "",
             isFreeShip: false,
-            isPayCOD: false
+            isPayCOD: false,
+            important: ""
         },
         onSubmit: (values) => {
             // console.log(values.transformValues);
@@ -143,6 +144,7 @@ export const OrderCreateScreen = () => {
             isPayCOD: {name: ObjectPropertyHelper.nameof(defaultValues, e => e.isPayCOD), noMarkup: true},
             note: {label: "Ghi chú thông tin hàng", name: ObjectPropertyHelper.nameof(defaultValues, e => e.note)},
             isFreeShip: {name: ObjectPropertyHelper.nameof(defaultValues, e => e.isFreeShip), valuePropName: "checked"},
+            important: {label: "Thông tin quan trọng", name: ObjectPropertyHelper.nameof(defaultValues, e => e.important)},
         }),
         transformFunc: (values) => ({
             ...values,
@@ -213,6 +215,10 @@ export const OrderCreateScreen = () => {
         })
     }
 
+    const _onChangePaymentAmount = (value: number) => {
+        addOrderForm.form.setFieldsValue({codAmount: value});
+    }
+
     const _onBeforeUpload = (file: RcFile, fileList: RcFile[]) => {
         setFiles(fileList);
         return false;
@@ -269,7 +275,7 @@ export const OrderCreateScreen = () => {
                                                            allPlacedItems={placedItems}/>}
                 />
                 <SmartForm.Item {...addOrderForm.itemDefinitions.paymentAmount}>
-                    <InputNumber style={{width: "100%"}} placeholder="Nhập số tiền thu"
+                    <InputNumber onChange={_onChangePaymentAmount} style={{width: "100%"}} placeholder="Nhập số tiền thu"
                                  formatter={(value) => `đ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}/>
                 </SmartForm.Item>
                 <SmartForm.Item {...addOrderForm.itemDefinitions.note}>
@@ -316,6 +322,9 @@ export const OrderCreateScreen = () => {
                 <SmartForm.Item {...addOrderForm.itemDefinitions.shippingCost}>
                     <InputNumber style={{width: "100%"}} placeholder="Nhập phí vận chuyển"
                                  formatter={(value) => `đ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}/>
+                </SmartForm.Item>
+                <SmartForm.Item {...addOrderForm.itemDefinitions.important}>
+                    <Input placeholder="Nhập note quan trọng"/>
                 </SmartForm.Item>
                 <SmartForm.Item>
                     <Button type="primary" fullwidth onClick={_onSaveOrder} loading={toggleSaveLoading.value}>Lưu đơn
