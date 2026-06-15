@@ -55,6 +55,23 @@
       "react-app/jest"
     ]
   },
+  "jest": {
+    "moduleNameMapper": {
+      "^@components$": "<rootDir>/src/Components",
+      "^@components/(.*)$": "<rootDir>/src/Components/$1",
+      "^@routing$": "<rootDir>/src/Routing",
+      "^@routing/(.*)$": "<rootDir>/src/Routing/$1",
+      "^@modules$": "<rootDir>/src/Modules",
+      "^@modules/(.*)$": "<rootDir>/src/Modules/$1",
+      "^@store$": "<rootDir>/src/Store",
+      "^@store/(.*)$": "<rootDir>/src/Store/$1",
+      "^@common$": "<rootDir>/src/Common",
+      "^@common/(.*)$": "<rootDir>/src/Common/$1",
+      "^@hooks$": "<rootDir>/src/Hooks/index.ts",
+      "^@hooks/(.*)$": "<rootDir>/src/Hooks/$1",
+      "^antd/es/(.*)$": "antd/lib/$1"
+    }
+  },
   "browserslist": {
     "production": [
       ">0.2%",
