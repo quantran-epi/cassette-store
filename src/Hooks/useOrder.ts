@@ -8,11 +8,10 @@ import {Order} from "@store/Models/Order";
 import {editCustomer} from "@store/Reducers/CustomerReducer";
 import {
     addCodPayment,
-    addDoneOrder,
     addOrder,
     editOrder,
-    removeAllDoneOrder,
-    removeDoneOrder
+    removeDoneOrder,
+    setDoneOrders
 } from "@store/Reducers/OrderReducer";
 import {RootState, store} from "@store/Store";
 import {cloneDeep, uniq} from "lodash";
@@ -471,12 +470,9 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
     }
 
     const refreshDoneOrders = async (): Promise<number> => {
-        dispatch(removeAllDoneOrder());
         let cards = await trello.getCardsByList(trello.TRELLO_LIST_IDS.TODO_LIST);
         let doneOrders = cards.filter(e => e.dueComplete == true).map(e => e.id);
-        doneOrders.forEach(e => {
-            dispatch(addDoneOrder(e));
-        })
+        dispatch(setDoneOrders(doneOrders));
         return doneOrders.length || 0;
     }
 
