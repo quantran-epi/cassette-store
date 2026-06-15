@@ -60,8 +60,13 @@ export const orderSlice = createSlice({
             state.orders = [];
         },
         setState: (state, action: PayloadAction<OrderState>) => {
-            state.orders = action.payload.orders;
-            state.lastSequence = action.payload.lastSequence;
+            state.orders = action.payload.orders || [];
+            state.lastSequence = action.payload.lastSequence || 0;
+            state.doneOrders = action.payload.doneOrders || [];
+            state.codPayments = action.payload.codPayments || [];
+        },
+        setDoneOrders: (state, action: PayloadAction<string[]>) => {
+            state.doneOrders = action.payload || [];
         },
         addDoneOrder: (state, action: PayloadAction<string>) => {
             state.doneOrders = [...state.doneOrders || [], action.payload];
@@ -111,6 +116,7 @@ export const {
     addDoneOrder,
     removeDoneOrder,
     removeAllDoneOrder,
+    setDoneOrders,
     addCodPayment
 } = orderSlice.actions
 

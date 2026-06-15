@@ -1,7 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
 import { Customer } from '@store/Models/Customer'
-import {OrderState} from "@store/Reducers/OrderReducer";
 
 export interface CustomerState {
     customers: Customer[];

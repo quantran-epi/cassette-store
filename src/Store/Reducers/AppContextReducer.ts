@@ -1,5 +1,4 @@
 import {PayloadAction, createSlice} from '@reduxjs/toolkit'
-import {OrderState} from "@store/Reducers/OrderReducer";
 
 export interface AppContextState {
     loading: boolean;
@@ -17,10 +16,14 @@ export const appContextSlice = createSlice({
     reducers: {
         updateCurrentFeatureName: (state, action: PayloadAction<string>) => {
             state.currentFeatureName = action.payload;
+        },
+        setState: (state, action: PayloadAction<Partial<AppContextState>>) => {
+            state.loading = false;
+            state.currentFeatureName = action.payload.currentFeatureName || "";
         }
     }
 })
 
-export const {updateCurrentFeatureName} = appContextSlice.actions
+export const {updateCurrentFeatureName, setState: setAppContextState} = appContextSlice.actions
 
 export default appContextSlice.reducer
