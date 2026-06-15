@@ -43,6 +43,8 @@ const layoutStyles: React.CSSProperties = {
 }
 
 const BACKUP_CARD_ID = "68498a4712a808a92bf59b01";
+const LAST_CHECK_TIME_KEY = "lastCheckTime";
+const LAST_SUCCESSFUL_BACKUP_TIME_KEY = "lastSuccessfulBackupTime";
 
 type OperationStatus = {
     type: "idle" | "loading" | "success" | "empty" | "error";
@@ -54,12 +56,12 @@ const _formatStatusTime = (time: number | string | Date = Date.now()): string =>
 }
 
 const _getInitialBackupStatus = (): OperationStatus => {
-    const lastCheck = localStorage.getItem('lastCheckTime');
-    if (!lastCheck) return {type: "idle", text: ""};
+    const lastSuccessfulBackup = localStorage.getItem(LAST_SUCCESSFUL_BACKUP_TIME_KEY);
+    if (!lastSuccessfulBackup) return {type: "idle", text: ""};
 
     return {
         type: "success",
-        text: `Backup gần nhất ${_formatStatusTime(parseInt(lastCheck, 10))}`
+        text: `Backup gần nhất ${_formatStatusTime(parseInt(lastSuccessfulBackup, 10))}`
     }
 }
 
@@ -417,7 +419,7 @@ const AppNoti = () => {
     }
 
     const backup = async () => {
-        const lastCheck = localStorage.getItem('lastCheckTime');
+        const lastCheck = localStorage.getItem(LAST_CHECK_TIME_KEY);
 
         if (lastCheck) {
             const lastTime = parseInt(lastCheck, 10);
@@ -435,7 +437,7 @@ const AppNoti = () => {
             //     mimeType: "text/plain",
             //     file: fileBlob
             // }, BACKUP_CARD_ID);
-            localStorage.setItem('lastCheckTime', Date.now().toString());
+            localStorage.setItem(LAST_CHECK_TIME_KEY, Date.now().toString());
             // message.success("Backup success");
         }
     }
@@ -450,7 +452,8 @@ const AppNoti = () => {
             const backupAttachment = _createBackupAttachment("Backup");
             await trello.createAttachment(backupAttachment.attachment, BACKUP_CARD_ID);
             const successTime = Date.now();
-            localStorage.setItem('lastCheckTime', successTime.toString()); // Reset the time
+            localStorage.setItem(LAST_CHECK_TIME_KEY, successTime.toString()); // Reset the time
+            localStorage.setItem(LAST_SUCCESSFUL_BACKUP_TIME_KEY, successTime.toString());
             setBackupStatus({type: "success", text: `Backup thành công ${_formatStatusTime(successTime)}`});
             message.success({
                 key: backupMessageKey,

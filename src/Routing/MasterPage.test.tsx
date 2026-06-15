@@ -197,11 +197,14 @@ it("uploads versioned backup envelopes to the existing Trello backup card", asyn
     }]);
     upload.resolve({id: "attachment-id"});
     await waitFor(() => expect(screen.getByText(/Backup thành công/i)).toBeInTheDocument());
+    expect(localStorage.getItem("lastSuccessfulBackupTime")).toBeTruthy();
 });
 
 it("shows backup failure status without updating last backup time", async () => {
     const originalLastCheck = Date.now().toString();
+    const originalSuccessfulBackup = "123456789";
     localStorage.setItem("lastCheckTime", originalLastCheck);
+    localStorage.setItem("lastSuccessfulBackupTime", originalSuccessfulBackup);
     mockCreateAttachment.mockRejectedValueOnce(new Error("Trello offline"));
     renderMasterPage();
 
@@ -210,6 +213,7 @@ it("shows backup failure status without updating last backup time", async () => 
 
     await waitFor(() => expect(screen.getByText("Backup lỗi: Trello offline")).toBeInTheDocument());
     expect(localStorage.getItem("lastCheckTime")).toBe(originalLastCheck);
+    expect(localStorage.getItem("lastSuccessfulBackupTime")).toBe(originalSuccessfulBackup);
 });
 
 it.each([
