@@ -44,12 +44,14 @@ const renderUseOrder = (): { getOrderUtils: () => UseOrderResult } => {
 
     render(React.createElement(
         Provider,
-        {store},
-        React.createElement(UseOrderHarness, {
-            onReady: (result) => {
-                orderUtils = result;
-            }
-        })
+        {
+            store,
+            children: React.createElement(UseOrderHarness, {
+                onReady: (result) => {
+                    orderUtils = result;
+                }
+            })
+        }
     ));
 
     return {

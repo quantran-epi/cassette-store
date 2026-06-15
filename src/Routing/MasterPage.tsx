@@ -79,7 +79,7 @@ const _statusColor = (status: OperationStatus["type"]): string => {
 const OperationStatusLine = (props: { label: string; status: OperationStatus }) => {
     if (!props.status.text) return null;
 
-    return <Stack align="center" size={6} style={{width: "100%"}}>
+    return <Stack align="center" gap={6} style={{width: "100%"}}>
         <Tag color={_statusColor(props.status.type)} style={{marginInlineEnd: 0}}>{props.label}</Tag>
         <Typography.Text style={{fontSize: 12}}>{props.status.text}</Typography.Text>
     </Stack>
@@ -483,7 +483,7 @@ const AppNoti = () => {
             zIndex: 10,
             boxShadow: "0 4px 12px rgba(0, 0, 0, 0.08)"
         }}>
-            <Stack direction="column" size={4}>
+            <Stack direction="column" gap={4}>
                 <OperationStatusLine label="Backup" status={backupStatus}/>
                 <OperationStatusLine label="Đóng hàng" status={doneRefreshStatus}/>
             </Stack>
