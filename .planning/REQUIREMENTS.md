@@ -19,14 +19,14 @@ Requirements for the first GSD-managed refactor milestone. Each maps to roadmap 
 - [x] **DATA-02**: Restore validates backup JSON before mutating Redux state and reports actionable validation errors.
 - [x] **DATA-03**: Restore preserves order state fields including orders, last sequence, done-order IDs, and COD payment cycles.
 - [x] **DATA-04**: Restore preserves customer state and app context needed for normal operation.
-- [ ] **DATA-05**: Operator can see backup/restore status, last backup time, and restore success/failure feedback.
+- [x] **DATA-05**: Operator can see backup/restore status, last backup time, and restore success/failure feedback.
 
 ### Trello Sync
 
 - [ ] **SYNC-01**: Order workflows report structured success/failure results for Trello card creation, movement, comments, and attachments.
 - [ ] **SYNC-02**: Local Redux updates and Trello side effects have a clear ordering and recovery strategy for partial failure.
 - [ ] **SYNC-03**: Operator can retry or recover failed Trello sync actions without manually editing application state.
-- [ ] **SYNC-04**: Done-order refresh has visible loading, success, empty, and failure states.
+- [x] **SYNC-04**: Done-order refresh has visible loading, success, empty, and failure states.
 
 ### Order Domain Refactor
 
@@ -100,8 +100,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DATA-02 | Phase 1 | Complete |
 | DATA-03 | Phase 1 | Complete |
 | DATA-04 | Phase 1 | Complete |
-| DATA-05 | Phase 1 | Pending |
-| SYNC-04 | Phase 1 | Pending |
+| DATA-05 | Phase 1 | Complete |
+| SYNC-04 | Phase 1 | Complete |
 | SYNC-01 | Phase 2 | Pending |
 | SYNC-02 | Phase 2 | Pending |
 | SYNC-03 | Phase 2 | Pending |
