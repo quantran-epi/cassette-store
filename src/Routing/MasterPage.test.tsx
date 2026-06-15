@@ -132,6 +132,17 @@ const mockFetchText = (text: string) => {
     } as Response));
 }
 
+const createDeferred = <T,>() => {
+    let resolve: (value: T) => void;
+    let reject: (reason?: any) => void;
+    const promise = new Promise<T>((res, rej) => {
+        resolve = res;
+        reject = rej;
+    });
+
+    return {promise, resolve, reject};
+}
+
 const restoreFromDrawer = async () => {
     userEvent.click(screen.getByLabelText("Mở menu"));
     userEvent.click(await screen.findByRole("button", {name: /Đồng bộ dữ liệu đã lưu trữ/i}));
@@ -159,12 +170,15 @@ afterEach(() => {
 
 it("uploads versioned backup envelopes to the existing Trello backup card", async () => {
     seedBackupState();
+    const upload = createDeferred<{ id: string }>();
+    mockCreateAttachment.mockReturnValueOnce(upload.promise);
     renderMasterPage();
 
     userEvent.click(screen.getByLabelText("Mở tác vụ nhanh"));
     userEvent.click(await screen.findByLabelText("Sao lưu dữ liệu"));
 
     await waitFor(() => expect(mockCreateAttachment).toHaveBeenCalledTimes(1));
+    expect(await screen.findByText("Đang backup dữ liệu")).toBeInTheDocument();
     const [attachment, cardId] = mockCreateAttachment.mock.calls[0];
     const uploadedText = await readBlobText(attachment.file);
     const uploadedBackup = JSON.parse(uploadedText);
@@ -181,6 +195,21 @@ it("uploads versioned backup envelopes to the existing Trello backup card", asyn
         paymentOrders: ["order-before-backup"],
         debitFeeOrders: ["fee-before-backup"]
     }]);
+    upload.resolve({id: "attachment-id"});
+    await waitFor(() => expect(screen.getByText(/Backup thành công/i)).toBeInTheDocument());
+});
+
+it("shows backup failure status without updating last backup time", async () => {
+    const originalLastCheck = Date.now().toString();
+    localStorage.setItem("lastCheckTime", originalLastCheck);
+    mockCreateAttachment.mockRejectedValueOnce(new Error("Trello offline"));
+    renderMasterPage();
+
+    userEvent.click(screen.getByLabelText("Mở tác vụ nhanh"));
+    userEvent.click(await screen.findByLabelText("Sao lưu dữ liệu"));
+
+    await waitFor(() => expect(screen.getByText("Backup lỗi: Trello offline")).toBeInTheDocument());
+    expect(localStorage.getItem("lastCheckTime")).toBe(originalLastCheck);
 });
 
 it.each([
@@ -197,6 +226,7 @@ it.each([
     await restoreFromDrawer();
 
     await waitFor(() => expect(mockMessage.error).toHaveBeenCalledWith(expectedMessage));
+    expect(await screen.findByText(expectedMessage)).toBeInTheDocument();
     expect(dispatchSpy).not.toHaveBeenCalledWith(expect.objectContaining({type: setOrderState.type}));
     expect(dispatchSpy).not.toHaveBeenCalledWith(expect.objectContaining({type: setCustomerState.type}));
     expect(dispatchSpy).not.toHaveBeenCalledWith(expect.objectContaining({type: setAppContextState.type}));
@@ -211,17 +241,25 @@ it("reports fetch failure before dispatching restore actions", async () => {
     await restoreFromDrawer();
 
     await waitFor(() => expect(mockMessage.error).toHaveBeenCalledWith("Không thể tải file backup: Network down"));
+    expect(await screen.findByText("Lỗi tải backup: Network down")).toBeInTheDocument();
     expect(dispatchSpy).not.toHaveBeenCalledWith(expect.objectContaining({type: setOrderState.type}));
     expect(dispatchSpy).not.toHaveBeenCalledWith(expect.objectContaining({type: setCustomerState.type}));
     expect(dispatchSpy).not.toHaveBeenCalledWith(expect.objectContaining({type: setAppContextState.type}));
 });
 
 it("restores legacy raw RootState backups after creating a pre-restore snapshot", async () => {
-    mockFetchText(JSON.stringify(legacyBackup));
+    const fetchResult = createDeferred<Response>();
+    global.fetch = jest.fn(() => fetchResult.promise);
     renderMasterPage();
 
     await restoreFromDrawer();
 
+    expect(await screen.findByText("Đang khôi phục dữ liệu")).toBeInTheDocument();
+    fetchResult.resolve({
+        ok: true,
+        status: 200,
+        text: () => Promise.resolve(JSON.stringify(legacyBackup))
+    } as Response);
     await waitFor(() => expect(store.getState().order.doneOrders).toEqual(["done-restored"]));
     expect(store.getState().order.codPayments).toEqual(restoredOrderState.codPayments);
     expect(store.getState().customer.customers).toEqual(restoredCustomerState.customers);
@@ -232,6 +270,7 @@ it("restores legacy raw RootState backups after creating a pre-restore snapshot"
     expect(mockCreateAttachment).toHaveBeenCalledWith(expect.objectContaining({
         name: expect.stringContaining("Pre-restore backup")
     }), BACKUP_CARD_ID);
+    await waitFor(() => expect(screen.getByText(/Khôi phục thành công/i)).toBeInTheDocument());
     expect(mockMessage.success).toHaveBeenCalledWith("Đồng bộ thành công");
 });
 
@@ -249,4 +288,29 @@ it("restores versioned backup envelopes with the same normalized state shape", a
         loading: false,
         currentFeatureName: "Restored feature"
     });
+});
+
+it("shows done refresh loading and count status", async () => {
+    const refresh = createDeferred<number>();
+    mockRefreshDoneOrders.mockReturnValueOnce(refresh.promise);
+    renderMasterPage();
+
+    expect(await screen.findByText("Đang kiểm tra đơn đóng hàng")).toBeInTheDocument();
+    refresh.resolve(2);
+
+    await waitFor(() => expect(screen.getByText("Có 2 đơn đã đóng hàng")).toBeInTheDocument());
+});
+
+it("shows done refresh empty success status", async () => {
+    mockRefreshDoneOrders.mockResolvedValueOnce(0);
+    renderMasterPage();
+
+    await waitFor(() => expect(screen.getByText("Không có đơn đã đóng hàng")).toBeInTheDocument());
+});
+
+it("shows done refresh failure status", async () => {
+    mockRefreshDoneOrders.mockRejectedValueOnce(new Error("Trello down"));
+    renderMasterPage();
+
+    await waitFor(() => expect(screen.getByText("Lỗi cập nhật đơn đóng hàng")).toBeInTheDocument());
 });

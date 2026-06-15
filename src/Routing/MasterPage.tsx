@@ -44,6 +44,47 @@ const layoutStyles: React.CSSProperties = {
 
 const BACKUP_CARD_ID = "68498a4712a808a92bf59b01";
 
+type OperationStatus = {
+    type: "idle" | "loading" | "success" | "empty" | "error";
+    text: string;
+}
+
+const _formatStatusTime = (time: number | string | Date = Date.now()): string => {
+    return moment(time).format("HH:mm DD/MM");
+}
+
+const _getInitialBackupStatus = (): OperationStatus => {
+    const lastCheck = localStorage.getItem('lastCheckTime');
+    if (!lastCheck) return {type: "idle", text: ""};
+
+    return {
+        type: "success",
+        text: `Backup gần nhất ${_formatStatusTime(parseInt(lastCheck, 10))}`
+    }
+}
+
+const _statusColor = (status: OperationStatus["type"]): string => {
+    switch (status) {
+        case "loading":
+            return "processing";
+        case "success":
+            return "success";
+        case "error":
+            return "error";
+        default:
+            return "default";
+    }
+}
+
+const OperationStatusLine = (props: { label: string; status: OperationStatus }) => {
+    if (!props.status.text) return null;
+
+    return <Stack align="center" size={6} style={{width: "100%"}}>
+        <Tag color={_statusColor(props.status.type)} style={{marginInlineEnd: 0}}>{props.label}</Tag>
+        <Typography.Text style={{fontSize: 12}}>{props.status.text}</Typography.Text>
+    </Stack>
+}
+
 const _createBackupAttachment = (namePrefix: string) => {
     const envelope = createBackupEnvelope(store.getState());
     const fileBlob = new Blob([JSON.stringify(envelope)], {type: 'text/plain'});
@@ -124,6 +165,7 @@ const SidebarDrawer = () => {
     const trello = useTrello();
     const toggleLoading = useToggle();
     const [linkBackup, setLinkBackup] = useState("https://raw.githubusercontent.com/quantran-epi/cassette-store/refs/heads/main/docs/data");
+    const [restoreStatus, setRestoreStatus] = useState<OperationStatus>({type: "idle", text: ""});
 
     const showDrawer = () => {
         setOpen(true);
@@ -141,6 +183,7 @@ const SidebarDrawer = () => {
     const _onRehydrateData = async () => {
         try {
             toggleLoading.show();
+            setRestoreStatus({type: "loading", text: "Đang khôi phục dữ liệu"});
             let data = await fetch(linkBackup);
             if (typeof data.ok === "boolean" && !data.ok) {
                 throw new Error(`HTTP ${data.status}`);
@@ -149,6 +192,7 @@ const SidebarDrawer = () => {
 
             const restoreResult = parseBackupText(text);
             if (restoreResult.ok === false) {
+                setRestoreStatus({type: "error", text: restoreResult.message});
                 message.error(restoreResult.message);
                 return;
             }
@@ -163,8 +207,10 @@ const SidebarDrawer = () => {
             dispatch(setOrderState(restoreResult.payload.order));
             dispatch(setCustomerState(restoreResult.payload.customer));
             dispatch(setAppContextState(restoreResult.payload.appContext));
+            setRestoreStatus({type: "success", text: `Khôi phục thành công ${_formatStatusTime()}`});
             message.success("Đồng bộ thành công");
         } catch (e) {
+            setRestoreStatus({type: "error", text: `Lỗi tải backup: ${_getErrorMessage(e)}`});
             message.error(`Không thể tải file backup: ${_getErrorMessage(e)}`);
         } finally {
             toggleLoading.hide();
@@ -204,6 +250,7 @@ const SidebarDrawer = () => {
                                value={linkBackup}/>
                         <Button loading={toggleLoading.value} icon={<CloudDownloadOutlined/>}
                                 onClick={_onRehydrateData}>Đồng bộ dữ liệu đã lưu trữ</Button>
+                        <OperationStatusLine label="Khôi phục" status={restoreStatus}/>
                     </Stack>
                     <Box style={{overflow: "hidden"}}>
                         <Image src={Logo} width={350} preview={false} style={{marginLeft: 90, opacity: 0.4}}/>
@@ -320,6 +367,7 @@ const BottomTabNavigator = () => {
 }
 
 const AppNoti = () => {
+    const theme = useTheme();
     const trello = useTrello();
     const orderUtils = useOrder();
     const message = useMessage();
@@ -327,6 +375,8 @@ const AppNoti = () => {
     const backupMessageKey = "backupMessageKey";
     const modal = useModal();
     const navigate = useNavigate();
+    const [backupStatus, setBackupStatus] = useState<OperationStatus>(_getInitialBackupStatus);
+    const [doneRefreshStatus, setDoneRefreshStatus] = useState<OperationStatus>({type: "idle", text: ""});
 
     useEffect(() => {
         backup();
@@ -334,24 +384,36 @@ const AppNoti = () => {
     }, [])
 
     const _refreshDoneOrder = () => {
+        setDoneRefreshStatus({type: "loading", text: "Đang kiểm tra đơn đóng hàng"});
         message.loading({
             key: refreshDoneOrderMessageKey,
             content: "Đang kiểm tra đơn đóng hàng"
         });
         orderUtils.refreshDoneOrders().then(doneOrderCount => {
-            if (doneOrderCount > 0) message.warning({
-                key: refreshDoneOrderMessageKey,
-                content: "Có " + doneOrderCount + " đơn đã đóng hàng"
-            });
-            else message.info({
-                key: refreshDoneOrderMessageKey,
-                content: "Không có đơn đã đóng hàng"
-            });
+            if (doneOrderCount > 0) {
+                const statusText = "Có " + doneOrderCount + " đơn đã đóng hàng";
+                setDoneRefreshStatus({type: "success", text: statusText});
+                message.warning({
+                    key: refreshDoneOrderMessageKey,
+                    content: statusText
+                });
+            }
+            else {
+                const statusText = "Không có đơn đã đóng hàng";
+                setDoneRefreshStatus({type: "empty", text: statusText});
+                message.info({
+                    key: refreshDoneOrderMessageKey,
+                    content: statusText
+                });
+            }
         })
-            .catch(e => message.error({
-                key: refreshDoneOrderMessageKey,
-                content: "Lỗi cập nhật các đơn đóng hàng"
-            }));
+            .catch(e => {
+                setDoneRefreshStatus({type: "error", text: "Lỗi cập nhật đơn đóng hàng"});
+                message.error({
+                    key: refreshDoneOrderMessageKey,
+                    content: "Lỗi cập nhật các đơn đóng hàng"
+                })
+            });
     }
 
     const backup = async () => {
@@ -379,32 +441,63 @@ const AppNoti = () => {
     }
 
     const backupNow = async () => {
-        message.loading({
-            key: backupMessageKey,
-            content: "Đang đồng bộ dữ liệu lên trello"
-        });
-        const backupAttachment = _createBackupAttachment("Backup");
-        await trello.createAttachment(backupAttachment.attachment, BACKUP_CARD_ID);
-        localStorage.setItem('lastCheckTime', Date.now().toString()); // Reset the time
-        message.success({
-            key: backupMessageKey,
-            content: "Đồng bộ lên trello thành công"
-        });
+        try {
+            setBackupStatus({type: "loading", text: "Đang backup dữ liệu"});
+            message.loading({
+                key: backupMessageKey,
+                content: "Đang đồng bộ dữ liệu lên trello"
+            });
+            const backupAttachment = _createBackupAttachment("Backup");
+            await trello.createAttachment(backupAttachment.attachment, BACKUP_CARD_ID);
+            const successTime = Date.now();
+            localStorage.setItem('lastCheckTime', successTime.toString()); // Reset the time
+            setBackupStatus({type: "success", text: `Backup thành công ${_formatStatusTime(successTime)}`});
+            message.success({
+                key: backupMessageKey,
+                content: "Đồng bộ lên trello thành công"
+            });
+        } catch (e) {
+            setBackupStatus({type: "error", text: `Backup lỗi: ${_getErrorMessage(e)}`});
+            message.error({
+                key: backupMessageKey,
+                content: "Đồng bộ lên trello thất bại"
+            });
+        }
     }
 
     const _onNavigateToOrderPaymentList = () => {
         navigate(RootRoutes.AuthorizedRoutes.OrderRoutes.CodPaymentList());
     }
 
-    return <FloatButton.Group
-        aria-label="Mở tác vụ nhanh"
-        trigger="click"
-        type="primary"
-        style={{insetInlineEnd: 24, marginBottom: 40}}
-        icon={<MenuOutlined/>}
-    >
-        <FloatButton aria-label="Danh sách COD" icon={<CreditCardOutlined />} onClick={_onNavigateToOrderPaymentList}/>
-        <FloatButton aria-label="Sao lưu dữ liệu" icon={<CloudUploadOutlined/>} onClick={backupNow}/>
-        <FloatButton aria-label="Làm mới đơn đóng hàng" icon={<DropboxOutlined/>} onClick={_refreshDoneOrder}/>
-    </FloatButton.Group>;
+    return <React.Fragment>
+        {(backupStatus.text || doneRefreshStatus.text) && <Box style={{
+            position: "fixed",
+            right: 24,
+            bottom: 132,
+            width: 275,
+            maxWidth: "calc(100vw - 48px)",
+            backgroundColor: "#fff",
+            border: "0.5px solid " + theme.token.colorBorder,
+            borderRadius: 8,
+            padding: 8,
+            zIndex: 10,
+            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.08)"
+        }}>
+            <Stack direction="column" size={4}>
+                <OperationStatusLine label="Backup" status={backupStatus}/>
+                <OperationStatusLine label="Đóng hàng" status={doneRefreshStatus}/>
+            </Stack>
+        </Box>}
+        <FloatButton.Group
+            aria-label="Mở tác vụ nhanh"
+            trigger="click"
+            type="primary"
+            style={{insetInlineEnd: 24, marginBottom: 40}}
+            icon={<MenuOutlined/>}
+        >
+            <FloatButton aria-label="Danh sách COD" icon={<CreditCardOutlined />} onClick={_onNavigateToOrderPaymentList}/>
+            <FloatButton aria-label="Sao lưu dữ liệu" icon={<CloudUploadOutlined/>} onClick={backupNow}/>
+            <FloatButton aria-label="Làm mới đơn đóng hàng" icon={<DropboxOutlined/>} onClick={_refreshDoneOrder}/>
+        </FloatButton.Group>
+    </React.Fragment>;
 }
