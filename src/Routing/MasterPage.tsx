@@ -148,7 +148,7 @@ const SidebarDrawer = () => {
             let text = await data.text();
 
             const restoreResult = parseBackupText(text);
-            if (!restoreResult.ok) {
+            if (restoreResult.ok === false) {
                 message.error(restoreResult.message);
                 return;
             }
