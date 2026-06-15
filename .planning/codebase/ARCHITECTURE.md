@@ -176,17 +176,17 @@ Redux store: `src/Store/Store.ts`, `src/Store/Reducers/*.ts`
 
 - **Threading:** Single browser main thread; there are no web workers beyond optional/generated service worker code in `src/service-worker.ts` and `docs/service-worker.js`.
 - **Global state:** Redux store is a module-level singleton exported from `src/Store/Store.ts` and is also imported directly by `src/Hooks/useOrder.ts` and `src/Routing/MasterPage.tsx`.
-- **Client-only secrets:** Trello credentials live in browser-delivered code in `src/Hooks/Trello/useTrello.ts`.
+- **Client-side Trello configuration:** Trello API setup lives in `src/Hooks/Trello/useTrello.ts` as part of the current trusted internal app shape.
 - **Offline/local-first data:** The app has no authoritative backend database; clearing browser storage can remove local app data unless a Trello backup exists.
 - **Static route base:** Router basename is hard-coded to `/cassette-store` in `src/Routing/RootRouter.tsx`.
 
 ## Anti-Patterns
 
-### Remote API credentials in client source
+### Scattered Trello request construction
 
-**What happens:** `src/Hooks/Trello/useTrello.ts` stores Trello credential literals and appends them to every request.
-**Why it's wrong:** Browser users can inspect bundled credentials and use the same Trello identity outside the app.
-**Do this instead:** Move Trello operations behind a backend/API proxy or a scoped token exchange, then configure secrets outside client source.
+**What happens:** `src/Hooks/Trello/useTrello.ts` builds Trello requests directly and callers receive inconsistent success/failure shapes.
+**Why it's wrong:** Order workflows cannot reliably show operation status, retry failed work, or reconcile local/Trello drift.
+**Do this instead:** Keep Trello mutations behind a smaller typed integration adapter that returns structured operation results.
 
 ### Business logic and remote side effects in one hook
 

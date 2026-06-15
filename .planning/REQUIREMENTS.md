@@ -7,14 +7,11 @@
 
 Requirements for the first GSD-managed refactor milestone. Each maps to roadmap phases.
 
-### Foundation & Security
+### Refactor Safety
 
-- [ ] **FND-01**: Developer can run a one-shot test command that passes without module-alias errors.
-- [ ] **FND-02**: Developer can run a production build command and confirm generated deployment output matches current source.
-- [ ] **FND-03**: The stale CRA sample app test is replaced with an app-specific smoke test.
-- [ ] **FND-04**: Trello credential values are no longer shipped in client source or generated browser bundles.
-- [ ] **FND-05**: Secret configuration uses ignored local files and a safe example file without real values.
-- [ ] **FND-06**: Trello API calls that require secrets go through a safe boundary such as a minimal proxy/serverless adapter.
+- [ ] **SAFE-01**: Developer can run a one-shot test command that passes without module-alias errors.
+- [ ] **SAFE-02**: Developer can run a production build command and confirm generated deployment output matches current source.
+- [ ] **SAFE-03**: The stale CRA sample app test is replaced with an app-specific smoke test.
 
 ### Data Reliability
 
@@ -84,10 +81,11 @@ Explicitly excluded. Documented to prevent scope creep.
 | Feature | Reason |
 |---------|--------|
 | Public customer storefront | First milestone is focused on internal operations stability and speed. |
-| Full backend rewrite before stabilization | Security, tests, persistence, and sync safety should land before broad architecture replacement. |
+| Full backend rewrite | Data recovery and workflow improvements are the current priority. |
 | Native mobile app | Responsive web improvements are the current mobile strategy. |
 | Multi-tenant SaaS features | Current audience is a trusted internal operator/team. |
 | Real-time multi-user collaboration | Adds complexity before core data reliability and Trello sync are stable. |
+| External-user/public-hosting work | User clarified this is an internal app, so v1 should focus on data safety, workflow, UI, and UX. |
 
 ## Traceability
 
@@ -95,43 +93,40 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FND-01 | TBD | Pending |
-| FND-02 | TBD | Pending |
-| FND-03 | TBD | Pending |
-| FND-04 | TBD | Pending |
-| FND-05 | TBD | Pending |
-| FND-06 | TBD | Pending |
-| DATA-01 | TBD | Pending |
-| DATA-02 | TBD | Pending |
-| DATA-03 | TBD | Pending |
-| DATA-04 | TBD | Pending |
-| DATA-05 | TBD | Pending |
-| SYNC-01 | TBD | Pending |
-| SYNC-02 | TBD | Pending |
-| SYNC-03 | TBD | Pending |
-| SYNC-04 | TBD | Pending |
-| ORD-01 | TBD | Pending |
-| ORD-02 | TBD | Pending |
-| ORD-03 | TBD | Pending |
-| ORD-04 | TBD | Pending |
-| ORD-05 | TBD | Pending |
-| OPS-01 | TBD | Pending |
-| OPS-02 | TBD | Pending |
-| OPS-03 | TBD | Pending |
-| OPS-04 | TBD | Pending |
-| OPS-05 | TBD | Pending |
-| OPS-06 | TBD | Pending |
-| UX-01 | TBD | Pending |
-| UX-02 | TBD | Pending |
-| UX-03 | TBD | Pending |
-| UX-04 | TBD | Pending |
-| UX-05 | TBD | Pending |
+| SAFE-01 | Phase 1 | Pending |
+| SAFE-02 | Phase 1 | Pending |
+| SAFE-03 | Phase 1 | Pending |
+| DATA-01 | Phase 1 | Pending |
+| DATA-02 | Phase 1 | Pending |
+| DATA-03 | Phase 1 | Pending |
+| DATA-04 | Phase 1 | Pending |
+| DATA-05 | Phase 1 | Pending |
+| SYNC-04 | Phase 1 | Pending |
+| SYNC-01 | Phase 2 | Pending |
+| SYNC-02 | Phase 2 | Pending |
+| SYNC-03 | Phase 2 | Pending |
+| ORD-01 | Phase 2 | Pending |
+| ORD-02 | Phase 2 | Pending |
+| ORD-03 | Phase 2 | Pending |
+| ORD-05 | Phase 3 | Pending |
+| OPS-01 | Phase 3 | Pending |
+| OPS-02 | Phase 3 | Pending |
+| ORD-04 | Phase 4 | Pending |
+| OPS-03 | Phase 4 | Pending |
+| OPS-04 | Phase 4 | Pending |
+| OPS-05 | Phase 4 | Pending |
+| OPS-06 | Phase 4 | Pending |
+| UX-01 | Phase 5 | Pending |
+| UX-02 | Phase 5 | Pending |
+| UX-03 | Phase 5 | Pending |
+| UX-04 | Phase 5 | Pending |
+| UX-05 | Phase 5 | Pending |
 
 **Coverage:**
-- v1 requirements: 31 total
-- Mapped to phases: 0
-- Unmapped: 31 pending roadmap creation
+- v1 requirements: 28 total
+- Mapped to phases: 28
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-06-15*
-*Last updated: 2026-06-15 after initial definition*
+*Last updated: 2026-06-15 after roadmap adjustment*

@@ -6,12 +6,12 @@
 
 ## Critical Pitfalls
 
-### Pitfall 1: Shipping secrets in the client bundle
+### Pitfall 1: Treating internal use as a reason to skip data recovery
 
-**What goes wrong:** Trello credentials remain in source or get moved to client-visible environment variables.
-**Warning signs:** Trello key/token-like values appear in `src/`, `docs/static/js/`, or `REACT_APP_`/`VITE_` variables.
-**Prevention:** Rotate exposed tokens and move secret-bearing Trello calls behind a proxy/serverless boundary.
-**Phase to address:** First stabilization phase.
+**What goes wrong:** Backup, restore, done-order refresh, and Trello sync stay implicit because only trusted operators use the app.
+**Warning signs:** Restore accepts arbitrary JSON, backup coverage is unclear, and sync failures require manual state repair.
+**Prevention:** Add versioned backup schemas, restore validation, visible operation status, and recovery actions.
+**Phase to address:** Data safety and refactor baseline phase.
 
 ### Pitfall 2: Refactoring workflows before fixing tests
 
@@ -41,14 +41,14 @@
 **Prevention:** Design around operator actions, dense information, mobile reachability, and visible workflow state.
 **Phase to address:** UI/UX phase after critical flows are safer.
 
-## Security Pitfalls
+## Data Safety Pitfalls
 
 | Pitfall | Risk | Prevention |
 |---------|------|------------|
-| Client env vars for Trello secrets | Still visible in browser bundles | Use server-side env only behind proxy. |
-| Committing `.env` | Secret leak in git history | Ignore `.env`, add `.env.example`, audit history if needed. |
 | Arbitrary backup restore | Malformed JSON can corrupt state | Validate and preview before dispatching state. |
-| No auth boundary | Anyone with URL can use the app identity | Keep deployment private or add auth/proxy controls. |
+| Partial backup payloads | Restored app loses COD cycles, done-order IDs, or app context | Version backup schema and verify all required sections. |
+| Invisible Trello failure | Operator thinks local and Trello state match when they do not | Return structured operation results and show retry/recovery actions. |
+| Unclear done-order refresh | Operator cannot tell whether refresh succeeded or found nothing | Add loading, success, empty, and failure states. |
 
 ## Technical Pitfalls
 
@@ -72,16 +72,15 @@
 
 | Pitfall | Address In | Success Signal |
 |---------|------------|----------------|
-| Client Trello credentials | Phase 1 | No secret-bearing values in client bundle; Trello calls route safely. |
+| Data recovery gaps | Phase 1 | Backup/restore validates complete state and reports visible status. |
 | Broken tests | Phase 1 | One-shot test command passes with meaningful tests. |
 | Partial sync failures | Phase 2 | Trello operations return structured results and failures are visible/recoverable. |
-| Persisted state drift | Phase 2 | Backup restore validates/migrates complete state. |
+| Persisted state drift | Phase 1 | Backup restore validates/migrates complete state. |
 | UI polish without utility | Phase 4+ | Daily order/shipping/COD tasks require fewer steps and clearer status. |
 
 ## Sources
 
 - Existing codebase map: `.planning/codebase/CONCERNS.md`, `.planning/codebase/TESTING.md`, `.planning/codebase/INTEGRATIONS.md`.
-- Vite env exposure docs: https://vite.dev/guide/env-and-mode
 - Trello REST API docs: https://developer.atlassian.com/cloud/trello/rest/
 - Zod validation docs: https://zod.dev/
 

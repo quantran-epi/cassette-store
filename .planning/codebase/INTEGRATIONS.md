@@ -47,14 +47,14 @@ last_mapped_at: 2026-06-15
 ## Authentication & Identity
 
 **Application Users:**
-- No user authentication or authorization layer exists in the React app.
+- No user sign-in or collaborative operator model exists in the React app.
   - Implementation: Every route under `src/Routing/RootRouter.tsx` is reachable client-side.
-  - Data access: Browser storage and Trello credentials are available to the browser runtime.
+  - Data access: Browser storage and Trello API calls are available to the browser runtime.
 
 **Trello API Identity:**
-- Trello token identity is the effective remote identity for all users.
+- Trello API configuration is shared by the trusted internal app workflow.
   - Implementation: `src/Hooks/Trello/useTrello.ts` appends key/token parameters through `src/Hooks/useAPI.ts`.
-  - Token storage: Hard-coded source literals, not environment variables or a server-side secret store.
+  - Current scope: Improve operation results, recovery, and status feedback before considering backend collaboration work.
 
 ## Monitoring & Observability
 
@@ -81,12 +81,12 @@ last_mapped_at: 2026-06-15
 ## Environment Configuration
 
 **Required env vars:**
-- None are required by code at runtime today; Trello credentials are in source.
+- None are required by code at runtime today; Trello API configuration is handled in source.
 - CRA variables such as `PUBLIC_URL` and `NODE_ENV` are referenced by `src/service-worker.ts`, `src/serviceWorkerRegistration.ts`, and `src/Store/Store.ts`.
 
-**Secrets location:**
-- Trello key/token currently live in `src/Hooks/Trello/useTrello.ts` and should be moved out of client source.
-- `.env` exists locally, but contents were not read. `.gitignore` should explicitly ignore plain `.env` if it contains secrets.
+**Local environment files:**
+- Local environment files were not inspected during mapping.
+- This milestone does not depend on environment-variable setup.
 
 ## Webhooks & Callbacks
 

@@ -71,25 +71,25 @@ last_mapped_at: 2026-06-15
 - Workaround: Browser devtools still show network requests.
 - Fix approach: Change `_log` to log `msg` or remove it.
 
-## Security Considerations
+## Internal Scope Notes
 
-**Trello credentials are exposed to every client:**
-- Risk: Anyone with the bundled app can inspect and reuse the Trello key/token identity.
+**Trello API setup is part of the client app:**
+- Risk: Trello request construction, operation status, and recovery behavior are coupled to the current hook implementation.
 - Files: `src/Hooks/Trello/useTrello.ts`, generated bundle under `docs/static/js/`.
-- Current mitigation: None visible in code.
-- Recommendations: Rotate the exposed token, move Trello calls to a backend/API proxy, and configure secrets outside client code.
+- Current mitigation: Operators manually notice and recover drift.
+- Recommendations: Add a typed Trello adapter, structured operation results, and visible retry/recovery states.
 
-**Plain `.env` is not ignored:**
-- Risk: `.env` exists locally and `.gitignore` does not ignore plain `.env`, only `.env.local` variants.
-- Files: `.env`, `.gitignore`.
-- Current mitigation: Contents were not read; git currently does not show `.env` as a tracked change in this run.
-- Recommendations: Add `.env` to `.gitignore`, provide a safe `.env.example`, and audit git history if `.env` was ever committed.
-
-**No app authentication or authorization boundary:**
-- Risk: Route access and data access are entirely client-side; any browser user with the deployed app uses the same Trello identity.
+**External access is outside the current milestone:**
+- Risk: Planning can drift toward customer-facing/public-hosting work before internal workflows are reliable.
 - Files: `src/Routing/RootRouter.tsx`, `src/Hooks/Trello/useTrello.ts`.
-- Current mitigation: None visible in code.
-- Recommendations: Add an auth layer if the app is used by more than trusted operators; at minimum proxy Trello operations server-side.
+- Current mitigation: The project is scoped as a trusted internal operator tool.
+- Recommendations: Keep v1 focused on data recovery, sync reliability, workflow speed, and UI/UX.
+
+**No collaborative editing model:**
+- Risk: Multiple operators can overwrite each other or diverge across browser-local state.
+- Files: `src/Store/Store.ts`, `src/Store/idbStorage.ts`, `src/Hooks/useOrder.ts`.
+- Current mitigation: Trusted internal usage with manual coordination.
+- Recommendations: Defer backend/collaboration work until the single-operator workflow and recovery path are reliable.
 
 ## Performance Bottlenecks
 
@@ -141,7 +141,7 @@ last_mapped_at: 2026-06-15
 
 **Create React App / `react-scripts`:**
 - Risk: CRA is a legacy stack choice and tends to lag modern React/build tooling.
-- Impact: Future React/TypeScript upgrades and dependency security updates may be harder.
+- Impact: Future React/TypeScript upgrades and dependency updates may be harder.
 - Migration plan: Consider Vite or another maintained React build setup when planning larger maintenance work.
 
 **Moment:**
@@ -151,10 +151,10 @@ last_mapped_at: 2026-06-15
 
 ## Missing Critical Features
 
-**Secret management:**
-- Problem: No safe configuration path exists for Trello credentials.
-- Blocks: Safe public deployment and user-level access control.
-- Files: `src/Hooks/Trello/useTrello.ts`, `.gitignore`.
+**Trello operation recovery:**
+- Problem: Trello calls do not share a typed result/retry model.
+- Blocks: Clear recovery when local state and Trello disagree.
+- Files: `src/Hooks/Trello/useTrello.ts`, `src/Hooks/useOrder.ts`.
 
 **Automated deployment verification:**
 - Problem: No CI verifies tests/build or `docs/` freshness.

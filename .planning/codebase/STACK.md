@@ -63,9 +63,9 @@ last_mapped_at: 2026-06-15
 ## Configuration
 
 **Environment:**
-- `.env` exists in the working tree, but it must not be read or copied into docs. `.gitignore` ignores `.env.local` variants but not plain `.env`.
-- No typed environment variable contract or `.env.example` exists.
-- Trello authentication is configured directly in `src/Hooks/Trello/useTrello.ts`; do not copy credential values from that file.
+- Local environment files were not inspected during mapping.
+- No typed environment variable contract is used by the app today.
+- Trello API configuration is currently handled in `src/Hooks/Trello/useTrello.ts`; keep changes scoped to sync reliability and recovery unless explicitly requested.
 
 **Build:**
 - `package.json` - Scripts, dependencies, CRA ESLint config, and browser targets.

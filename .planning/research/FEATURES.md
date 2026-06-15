@@ -12,7 +12,7 @@ Features internal operators need before the app can be considered safe and pleas
 
 | Feature | Why Expected | Complexity | Notes |
 |---------|--------------|------------|-------|
-| Safe Trello integration | Operators rely on Trello card state, but credentials cannot remain in client source | HIGH | Requires token rotation and proxy/secret boundary. |
+| Recoverable Trello integration | Operators rely on Trello card state and need local/Trello drift to be visible | HIGH | Add structured result types, visible status, and retry/recovery paths. |
 | Reliable tests and build | Refactor work needs fast feedback and confidence | MEDIUM | Fix Jest aliases/stale test or migrate to Vite/Vitest. |
 | Backup/restore validation | Operational data is local-first and restore can currently accept arbitrary JSON | MEDIUM | Add schema validation, versioning, and full state restore. |
 | Order/Trello sync safety | Local order state and Trello card state can drift on partial failure | HIGH | Add clear success/failure states and retry/reconciliation path. |
@@ -37,7 +37,7 @@ Features internal operators need before the app can be considered safe and pleas
 | Feature | Why Requested | Why Problematic | Alternative |
 |---------|---------------|-----------------|-------------|
 | Full customer storefront | Seems like natural expansion | Distracts from internal operations and requires auth/payments/catalog work | Keep first milestone internal-only. |
-| Full backend rewrite first | Feels cleaner architecturally | Delays immediate risk reduction and UX improvements | Add only the backend/proxy pieces required for security and sync. |
+| Full backend rewrite first | Feels cleaner architecturally | Delays immediate data recovery and UX improvements | Defer unless local-first recovery/sync needs prove it necessary. |
 | Real-time everything | Sounds modern | Adds complexity without proving operator value | Use explicit refresh, sync status, and retry first. |
 | Large visual redesign before tests | Produces visible progress | Can break workflows without safety net | Stabilize test/build/data flows first, then redesign. |
 
@@ -50,9 +50,9 @@ Test/build baseline
     -> daily workflow utilities
     -> UI/UX refresh at scale
 
-Trello secret boundary
-    -> safer Trello sync
-    -> deploy confidence
+Trello operation adapter
+    -> structured sync results
+    -> retry/recovery workflows
 
 Backup/restore validation
     -> data recovery workflow
@@ -66,7 +66,7 @@ Shared UI patterns
 ### Dependency Notes
 
 - **Tests/build baseline before broad refactor:** Without a working test command, even simple architecture changes are hard to verify.
-- **Secret boundary before public deploy confidence:** Trello tokens in client bundles make any public deployment unsafe.
+- **Trello adapter before recovery UX:** Retry and recovery flows need structured operation results instead of scattered direct calls.
 - **Restore validation before better backup UX:** A pretty restore UI still needs schema/version checks.
 - **Domain services before batch utilities:** Batch order/COD actions need predictable pure operations and clear side-effect boundaries.
 
@@ -77,7 +77,7 @@ Shared UI patterns
 Minimum viable refactor milestone.
 
 - [ ] Fix test/build baseline — required for safe refactoring.
-- [ ] Move Trello secret-bearing behavior behind a safe boundary — required for security.
+- [ ] Make Trello sync structured, visible, and recoverable — required for reliable daily operations.
 - [ ] Add backup/restore validation and complete state restore — required for data safety.
 - [ ] Extract order calculations/selectors/integration boundaries — required for maintainability.
 - [ ] Improve the highest-frequency order/shipping/COD workflows — required for daily utility.
@@ -101,7 +101,7 @@ Minimum viable refactor milestone.
 | Feature | User Value | Implementation Cost | Priority |
 |---------|------------|---------------------|----------|
 | Test/build baseline | HIGH | MEDIUM | P1 |
-| Trello secret boundary | HIGH | HIGH | P1 |
+| Recoverable Trello sync | HIGH | HIGH | P1 |
 | Backup/restore validation | HIGH | MEDIUM | P1 |
 | Order domain refactor | HIGH | HIGH | P1 |
 | Quick order/shipping/COD actions | HIGH | MEDIUM | P1 |

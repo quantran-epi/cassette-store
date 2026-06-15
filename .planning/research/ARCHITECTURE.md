@@ -26,10 +26,10 @@ Feature screens and widgets
     |
     v
 Integration adapters
-`src/Hooks/Trello/*`, API proxy client
+`src/Hooks/Trello/*` or new typed client
     |
     +--> IndexedDB persistence
-    +--> Trello API via safe proxy
+    +--> Trello API via typed adapter
 ```
 
 ### Component Responsibilities
@@ -40,7 +40,7 @@ Integration adapters
 | UI wrappers | Consistent app-specific AntD usage | `src/Components/*` with `index.ts` barrels |
 | Domain services | Pure calculations and business transitions | Extract from `src/Hooks/useOrder.ts` into helper/service modules |
 | Selectors | Derived state for lists, totals, dashboard | Memoized selectors near reducers or in `src/Store/Selectors/` |
-| Integration adapters | Trello/API calls and request/response mapping | Keep `useTrello` small or replace with a typed client/proxy adapter |
+| Integration adapters | Trello/API calls and request/response mapping | Keep `useTrello` small or replace with a typed adapter that returns operation results |
 | Persistence boundary | IndexedDB, backup, restore, migration | Versioned schemas and validation around Redux state |
 
 ## Recommended Project Structure
@@ -52,7 +52,7 @@ src/
 |-- Store/               # Redux slices, models, selectors
 |-- Common/              # Current constants/helpers, gradually slimmed down
 |-- Domain/              # New pure order/customer/COD business logic (recommended)
-|-- Integrations/        # Trello/proxy clients and API contracts (recommended)
+|-- Integrations/        # Trello clients and API contracts (recommended)
 |-- Routing/             # Root route tree and shell layout
 `-- test-utils/          # Render helpers, factories, MSW handlers (recommended)
 ```
@@ -69,9 +69,9 @@ src/
 
 ### Pattern 1: Ports and Adapters for Trello
 
-**What:** Define a small interface for Trello operations used by order workflows, then implement it with a proxy-backed adapter.
+**What:** Define a small interface for Trello operations used by order workflows, then implement it with a typed adapter.
 **When to use:** Any code that creates, moves, comments on, or attaches files to Trello cards.
-**Trade-offs:** Slightly more structure, but dramatically easier testing and secret handling.
+**Trade-offs:** Slightly more structure, but dramatically easier testing, status reporting, and recovery.
 
 **Example:**
 ```typescript
@@ -172,7 +172,7 @@ Redux store
 
 | Service | Integration Pattern | Notes |
 |---------|---------------------|-------|
-| Trello REST API | Safe proxy or adapter layer | Credentials must not ship to browser bundles. |
+| Trello REST API | Typed adapter/port | Return structured operation results and make failures visible. |
 | GitHub raw backup URL | Explicit import source or remove default | Current default points to missing `docs/data`. |
 | Google Fonts | Static HTML link | Keep or self-host if reliability/privacy matters. |
 
@@ -182,7 +182,7 @@ Redux store
 |----------|---------------|-------|
 | Screens <-> Domain | Function calls with typed inputs/outputs | Keep UI-specific state out of domain functions. |
 | Domain <-> Store | Plain actions and selectors | Reducers should stay predictable and tested. |
-| Domain <-> Trello | Port/interface | Mock in tests; implement with proxy-backed adapter. |
+| Domain <-> Trello | Port/interface | Mock in tests; implement with typed adapter and operation results. |
 | Backup <-> Store | Versioned schema | Avoid direct arbitrary state replacement. |
 
 ## Sources

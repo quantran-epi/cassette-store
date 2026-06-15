@@ -6,10 +6,6 @@
   "brave_search": false,
   "firecrawl": false,
   "exa_search": false,
-  "tavily_search": false,
-  "ref_search": false,
-  "perplexity": false,
-  "jina": false,
   "git": {
     "branching_strategy": "none",
     "create_tag": true,
@@ -43,9 +39,7 @@
     "plan_bounce_passes": 2,
     "auto_prune_state": false,
     "post_planning_gaps": true,
-    "security_enforcement": true,
-    "security_asvs_level": 1,
-    "security_block_on": "high"
+    "security_enforcement": false
   },
   "ship": {
     "pr_body_sections": [
@@ -80,7 +74,7 @@
   "project_code": null,
   "phase_naming": "sequential",
   "agent_skills": {},
-  "claude_md_path": "./CLAUDE.md",
+  "claude_md_path": "./AGENTS.md",
   "plan_review": {
     "source_grounding": true,
     "source_grounding_authority": "grep"
