@@ -89,7 +89,7 @@ Explicitly excluded. Documented to prevent scope creep.
 
 ## Traceability
 
-Which phases cover which requirements. Updated during roadmap creation.
+Which phases or deferred release buckets cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
@@ -121,13 +121,23 @@ Which phases cover which requirements. Updated during roadmap creation.
 | UX-03 | Phase 5 | Pending |
 | UX-04 | Phase 5 | Pending |
 | UX-05 | Phase 5 | Pending |
+| BACK-01 | v2 | Deferred |
+| BACK-02 | v2 | Deferred |
+| BACK-03 | v2 | Deferred |
+| ADV-01 | v2 | Deferred |
+| ADV-02 | v2 | Deferred |
+| ADV-03 | v2 | Deferred |
+| EXT-01 | v2 | Deferred |
+| EXT-02 | v2 | Deferred |
 
 **Coverage:**
 
 - v1 requirements: 28 total
 - Mapped to phases: 28
 - Unmapped: 0
+- v2 requirements: 8 total
+- Deferred/backlog: 8
 
 ---
 *Requirements defined: 2026-06-15*
-*Last updated: 2026-06-15 after roadmap adjustment*
+*Last updated: 2026-06-15 after Phase 01 traceability repair*
