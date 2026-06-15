@@ -15,10 +15,10 @@ Requirements for the first GSD-managed refactor milestone. Each maps to roadmap 
 
 ### Data Reliability
 
-- [ ] **DATA-01**: Backup payloads include a schema/version marker and all required persisted state sections.
-- [ ] **DATA-02**: Restore validates backup JSON before mutating Redux state and reports actionable validation errors.
-- [ ] **DATA-03**: Restore preserves order state fields including orders, last sequence, done-order IDs, and COD payment cycles.
-- [ ] **DATA-04**: Restore preserves customer state and app context needed for normal operation.
+- [x] **DATA-01**: Backup payloads include a schema/version marker and all required persisted state sections.
+- [x] **DATA-02**: Restore validates backup JSON before mutating Redux state and reports actionable validation errors.
+- [x] **DATA-03**: Restore preserves order state fields including orders, last sequence, done-order IDs, and COD payment cycles.
+- [x] **DATA-04**: Restore preserves customer state and app context needed for normal operation.
 - [ ] **DATA-05**: Operator can see backup/restore status, last backup time, and restore success/failure feedback.
 
 ### Trello Sync
@@ -96,10 +96,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SAFE-01 | Phase 1 | Complete |
 | SAFE-02 | Phase 1 | Complete |
 | SAFE-03 | Phase 1 | Complete |
-| DATA-01 | Phase 1 | Pending |
-| DATA-02 | Phase 1 | Pending |
-| DATA-03 | Phase 1 | Pending |
-| DATA-04 | Phase 1 | Pending |
+| DATA-01 | Phase 1 | Complete |
+| DATA-02 | Phase 1 | Complete |
+| DATA-03 | Phase 1 | Complete |
+| DATA-04 | Phase 1 | Complete |
 | DATA-05 | Phase 1 | Pending |
 | SYNC-04 | Phase 1 | Pending |
 | SYNC-01 | Phase 2 | Pending |

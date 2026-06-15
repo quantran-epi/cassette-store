@@ -42,7 +42,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 01-02: Define persisted-state schema, versioning, validation, and migration defaults.
+- [x] 01-02: Define persisted-state schema, versioning, validation, and migration defaults.
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -145,7 +145,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Data Safety and Refactor Baseline | 1/4 | In Progress|  |
+| 1. Data Safety and Refactor Baseline | 2/4 | In Progress|  |
 | 2. Order State and Trello Sync Reliability | 0/4 | Not started | - |
 | 3. Fast Order and Shipping Workflows | 0/3 | Not started | - |
 | 4. COD, Search, and Operational Utilities | 0/4 | Not started | - |
