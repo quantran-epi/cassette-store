@@ -35,12 +35,33 @@ import {Tag} from "@components/Tag";
 import {AreaHelpers} from "@common/Helpers/AreaHelper";
 import {OrderHelper} from "@common/Helpers/OrderHelper";
 import {useModal} from "@components/Modal/ModalProvider";
+import {createBackupEnvelope, parseBackupText} from "@common/Helpers/BackupHelper";
+import {setAppContextState} from "@store/Reducers/AppContextReducer";
 
 const layoutStyles: React.CSSProperties = {
     height: "100%"
 }
 
 const BACKUP_CARD_ID = "68498a4712a808a92bf59b01";
+
+const _createBackupAttachment = (namePrefix: string) => {
+    const envelope = createBackupEnvelope(store.getState());
+    const fileBlob = new Blob([JSON.stringify(envelope)], {type: 'text/plain'});
+    const createdAt = moment(envelope.createdAt).format("YYYY-MM-DD HH:mm:ss");
+
+    return {
+        envelope,
+        attachment: {
+            name: `${namePrefix} v${envelope.schemaVersion} ${createdAt}`,
+            mimeType: "text/plain",
+            file: fileBlob
+        }
+    }
+}
+
+const _getErrorMessage = (error: any): string => {
+    return error?.message || "Không rõ lỗi";
+}
 
 export const MasterPage = () => {
     const theme = useTheme();
@@ -100,6 +121,7 @@ const SidebarDrawer = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const message = useMessage();
+    const trello = useTrello();
     const toggleLoading = useToggle();
     const [linkBackup, setLinkBackup] = useState("https://raw.githubusercontent.com/quantran-epi/cassette-store/refs/heads/main/docs/data");
 
@@ -120,14 +142,30 @@ const SidebarDrawer = () => {
         try {
             toggleLoading.show();
             let data = await fetch(linkBackup);
+            if (typeof data.ok === "boolean" && !data.ok) {
+                throw new Error(`HTTP ${data.status}`);
+            }
             let text = await data.text();
 
-            let state: RootState = JSON.parse(text) as RootState;
-            dispatch(setOrderState(state.order));
-            dispatch(setCustomerState(state.customer));
+            const restoreResult = parseBackupText(text);
+            if (!restoreResult.ok) {
+                message.error(restoreResult.message);
+                return;
+            }
+
+            try {
+                const preRestoreSnapshot = _createBackupAttachment("Pre-restore backup");
+                await trello.createAttachment(preRestoreSnapshot.attachment, BACKUP_CARD_ID);
+            } catch (snapshotError) {
+                message.warning(`Không thể tạo snapshot trước khi khôi phục: ${_getErrorMessage(snapshotError)}`);
+            }
+
+            dispatch(setOrderState(restoreResult.payload.order));
+            dispatch(setCustomerState(restoreResult.payload.customer));
+            dispatch(setAppContextState(restoreResult.payload.appContext));
             message.success("Đồng bộ thành công");
         } catch (e) {
-            message.error(e?.message);
+            message.error(`Không thể tải file backup: ${_getErrorMessage(e)}`);
         } finally {
             toggleLoading.hide();
         }
@@ -135,7 +173,7 @@ const SidebarDrawer = () => {
 
     return (
         <React.Fragment>
-            <Button type="primary" onClick={showDrawer} icon={<MenuOutlined/>}/>
+            <Button aria-label="Mở menu" type="primary" onClick={showDrawer} icon={<MenuOutlined/>}/>
             <Drawer placement="left" title={<Typography.Text style={{fontFamily: "kanit", fontSize: 24}}>Cửa hàng
                 Cassette</Typography.Text>} onClose={onClose} open={open} styles={{body: {padding: 0}}}>
                 <Flex vertical justify="space-between" style={{height: "100%"}}>
@@ -345,12 +383,8 @@ const AppNoti = () => {
             key: backupMessageKey,
             content: "Đang đồng bộ dữ liệu lên trello"
         });
-        const fileBlob = new Blob([JSON.stringify(store.getState())], {type: 'text/plain'});
-        await trello.createAttachment({
-            name: moment().toLocaleString(),
-            mimeType: "text/plain",
-            file: fileBlob
-        }, BACKUP_CARD_ID);
+        const backupAttachment = _createBackupAttachment("Backup");
+        await trello.createAttachment(backupAttachment.attachment, BACKUP_CARD_ID);
         localStorage.setItem('lastCheckTime', Date.now().toString()); // Reset the time
         message.success({
             key: backupMessageKey,
@@ -363,13 +397,14 @@ const AppNoti = () => {
     }
 
     return <FloatButton.Group
+        aria-label="Mở tác vụ nhanh"
         trigger="click"
         type="primary"
         style={{insetInlineEnd: 24, marginBottom: 40}}
         icon={<MenuOutlined/>}
     >
-        <FloatButton icon={<CreditCardOutlined />} onClick={_onNavigateToOrderPaymentList}/>
-        <FloatButton icon={<CloudUploadOutlined/>} onClick={backupNow}/>
-        <FloatButton icon={<DropboxOutlined/>} onClick={_refreshDoneOrder}/>
+        <FloatButton aria-label="Danh sách COD" icon={<CreditCardOutlined />} onClick={_onNavigateToOrderPaymentList}/>
+        <FloatButton aria-label="Sao lưu dữ liệu" icon={<CloudUploadOutlined/>} onClick={backupNow}/>
+        <FloatButton aria-label="Làm mới đơn đóng hàng" icon={<DropboxOutlined/>} onClick={_refreshDoneOrder}/>
     </FloatButton.Group>;
 }
