@@ -9,9 +9,9 @@ Requirements for the first GSD-managed refactor milestone. Each maps to roadmap 
 
 ### Refactor Safety
 
-- [ ] **SAFE-01**: Developer can run a one-shot test command that passes without module-alias errors.
-- [ ] **SAFE-02**: Developer can run a production build command and confirm generated deployment output matches current source.
-- [ ] **SAFE-03**: The stale CRA sample app test is replaced with an app-specific smoke test.
+- [x] **SAFE-01**: Developer can run a one-shot test command that passes without module-alias errors.
+- [x] **SAFE-02**: Developer can run a production build command and confirm generated deployment output matches current source.
+- [x] **SAFE-03**: The stale CRA sample app test is replaced with an app-specific smoke test.
 
 ### Data Reliability
 
@@ -93,9 +93,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SAFE-01 | Phase 1 | Pending |
-| SAFE-02 | Phase 1 | Pending |
-| SAFE-03 | Phase 1 | Pending |
+| SAFE-01 | Phase 1 | Complete |
+| SAFE-02 | Phase 1 | Complete |
+| SAFE-03 | Phase 1 | Complete |
 | DATA-01 | Phase 1 | Pending |
 | DATA-02 | Phase 1 | Pending |
 | DATA-03 | Phase 1 | Pending |
@@ -123,6 +123,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | UX-05 | Phase 5 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 28 total
 - Mapped to phases: 28
 - Unmapped: 0

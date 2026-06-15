@@ -38,7 +38,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 Plans:
 **Wave 1**
 
-- [ ] 01-01: Repair test command, alias resolution, stale app smoke test, and build check.
+- [x] 01-01: Repair test command, alias resolution, stale app smoke test, and build check.
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -145,7 +145,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Data Safety and Refactor Baseline | 0/4 | Not started | - |
+| 1. Data Safety and Refactor Baseline | 1/4 | In Progress|  |
 | 2. Order State and Trello Sync Reliability | 0/4 | Not started | - |
 | 3. Fast Order and Shipping Workflows | 0/3 | Not started | - |
 | 4. COD, Search, and Operational Utilities | 0/4 | Not started | - |

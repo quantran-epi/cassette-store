@@ -39,7 +39,8 @@
     "plan_bounce_passes": 2,
     "auto_prune_state": false,
     "post_planning_gaps": true,
-    "security_enforcement": false
+    "security_enforcement": false,
+    "_auto_chain_active": false
   },
   "ship": {
     "pr_body_sections": [
