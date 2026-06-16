@@ -11,7 +11,7 @@ type OrderInlineShippingCodeWidgetProps = {
     loading: boolean;
     value: string;
     disabled?: boolean;
-    onSave: (code: string) => Promise<OrderWorkflowResult<unknown> | void>;
+    onSave: (code: string) => Promise<OrderWorkflowResult<unknown>>;
     onOpenModal?: () => void;
 }
 

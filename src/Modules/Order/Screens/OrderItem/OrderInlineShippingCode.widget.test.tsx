@@ -3,6 +3,7 @@ import {act, render, screen, waitFor} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import {Provider} from "react-redux";
 import {OrderItemWidget} from "./OrderItem.widget";
+import {OrderChangeShippingCodeWidget} from "./OrderChangeShippingCode.widget";
 import {store} from "@store/Store";
 import {setCustomerState} from "@store/Reducers/CustomerReducer";
 import {setOrderState} from "@store/Reducers/OrderReducer";
@@ -15,6 +16,7 @@ import {
     ORDER_SHIPPING_PARTNER,
     ORDER_STATUS
 } from "@common/Constants/AppConstants";
+import {del, get, set} from "idb-keyval";
 
 const mockChangeShippingCode = jest.fn();
 const mockClipboardReadText = jest.fn();
@@ -69,7 +71,6 @@ jest.mock("@components/Modal/ModalProvider", () => ({
     useModal: () => ({confirm: jest.fn()})
 }));
 
-jest.mock("./OrderChangeShippingCode.widget", () => ({OrderChangeShippingCodeWidget: () => null}));
 jest.mock("@modules/Order/Screens/OrderItem/OrderCreateDeliveryAssistant.widget", () => ({OrderCreateDeliveryAssistantWidget: () => null}));
 jest.mock("@modules/Order/Screens/OrderItem/OrderRefund.widget", () => ({OrderRefundWidget: () => null}));
 jest.mock("@modules/Order/Screens/OrderItem/OrderPlacedItems.widget", () => ({OrderPlacedItemsWidget: () => null}));
@@ -154,7 +155,27 @@ const renderOrderRow = (props: {order?: Order; failures?: OrderSyncFailure[]} = 
     </Provider>);
 }
 
+const mockMatchMedia = () => {
+    Object.defineProperty(window, "matchMedia", {
+        writable: true,
+        value: jest.fn().mockImplementation(query => ({
+            matches: false,
+            media: query,
+            onchange: null,
+            addListener: jest.fn(),
+            removeListener: jest.fn(),
+            addEventListener: jest.fn(),
+            removeEventListener: jest.fn(),
+            dispatchEvent: jest.fn(),
+        })),
+    });
+}
+
 beforeEach(() => {
+    (get as jest.Mock).mockImplementation(() => Promise.resolve(null));
+    (set as jest.Mock).mockImplementation(() => Promise.resolve());
+    (del as jest.Mock).mockImplementation(() => Promise.resolve());
+    mockMatchMedia();
     Object.defineProperty(navigator, "clipboard", {
         configurable: true,
         value: {readText: mockClipboardReadText}
@@ -172,7 +193,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-    jest.restoreAllMocks();
+    jest.clearAllMocks();
 });
 
 it("renders inline shipping-code entry for eligible rows without reading the clipboard", () => {
@@ -214,4 +235,32 @@ it("saves through changeShippingCode and leaves row-scoped sync controls visible
     expect(screen.getByText(/Bình luận mã vận đơn: Trello comment failed/i)).toBeInTheDocument();
     expect(screen.getByRole("button", {name: /Thử lại/i})).toBeInTheDocument();
     expect(screen.getByRole("button", {name: /Đã xử lý/i})).toBeInTheDocument();
+});
+
+it("does not read clipboard when the modal opens", async () => {
+    render(<OrderChangeShippingCodeWidget
+        order={buildOrder()}
+        loading={false}
+        value=""
+        open={true}
+        onClose={jest.fn()}
+        onSave={jest.fn()}/>)
+
+    expect(await screen.findByPlaceholderText("Nhập mã vận đơn")).toHaveValue("");
+    expect(mockClipboardReadText).not.toHaveBeenCalled();
+});
+
+it("modal explicit paste reads clipboard and populates the shipping-code field", async () => {
+    render(<OrderChangeShippingCodeWidget
+        order={buildOrder()}
+        loading={false}
+        value=""
+        open={true}
+        onClose={jest.fn()}
+        onSave={jest.fn()}/>)
+
+    await userEvent.click(await screen.findByRole("button", {name: /Dán mã/i}));
+
+    expect(mockClipboardReadText).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(screen.getByPlaceholderText("Nhập mã vận đơn")).toHaveValue("SPX123456"));
 });
