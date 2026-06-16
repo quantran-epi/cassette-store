@@ -24,6 +24,7 @@ An internal operator can manage cassette orders, shipping, COD, and customer fol
 - Done: Static deployment output exists under `docs/`, with app routing configured for `/cassette-store`.
 - Validated in Phase 1: One-shot tests and production build pass; backup/restore/done-refresh state handling is covered by focused tests and visible operator status.
 - Validated in Phase 2: Order domain helpers, Trello operation results, local-first workflow results, durable sync failures, and order-level retry/manual recovery controls are implemented and verified.
+- Validated in Phase 3: Order routes use order-specific route symbols/layouts, `/order/create` supports direct customer lookup/add with a compact core-first form, and eligible order rows support explicit-paste shipping-code entry with row-scoped Trello sync feedback.
 
 ### Active
 
@@ -52,6 +53,7 @@ An internal operator can manage cassette orders, shipping, COD, and customer fol
 - This milestone assumes trusted internal use. External-user/public-hosting concerns are deliberately not driving the v1 roadmap.
 - Phase 1 repaired the one-shot test/build baseline. `CI=true yarn test --watchAll=false && yarn build` passes, though the brownfield app still emits non-failing Redux Persist, React `act(...)`, CRA/Babel, Browserslist, and ESLint warnings.
 - Phase 2 made core order workflows local-first around Trello side effects: failures are persisted as order sync failures, affected order items show retry/recovery controls, and attachment failures that need browser files require manual reselect.
+- Phase 3 streamlined fast order and shipping workflows: order creation now starts directly at `/order/create`, less-common create details stay available in a collapsed section, and shipping-code updates can be saved from eligible order rows while preserving local-first Trello failure recovery.
 - Daily operator utility is the product direction: fewer clicks, clearer actions, better search/filtering, safer batch/COD/shipping workflows, and less manual recovery when sync fails.
 - UI/UX improvement matters, but it should follow the operational nature of the app: dense, clear, fast, mobile-friendly, and built for repeated use rather than a marketing-style redesign.
 
@@ -95,4 +97,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-16 after Phase 2 verification*
+*Last updated: 2026-06-16 after Phase 3 verification*
