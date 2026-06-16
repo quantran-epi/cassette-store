@@ -15,6 +15,7 @@ import {Button} from "@components/Button";
 import {Form} from "@components/Form";
 import {Input, TextArea} from "@components/Form/Input";
 import {InputNumber} from "@components/Form/InputNumber";
+import {DatePicker} from "@components/Form/DatePicker";
 import {Radio} from "@components/Form/Radio";
 import {Divider} from "@components/Layout/Divider";
 import {Space} from "@components/Layout/Space";
@@ -43,6 +44,8 @@ import {CheckboxChangeEvent} from "antd/es/checkbox";
 import {CustomerSearchWidget} from "./CustomerSearch.widget";
 import {CustomerAddWidget} from "@modules/Customer/Screens/CustomerAdd.widget";
 import {OrderSelectedCustomerSummaryWidget} from "./OrderSelectedCustomerSummary.widget";
+import {Collapse} from "@components/Collapse/Collapse";
+import {OrderCreateDetailsSummaryWidget} from "./OrderCreateDetailsSummary.widget";
 
 type CreateFlowMode = "lookup" | "add" | "form";
 
@@ -65,6 +68,10 @@ export const OrderCreateScreen = () => {
         if (files.length > 0) return files.map(file => URL.createObjectURL(file));
         return [];
     }, [files])
+
+    useEffect(() => {
+        return () => filePreviewUrls.forEach(url => URL.revokeObjectURL(url));
+    }, [filePreviewUrls])
 
     const routeStateCustomer = useMemo(() => {
         return customers.find(e => e.id == customerId);
@@ -147,7 +154,11 @@ export const OrderCreateScreen = () => {
             priorityStatus: {
                 name: ObjectPropertyHelper.nameof(defaultValues, e => e.priorityStatus)
             },
-            dueDate: {label: "", name: ObjectPropertyHelper.nameof(defaultValues, e => e.dueDate)},
+            dueDate: {
+                label: "Ngày hẹn",
+                name: ObjectPropertyHelper.nameof(defaultValues, e => e.dueDate),
+                normalize: value => value?.toDate?.() || value
+            },
             customerId: {name: ObjectPropertyHelper.nameof(defaultValues, e => e.customerId), noMarkup: true},
             trelloCardId: {name: ObjectPropertyHelper.nameof(defaultValues, e => e.trelloCardId), noMarkup: true},
             position: {name: ObjectPropertyHelper.nameof(defaultValues, e => e.position), noMarkup: true},
@@ -164,6 +175,17 @@ export const OrderCreateScreen = () => {
         })
     })
     const placedItems = Form.useWatch("placedItems", addOrderForm.form);
+    const detailsSummaryValues = {
+        priorityStatus: Form.useWatch("priorityStatus", addOrderForm.form),
+        isFreeShip: Form.useWatch("isFreeShip", addOrderForm.form),
+        shippingPartner: Form.useWatch("shippingPartner", addOrderForm.form),
+        paymentMethod: Form.useWatch("paymentMethod", addOrderForm.form),
+        paymentAmount: Form.useWatch("paymentAmount", addOrderForm.form),
+        codAmount: Form.useWatch("codAmount", addOrderForm.form),
+        shippingCost: Form.useWatch("shippingCost", addOrderForm.form),
+        dueDate: Form.useWatch("dueDate", addOrderForm.form),
+        important: Form.useWatch("important", addOrderForm.form),
+    };
 
     useEffect(() => {
         if (routeStateCustomer) {
@@ -287,15 +309,6 @@ export const OrderCreateScreen = () => {
                 <SmartForm.Item {...addOrderForm.itemDefinitions.name}>
                     <Input/>
                 </SmartForm.Item>
-                <SmartForm.Item {...addOrderForm.itemDefinitions.priorityStatus}>
-                    <Radio.Group
-                        options={[
-                            {value: ORDER_PRIORITY_STATUS.NONE, label: ORDER_PRIORITY_STATUS.NONE},
-                            {value: ORDER_PRIORITY_STATUS.PRIORITY, label: ORDER_PRIORITY_STATUS.PRIORITY},
-                            {value: ORDER_PRIORITY_STATUS.URGENT, label: ORDER_PRIORITY_STATUS.URGENT},
-                        ]}
-                    />
-                </SmartForm.Item>
                 <Divider orientation="left"><Space>
                     <Typography.Text>Danh sách hàng hoá</Typography.Text>
                     <Button icon={<PlusOutlined/>} size="small" onClick={_onAddPlaceItems}/>
@@ -326,41 +339,62 @@ export const OrderCreateScreen = () => {
                 <SmartForm.Item>
                     {_renderPreviewUploadFiles()}
                 </SmartForm.Item>
-                <Divider orientation="left">Thông tin vận chuyển</Divider>
-                <SmartForm.Item {...addOrderForm.itemDefinitions.isFreeShip}>
-                    <Checkbox onChange={_onChangeIsFreeShip}>Miễn phí vận chuyển</Checkbox>
-                </SmartForm.Item>
-                <SmartForm.Item {...addOrderForm.itemDefinitions.shippingPartner}>
-                    <Radio.Group
-                        options={[
-                            {value: ORDER_SHIPPING_PARTNER.VNPOST, label: ORDER_SHIPPING_PARTNER.VNPOST},
-                            {value: ORDER_SHIPPING_PARTNER.VIETTEL_POST, label: ORDER_SHIPPING_PARTNER.VIETTEL_POST}
-                        ]}
-                    />
-                </SmartForm.Item>
-                <SmartForm.Item {...addOrderForm.itemDefinitions.paymentMethod}>
-                    <Radio.Group
-                        onChange={_onChangePaymentMethod}
-                        options={[
-                            {value: ORDER_PAYMENT_METHOD.CASH_COD, label: ORDER_PAYMENT_METHOD.CASH_COD},
-                            {
-                                value: ORDER_PAYMENT_METHOD.BANK_TRANSFER_IN_ADVANCE,
-                                label: ORDER_PAYMENT_METHOD.BANK_TRANSFER_IN_ADVANCE
-                            },
-                        ]}
-                    />
-                </SmartForm.Item>
-                <SmartForm.Item {...addOrderForm.itemDefinitions.codAmount}>
-                    <InputNumber style={{width: "100%"}} placeholder="Nhập số tiền COD"
-                                 formatter={(value) => `đ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}/>
-                </SmartForm.Item>
-                <SmartForm.Item {...addOrderForm.itemDefinitions.shippingCost}>
-                    <InputNumber style={{width: "100%"}} placeholder="Nhập phí vận chuyển"
-                                 formatter={(value) => `đ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}/>
-                </SmartForm.Item>
-                <SmartForm.Item {...addOrderForm.itemDefinitions.important}>
-                    <Input placeholder="Nhập note quan trọng"/>
-                </SmartForm.Item>
+                <Collapse size="small" items={[{
+                    key: "details",
+                    forceRender: true,
+                    label: <Space wrap>
+                        <Typography.Text>Thông tin thêm</Typography.Text>
+                        <OrderCreateDetailsSummaryWidget values={detailsSummaryValues}/>
+                    </Space>,
+                    children: <React.Fragment>
+                        <SmartForm.Item {...addOrderForm.itemDefinitions.priorityStatus}>
+                            <Radio.Group
+                                options={[
+                                    {value: ORDER_PRIORITY_STATUS.NONE, label: ORDER_PRIORITY_STATUS.NONE},
+                                    {value: ORDER_PRIORITY_STATUS.PRIORITY, label: ORDER_PRIORITY_STATUS.PRIORITY},
+                                    {value: ORDER_PRIORITY_STATUS.URGENT, label: ORDER_PRIORITY_STATUS.URGENT},
+                                ]}
+                            />
+                        </SmartForm.Item>
+                        <SmartForm.Item {...addOrderForm.itemDefinitions.isFreeShip}>
+                            <Checkbox onChange={_onChangeIsFreeShip}>Miễn phí vận chuyển</Checkbox>
+                        </SmartForm.Item>
+                        <SmartForm.Item {...addOrderForm.itemDefinitions.shippingPartner}>
+                            <Radio.Group
+                                options={[
+                                    {value: ORDER_SHIPPING_PARTNER.VNPOST, label: ORDER_SHIPPING_PARTNER.VNPOST},
+                                    {value: ORDER_SHIPPING_PARTNER.VIETTEL_POST, label: ORDER_SHIPPING_PARTNER.VIETTEL_POST}
+                                ]}
+                            />
+                        </SmartForm.Item>
+                        <SmartForm.Item {...addOrderForm.itemDefinitions.paymentMethod}>
+                            <Radio.Group
+                                onChange={_onChangePaymentMethod}
+                                options={[
+                                    {value: ORDER_PAYMENT_METHOD.CASH_COD, label: ORDER_PAYMENT_METHOD.CASH_COD},
+                                    {
+                                        value: ORDER_PAYMENT_METHOD.BANK_TRANSFER_IN_ADVANCE,
+                                        label: ORDER_PAYMENT_METHOD.BANK_TRANSFER_IN_ADVANCE
+                                    },
+                                ]}
+                            />
+                        </SmartForm.Item>
+                        <SmartForm.Item {...addOrderForm.itemDefinitions.codAmount}>
+                            <InputNumber style={{width: "100%"}} placeholder="Nhập số tiền COD"
+                                         formatter={(value) => `đ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}/>
+                        </SmartForm.Item>
+                        <SmartForm.Item {...addOrderForm.itemDefinitions.shippingCost}>
+                            <InputNumber style={{width: "100%"}} placeholder="Nhập phí vận chuyển"
+                                         formatter={(value) => `đ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}/>
+                        </SmartForm.Item>
+                        <SmartForm.Item {...addOrderForm.itemDefinitions.dueDate}>
+                            <DatePicker style={{width: "100%"}}/>
+                        </SmartForm.Item>
+                        <SmartForm.Item {...addOrderForm.itemDefinitions.important}>
+                            <Input placeholder="Nhập note quan trọng"/>
+                        </SmartForm.Item>
+                    </React.Fragment>
+                }]}/>
                 <SmartForm.Item>
                     <Button type="primary" fullwidth onClick={_onSaveOrder} loading={toggleSaveLoading.value}>Lưu đơn
                         hàng</Button>

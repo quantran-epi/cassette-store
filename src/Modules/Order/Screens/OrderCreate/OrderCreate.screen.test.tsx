@@ -11,6 +11,12 @@ import OrderReducer from "@store/Reducers/OrderReducer";
 import AppContextReducer from "@store/Reducers/AppContextReducer";
 import type {Customer} from "@store/Models/Customer";
 import {OrderCreateScreen} from "./OrderCreate.screen";
+import {
+    ORDER_DEFAULT_SHIPPING_COST,
+    ORDER_PAYMENT_METHOD,
+    ORDER_PRIORITY_STATUS,
+    ORDER_SHIPPING_PARTNER
+} from "@common/Constants/AppConstants";
 
 const mockCreateOrder = jest.fn();
 const mockCalculateOrderPaymentAmount = jest.fn(() => 120000);
@@ -84,6 +90,10 @@ const renderCreateScreen = (initialEntry: any = "/order/create") => {
     </Provider>);
 }
 
+const waitForOrderDefaults = async () => {
+    await waitFor(() => expect(mockGetAutoCODAmount).toHaveBeenCalledWith(ORDER_PAYMENT_METHOD.CASH_COD, 120000));
+}
+
 const mockMatchMedia = () => {
     Object.defineProperty(window, "matchMedia", {
         writable: true,
@@ -102,6 +112,8 @@ const mockMatchMedia = () => {
 
 beforeEach(() => {
     mockMatchMedia();
+    URL.createObjectURL = jest.fn(() => "blob:test-preview");
+    URL.revokeObjectURL = jest.fn();
     testStore = configureStore({
         reducer: {
             appContext: AppContextReducer,
@@ -116,8 +128,10 @@ beforeEach(() => {
         syncFailures: [],
         message: "Tạo đơn hàng thành công"
     });
-    mockCalculateOrderPaymentAmount.mockClear();
-    mockGetAutoCODAmount.mockClear();
+    mockCalculateOrderPaymentAmount.mockReset();
+    mockCalculateOrderPaymentAmount.mockReturnValue(120000);
+    mockGetAutoCODAmount.mockReset();
+    mockGetAutoCODAmount.mockImplementation((paymentMethod: string, paymentAmount: number) => paymentAmount);
     mockNavigate.mockClear();
     Object.values(mockMessage).forEach(mock => mock.mockClear());
     testStore.dispatch(setCustomerState({customers: [buildCustomer()]}));
@@ -180,4 +194,66 @@ it("preselects a route-state customer and skips lookup", async () => {
     expect(screen.getByText("Linh Nguyen")).toBeInTheDocument();
     expect(screen.queryByPlaceholderText("Nhập số điện thoại")).not.toBeInTheDocument();
     expect(screen.getByRole("button", {name: /Lưu đơn hàng/i})).toBeInTheDocument();
+});
+
+it("submits default create values through useOrder.createOrder", async () => {
+    renderCreateScreen({pathname: "/order/create", state: {customerId: "customer-1"}});
+
+    await waitForOrderDefaults();
+    await userEvent.click(await screen.findByRole("button", {name: /Lưu đơn hàng/i}));
+
+    await waitFor(() => expect(mockCreateOrder).toHaveBeenCalled());
+    const [order, customer, files] = mockCreateOrder.mock.calls[0];
+
+    expect(order).toEqual(expect.objectContaining({
+        customerId: "customer-1",
+        priorityStatus: ORDER_PRIORITY_STATUS.NONE,
+        isFreeShip: false,
+        shippingPartner: ORDER_SHIPPING_PARTNER.VNPOST,
+        paymentMethod: ORDER_PAYMENT_METHOD.CASH_COD,
+        shippingCost: ORDER_DEFAULT_SHIPPING_COST,
+        paymentAmount: 120000,
+        codAmount: 120000,
+        important: "",
+    }));
+    expect(order).toHaveProperty("dueDate");
+    expect(order.dueDate).toBeUndefined();
+    expect(order.placedItems.length).toBeGreaterThan(0);
+    expect(customer).toEqual(expect.objectContaining({id: "customer-1"}));
+    expect(files).toEqual([]);
+});
+
+it("shows changed values in the collapsed details summary", async () => {
+    renderCreateScreen({pathname: "/order/create", state: {customerId: "customer-1"}});
+
+    expect(await screen.findByText("Thông tin thêm")).toBeInTheDocument();
+    expect(screen.getByText("Mặc định")).toBeInTheDocument();
+
+    await userEvent.click(screen.getByText("Thông tin thêm"));
+    await userEvent.click(screen.getByLabelText("Miễn phí vận chuyển"));
+
+    expect(screen.getByText("Đã đổi:")).toBeInTheDocument();
+    expect(screen.getAllByText("Miễn phí vận chuyển").length).toBeGreaterThan(1);
+});
+
+it("passes attachments to createOrder and warns when Trello sync fails after local save", async () => {
+    mockCreateOrder.mockResolvedValueOnce({
+        ok: true,
+        operation: "create-order",
+        localUpdated: true,
+        syncFailures: [{id: "failure-1", orderId: "order-1", operation: "create-card", status: "failed", message: "Trello failed", retryable: true}],
+        message: "Tạo đơn hàng thành công"
+    });
+    const {container} = renderCreateScreen({pathname: "/order/create", state: {customerId: "customer-1"}});
+    const file = new File(["cover"], "cover.jpg", {type: "image/jpeg"});
+    const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+
+    await waitForOrderDefaults();
+    await userEvent.upload(fileInput, file);
+    await userEvent.click(await screen.findByRole("button", {name: /Lưu đơn hàng/i}));
+
+    await waitFor(() => expect(mockCreateOrder).toHaveBeenCalled());
+    expect(mockCreateOrder.mock.calls[0][2]).toEqual([file]);
+    await waitFor(() => expect(mockMessage.warning).toHaveBeenCalledWith("Tạo đơn hàng thành công. Cần đồng bộ lại Trello."));
+    expect(mockNavigate).toHaveBeenCalledWith("/order/list");
 });
