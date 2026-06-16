@@ -5,7 +5,9 @@ import {
     addCodPayment,
     addOrder,
     clearOrderSyncFailures,
+    clearSyncFailure,
     editOrder,
+    markSyncFailureRetrying,
     removeDoneOrder,
     setDoneOrders,
     upsertSyncFailure
@@ -57,6 +59,8 @@ type UseOrder = {
     createOrder: (order: Order, customer: Customer, fileAttachments: RcFile[]) => Promise<OrderWorkflowResult<TrelloCard>>;
     updateOrder: (order: Order) => Promise<OrderWorkflowResult<TrelloCard>>;
     attachImagesToOrderOnTrello: (order: Order, files: RcFile[]) => Promise<OrderWorkflowResult<TrelloAttachment[]>>;
+    retryOrderSyncFailure: (failureId: string) => Promise<OrderWorkflowResult<TrelloCard | TrelloAttachment | void>>;
+    clearOrderSyncFailure: (failureId: string) => void;
     isVipOrder: (order: Order) => boolean;
     isPriority: (order: Order) => boolean;
     isCustomerReturnLessThan4: (order: Order) => boolean;
@@ -88,6 +92,7 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
     const dispatch = useDispatch();
     const orders = useSelector((state: RootState) => state.order.orders);
     const customers = useSelector((state: RootState) => state.customer.customers);
+    const syncFailures = useSelector((state: RootState) => state.order.syncFailures);
     const trello = useTrello();
     const orderTrelloAdapter = createOrderTrelloAdapter(trello);
 
@@ -135,6 +140,32 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
         const result = await orderTrelloAdapter.moveOrderCard(order?.trelloCardId, listId, orderId);
         const syncFailure = _recordTrelloResult(orderId, result, order?.trelloCardId);
         return {result, syncFailure};
+    }
+
+    const _restoreSyncFailureAfterRetry = <T>(failure: OrderSyncFailure, result: TrelloOperationResult<T>): OrderSyncFailure => {
+        const now = new Date().toISOString();
+        const restoredFailure: OrderSyncFailure = {
+            ...failure,
+            status: "failed",
+            message: isTrelloOperationFailure(result) ? result.message : failure.message,
+            retryable: isTrelloOperationFailure(result) ? result.retryable : failure.retryable,
+            updatedAt: now,
+            retryPayload: isTrelloOperationFailure(result) && result.retryPayload ? result.retryPayload : failure.retryPayload
+        };
+        dispatch(upsertSyncFailure(restoredFailure));
+        return restoredFailure;
+    }
+
+    const _manualAttachmentReselectResult = (failure: OrderSyncFailure): OrderWorkflowResult<void> => {
+        const message = "Cần chọn lại ảnh để đồng bộ Trello";
+        const now = new Date().toISOString();
+        dispatch(upsertSyncFailure({
+            ...failure,
+            status: "failed",
+            message,
+            updatedAt: now
+        }));
+        return createOrderWorkflowFailure({operation: "retry-sync", message});
     }
 
     const markOrderAsRefuseToReceive = async (orderId: string): Promise<OrderWorkflowResult<TrelloCard>> => {
@@ -458,6 +489,65 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
         }
     }
 
+    const retryOrderSyncFailure = async (failureId: string): Promise<OrderWorkflowResult<TrelloCard | TrelloAttachment | void>> => {
+        const failure = store.getState().order.syncFailures.find(item => item.id === failureId) || syncFailures.find(item => item.id === failureId);
+        if (!failure) return createOrderWorkflowFailure({operation: "retry-sync", message: "Không tìm thấy lỗi đồng bộ"});
+
+        const currentOrder = store.getState().order.orders.find(item => item.id === failure.orderId);
+        if (!currentOrder) return createOrderWorkflowFailure({operation: "retry-sync", message: "Không tìm thấy đơn hàng"});
+
+        const currentCustomer = store.getState().customer.customers.find(item => item.id === currentOrder.customerId);
+        if (!currentCustomer) return createOrderWorkflowFailure({operation: "retry-sync", message: "Không tìm thấy khách hàng"});
+
+        dispatch(markSyncFailureRetrying({id: failure.id, updatedAt: new Date().toISOString()}));
+        const retryPayload = failure.retryPayload as any;
+        let result: TrelloOperationResult<TrelloCard | TrelloAttachment | void>;
+
+        switch (failure.operation) {
+            case "create-card":
+                result = await orderTrelloAdapter.createOrderCard(currentOrder, currentCustomer, retryPayload?.idList || trello.TRELLO_LIST_IDS.TODO_LIST);
+                if (!isTrelloOperationFailure(result)) {
+                    let updatedOrder = cloneDeep(currentOrder);
+                    updatedOrder.trelloCardId = result.data.id;
+                    dispatch(editOrder({order: updatedOrder, customer: currentCustomer}));
+                }
+                break;
+            case "update-card":
+                result = await orderTrelloAdapter.updateOrderCard(currentOrder, currentCustomer);
+                break;
+            case "move-card":
+                result = await orderTrelloAdapter.moveOrderCard(currentOrder.trelloCardId || failure.trelloCardId, retryPayload?.idList, currentOrder.id);
+                break;
+            case "create-comment":
+                result = await orderTrelloAdapter.createShippingCodeComment(
+                    currentOrder.trelloCardId || failure.trelloCardId,
+                    retryPayload?.shippingCode || currentOrder.shippingCode,
+                    currentOrder.id
+                );
+                break;
+            case "create-attachment":
+                return _manualAttachmentReselectResult(failure);
+            default:
+                return createOrderWorkflowFailure({operation: "retry-sync", message: "Chưa hỗ trợ thử lại thao tác này"});
+        }
+
+        if (isTrelloOperationFailure(result)) {
+            const restoredFailure = _restoreSyncFailureAfterRetry(failure, result);
+            return createOrderWorkflowFailure({operation: "retry-sync", message: restoredFailure.message});
+        }
+
+        dispatch(clearSyncFailure(failure.id));
+        return createOrderWorkflowSuccess({
+            operation: "retry-sync",
+            data: result.data,
+            message: "Đồng bộ Trello thành công"
+        });
+    }
+
+    const clearOrderSyncFailure = (failureId: string): void => {
+        dispatch(clearSyncFailure(failureId));
+    }
+
     const isVipOrder = (order: Order): boolean => {
         let customer = _findCustomerById(order.customerId);
         return OrderDomainHelper.isVipOrder(order, customer);
@@ -587,6 +677,8 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
         moveOrderToTrelloList,
         createOrder,
         attachImagesToOrderOnTrello,
+        retryOrderSyncFailure,
+        clearOrderSyncFailure,
         isVipOrder,
         isBankTransferInAdvance,
         isUrgent,

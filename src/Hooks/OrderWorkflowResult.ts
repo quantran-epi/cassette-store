@@ -11,7 +11,8 @@ export type OrderWorkflowOperation =
     | "mark-broken-items"
     | "pay-cod"
     | "refund"
-    | "attach-images";
+    | "attach-images"
+    | "retry-sync";
 
 export type OrderWorkflowResult<T> = {
     ok: boolean;

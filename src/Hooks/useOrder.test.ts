@@ -106,14 +106,14 @@ const seedDoneOrders = (doneOrders: string[]) => {
     }));
 }
 
-const seedOrderState = (orders: Order[], customers: Customer[] = [buildCustomer()]): void => {
+const seedOrderState = (orders: Order[], customers: Customer[] = [buildCustomer()], syncFailures: OrderSyncFailure[] = []): void => {
     store.dispatch(setCustomerState({customers}));
     store.dispatch(setOrderState({
         orders,
         lastSequence: orders.length,
         doneOrders: [],
         codPayments: [],
-        syncFailures: []
+        syncFailures
     }));
 }
 
@@ -165,6 +165,19 @@ const buildOrder = (overrides: Partial<Order> = {}): Order => ({
 const buildFile = (name: string): File => {
     return new File(["image"], name, {type: "image/jpeg"});
 }
+
+const buildTrelloCard = (overrides = {}) => ({
+    id: "trello-card-1",
+    name: "Trello Card",
+    desc: "Card desc",
+    dueComplete: false,
+    idList: "todo-list",
+    start: new Date("2026-06-16T00:00:00.000Z"),
+    pos: 0,
+    url: "https://trello.test/card",
+    attachments: [],
+    ...overrides
+});
 
 const buildSyncFailure = (overrides: Partial<OrderSyncFailure> = {}): OrderSyncFailure => ({
     id: "failure-1",
@@ -388,5 +401,126 @@ describe("useOrder local-first Trello failure handling", () => {
                 })
             })
         ]));
+    });
+});
+
+describe("useOrder sync failure retry handling", () => {
+    it("retries failed card creation, stores Trello card ID, and clears the failure", async () => {
+        const customer = buildCustomer();
+        const order = buildOrder({trelloCardId: ""});
+        const failure = buildSyncFailure({
+            id: "failure-create-card",
+            orderId: order.id,
+            operation: "create-card",
+            trelloCardId: undefined,
+            retryPayload: {orderId: order.id, customerId: customer.id, idList: "todo-list"}
+        });
+        seedOrderState([order], [customer], [failure]);
+        mockCreateCard.mockResolvedValue(buildTrelloCard({id: "trello-card-new"}));
+        const {getOrderUtils} = renderUseOrder();
+
+        expect(getOrderUtils().retryOrderSyncFailure).toEqual(expect.any(Function));
+        expect(getOrderUtils().clearOrderSyncFailure).toEqual(expect.any(Function));
+
+        let result;
+        await act(async () => {
+            result = await getOrderUtils().retryOrderSyncFailure(failure.id);
+        });
+
+        const updatedOrder = store.getState().order.orders.find(item => item.id === order.id);
+        expect(result.localUpdated).toBe(true);
+        expect(mockCreateCard).toHaveBeenCalledWith(expect.objectContaining({idList: "todo-list"}));
+        expect(updatedOrder.trelloCardId).toBe("trello-card-new");
+        expect(store.getState().order.syncFailures).toEqual([]);
+    });
+
+    it("retries failed card move and clears only the matching failure", async () => {
+        const customer = buildCustomer();
+        const order = buildOrder();
+        const moveFailure = buildSyncFailure({
+            id: "failure-move-card",
+            orderId: order.id,
+            operation: "move-card",
+            retryPayload: {orderId: order.id, trelloCardId: order.trelloCardId, idList: "done-list"}
+        });
+        const commentFailure = buildSyncFailure({
+            id: "failure-comment",
+            orderId: order.id,
+            operation: "create-comment",
+            retryPayload: {orderId: order.id, trelloCardId: order.trelloCardId, shippingCode: "VN123"}
+        });
+        seedOrderState([order], [customer], [moveFailure, commentFailure]);
+        mockUpdateCard.mockResolvedValue(buildTrelloCard({idList: "done-list"}));
+        const {getOrderUtils} = renderUseOrder();
+
+        let result;
+        await act(async () => {
+            result = await getOrderUtils().retryOrderSyncFailure(moveFailure.id);
+        });
+
+        expect(result.localUpdated).toBe(true);
+        expect(mockUpdateCard).toHaveBeenCalledWith({id: order.trelloCardId, idList: "done-list"});
+        expect(store.getState().order.syncFailures.map(item => item.id)).toEqual([commentFailure.id]);
+    });
+
+    it("leaves a retry failure in failed status with a newer updated timestamp", async () => {
+        const customer = buildCustomer();
+        const order = buildOrder();
+        const failure = buildSyncFailure({
+            id: "failure-move-card",
+            orderId: order.id,
+            operation: "move-card",
+            message: "Old failure",
+            updatedAt: "2026-06-16T00:00:00.000Z",
+            retryPayload: {orderId: order.id, trelloCardId: order.trelloCardId, idList: "done-list"}
+        });
+        seedOrderState([order], [customer], [failure]);
+        mockUpdateCard.mockRejectedValue(new Error("Still down"));
+        const {getOrderUtils} = renderUseOrder();
+
+        let result;
+        await act(async () => {
+            result = await getOrderUtils().retryOrderSyncFailure(failure.id);
+        });
+
+        const retriedFailure = store.getState().order.syncFailures.find(item => item.id === failure.id);
+        expect(result.localUpdated).toBe(false);
+        expect(result.message).toBe("Still down");
+        expect(retriedFailure.status).toBe("failed");
+        expect(retriedFailure.message).toBe("Still down");
+        expect(retriedFailure.updatedAt).not.toBe("2026-06-16T00:00:00.000Z");
+    });
+
+    it("returns manual reselect guidance for persisted attachment failures without clearing them", async () => {
+        const customer = buildCustomer();
+        const order = buildOrder();
+        const failure = buildSyncFailure({
+            id: "failure-attachment",
+            orderId: order.id,
+            operation: "create-attachment",
+            retryPayload: {
+                orderId: order.id,
+                trelloCardId: order.trelloCardId,
+                attachment: {name: "order.jpg", mimeType: "image/jpeg"},
+                requiresFileReselect: true
+            }
+        });
+        seedOrderState([order], [customer], [failure]);
+        const {getOrderUtils} = renderUseOrder();
+
+        let result;
+        await act(async () => {
+            result = await getOrderUtils().retryOrderSyncFailure(failure.id);
+        });
+
+        const persistedFailure = store.getState().order.syncFailures.find(item => item.id === failure.id);
+        expect(result.localUpdated).toBe(false);
+        expect(result.message).toBe("Cần chọn lại ảnh để đồng bộ Trello");
+        expect(mockCreateAttachment).not.toHaveBeenCalled();
+        expect(persistedFailure).toMatchObject({
+            id: failure.id,
+            status: "failed",
+            message: "Cần chọn lại ảnh để đồng bộ Trello"
+        });
     });
 });
