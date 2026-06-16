@@ -28,11 +28,11 @@ import {nanoid} from "@reduxjs/toolkit";
 import {RootRoutes} from "@routing/RootRoutes";
 import {Order} from "@store/Models/Order";
 import {OrderItem} from "@store/Models/OrderItem";
-import {addOrder} from "@store/Reducers/OrderReducer";
+import {Customer} from "@store/Models/Customer";
 import {RootState} from "@store/Store";
 import {RadioChangeEvent} from "antd";
 import React, {useEffect, useMemo, useState} from "react";
-import {useDispatch, useSelector} from "react-redux";
+import {useSelector} from "react-redux";
 import {useLocation, useNavigate} from "react-router-dom";
 import {OrderPlacedItem} from "./OrderPlacedItem.widget";
 import {Upload} from "@components/Form/Upload";
@@ -40,18 +40,25 @@ import {RcFile} from "antd/es/upload";
 import {Image} from "@components/Image";
 import {Checkbox} from "@components/Form/Checkbox";
 import {CheckboxChangeEvent} from "antd/es/checkbox";
+import {CustomerSearchWidget} from "./CustomerSearch.widget";
+import {CustomerAddWidget} from "@modules/Customer/Screens/CustomerAdd.widget";
+import {OrderSelectedCustomerSummaryWidget} from "./OrderSelectedCustomerSummary.widget";
+
+type CreateFlowMode = "lookup" | "add" | "form";
 
 export const OrderCreateScreen = () => {
     const location = useLocation();
     const {customerId} = location.state || {};
     const customers = useSelector((state: RootState) => state.customer.customers);
     const lastSequence = useSelector((state: RootState) => state.order.lastSequence);
-    const dispatch = useDispatch();
     const message = useMessage();
     const navigate = useNavigate();
     const {} = useScreenTitle({value: "Tạo đơn hàng", deps: []});
     const orderUtils = useOrder();
     const [files, setFiles] = useState<RcFile[]>([]);
+    const [selectedCustomer, setSelectedCustomer] = useState<Customer>();
+    const [prefilledCustomer, setPrefilledCustomer] = useState<Partial<Customer>>();
+    const [createFlowMode, setCreateFlowMode] = useState<CreateFlowMode>("lookup");
     const toggleSaveLoading = useToggle();
 
     const filePreviewUrls = useMemo(() => {
@@ -59,9 +66,11 @@ export const OrderCreateScreen = () => {
         return [];
     }, [files])
 
-    const orderCustomer = useMemo(() => {
+    const routeStateCustomer = useMemo(() => {
         return customers.find(e => e.id == customerId);
-    }, [customerId])
+    }, [customers, customerId])
+
+    const orderCustomer = selectedCustomer;
 
     const addOrderForm = useSmartForm<Order>({
         defaultValues: {
@@ -149,12 +158,19 @@ export const OrderCreateScreen = () => {
         }),
         transformFunc: (values) => ({
             ...values,
-            id: values.name.concat(nanoid(10)),
+            id: (values.name || "").concat(nanoid(10)),
             sequence: lastSequence + 1,
             createdDate: (new Date()).toISOString()
         })
     })
     const placedItems = Form.useWatch("placedItems", addOrderForm.form);
+
+    useEffect(() => {
+        if (routeStateCustomer) {
+            setSelectedCustomer(routeStateCustomer);
+            setCreateFlowMode("form");
+        }
+    }, [routeStateCustomer])
 
     useEffect(() => {
         if (orderCustomer?.name) {
@@ -170,6 +186,30 @@ export const OrderCreateScreen = () => {
             });
         }
     }, [orderCustomer])
+
+    const _onSelectCustomer = (customer: Partial<Customer>) => {
+        const existingCustomer = customers.find(item => item.id === customer.id) || customer as Customer;
+        setSelectedCustomer(existingCustomer);
+        setPrefilledCustomer(undefined);
+        setCreateFlowMode("form");
+    }
+
+    const _onStartAddCustomer = (customer: Partial<Customer>) => {
+        setPrefilledCustomer(customer);
+        setCreateFlowMode("add");
+    }
+
+    const _onAddCustomerSucceed = (customer: Customer) => {
+        setSelectedCustomer(customer);
+        setPrefilledCustomer(undefined);
+        setCreateFlowMode("form");
+    }
+
+    const _onChangeCustomer = () => {
+        setSelectedCustomer(undefined);
+        setPrefilledCustomer(undefined);
+        setCreateFlowMode("lookup");
+    }
 
     const _onSaveOrder = () => {
         addOrderForm.submit();
@@ -232,23 +272,17 @@ export const OrderCreateScreen = () => {
     }
 
     return <React.Fragment>
-        <SmartForm {...addOrderForm.defaultProps}>
-            {Boolean(orderCustomer) && <React.Fragment>
-                <Divider orientation="left">Thông tin khách hàng</Divider>
-                <Stack direction={"column"} align={"flex-start"} gap={3}>
-                    <Typography.Text>
-                        <Typography.Text strong style={{marginRight: 5}}>Tên khách hàng:</Typography.Text>
-                        <Typography.Text>{orderCustomer.name}</Typography.Text>
-                    </Typography.Text>
-                    <Typography.Text>
-                        <Typography.Text strong style={{marginRight: 5}}>Số điện thoại:</Typography.Text>
-                        <Typography.Text>{orderCustomer.mobile}</Typography.Text>
-                    </Typography.Text>
-                    <Typography.Text>
-                        <Typography.Text strong style={{marginRight: 5}}>Địa chỉ:</Typography.Text>
-                        <Typography.Text>{orderCustomer.address}</Typography.Text>
-                    </Typography.Text>
-                </Stack>
+        {!orderCustomer && createFlowMode === "lookup" && <CustomerSearchWidget
+            onCreateOrderFromExistedCustomer={_onSelectCustomer}
+            onCreateOrderFromNewCustomer={_onStartAddCustomer}/>
+        }
+        {!orderCustomer && createFlowMode === "add" && <CustomerAddWidget
+            prefilled={prefilledCustomer}
+            onAddSucceed={_onAddCustomerSucceed}/>
+        }
+        {Boolean(orderCustomer) && <SmartForm {...addOrderForm.defaultProps}>
+            <React.Fragment>
+                <OrderSelectedCustomerSummaryWidget customer={orderCustomer} onChangeCustomer={_onChangeCustomer}/>
                 <Divider orientation="left">Tên đơn hàng</Divider>
                 <SmartForm.Item {...addOrderForm.itemDefinitions.name}>
                     <Input/>
@@ -331,7 +365,7 @@ export const OrderCreateScreen = () => {
                     <Button type="primary" fullwidth onClick={_onSaveOrder} loading={toggleSaveLoading.value}>Lưu đơn
                         hàng</Button>
                 </SmartForm.Item>
-            </React.Fragment>}
-        </SmartForm>
+            </React.Fragment>
+        </SmartForm>}
     </React.Fragment>
 }

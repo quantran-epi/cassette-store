@@ -1,6 +1,5 @@
 import {
     PlusOutlined,
-    UserOutlined
 } from "@ant-design/icons";
 import { COLORS, ORDER_ITEM_TYPE, ORDER_PAYMENT_METHOD, ORDER_STATUS } from "@common/Constants/AppConstants";
 import { Badge } from "@components/Badge";
@@ -12,14 +11,11 @@ import { Divider } from "@components/Layout/Divider";
 import { Space } from "@components/Layout/Space";
 import { Stack } from "@components/Layout/Stack";
 import { List } from "@components/List";
-import { Modal } from "@components/Modal";
 import { Tag } from "@components/Tag";
 import { Tooltip } from "@components/Tootip";
 import { Typography } from "@components/Typography";
-import { useScreenTitle, useToggle } from "@hooks";
-import { CustomerAddWidget } from "@modules/Customer/Screens/CustomerAdd.widget";
+import { useScreenTitle } from "@hooks";
 import { RootRoutes } from "@routing/RootRoutes";
-import { Customer } from "@store/Models/Customer";
 import { Order } from "@store/Models/Order";
 import { removeOrder } from "@store/Reducers/OrderReducer";
 import { RootState } from "@store/Store";
@@ -28,7 +24,6 @@ import { debounce, orderBy } from "lodash";
 import React, { useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { CustomerSearchWidget } from "./OrderCreate/CustomerSearch.widget";
 import { OrderItemWidget } from "./OrderItem/OrderItem.widget";
 import { Radio } from "@components/Form/Radio";
 import { Popover } from "@components/Popover";
@@ -38,13 +33,10 @@ export const OrderListScreen = () => {
     const doneOrders = useSelector((state: RootState) => state.order.doneOrders);
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const toggleAddOrderModal = useToggle();
-    const toggleAddCustomerModal = useToggle();
     const { } = useScreenTitle({ value: "Đơn hàng", deps: [] });
     const [searchText, setSearchText] = useState("");
     const [searchStatuses, setSearchStatuses] = useState<string[]>([]);
     const [searchPayCODStatus, setSearchPayCODStatus] = useState<string>("0");
-    const [prefilledCustomer, setPrefilledCustomer] = useState<Partial<Customer>>();
 
     const filteredOrders = useMemo<Order[]>(() => {
         return orderBy(orders.filter(e => (e.name.trim().toLowerCase().includes(searchText.trim().toLowerCase()) || e.shippingCode?.includes(searchText)) &&
@@ -66,32 +58,11 @@ export const OrderListScreen = () => {
     }, [filteredOrders])
 
     const _onAddOrder = () => {
-        toggleAddOrderModal.show();
+        navigate(RootRoutes.AuthorizedRoutes.OrderRoutes.Create());
     }
 
     const _onDelete = (item) => {
         dispatch(removeOrder([item.id]));
-    }
-
-    const _onCreateExistedCustomer = (customer: Partial<Customer>) => {
-        navigate(RootRoutes.AuthorizedRoutes.OrderRoutes.Create(), {
-            state: {
-                customerId: customer.id
-            }
-        });
-    }
-
-    const _onCreateNewCustomer = (customer: Partial<Customer>) => {
-        toggleAddCustomerModal.show();
-        setPrefilledCustomer(customer);
-    }
-
-    const _onCreateNewCustomerSucceed = (addedCustomer: Customer) => {
-        navigate(RootRoutes.AuthorizedRoutes.OrderRoutes.Create(), {
-            state: {
-                customerId: addedCustomer.id
-            }
-        });
     }
 
     const _onChangeSearchStatuses = (checkedValue: string[]) => {
@@ -176,25 +147,6 @@ export const OrderListScreen = () => {
             dataSource={filteredOrders}
             renderItem={(item) => <OrderItemWidget item={item} onDelete={_onDelete} />}
         />
-
-        <Modal open={toggleAddOrderModal.value} title={
-            <Space>
-                <UserOutlined />
-                Tạo đơn hàng mới
-            </Space>
-        } destroyOnClose={true} onCancel={toggleAddOrderModal.hide} footer={null}>
-            <CustomerSearchWidget onCreateOrderFromExistedCustomer={_onCreateExistedCustomer}
-                onCreateOrderFromNewCustomer={_onCreateNewCustomer} />
-        </Modal>
-
-        <Modal open={toggleAddCustomerModal.value} centered title={
-            <Space>
-                <UserOutlined />
-                Thêm khách hàng
-            </Space>
-        } destroyOnClose={true} onCancel={toggleAddCustomerModal.hide} footer={null}>
-            <CustomerAddWidget prefilled={prefilledCustomer} onAddSucceed={_onCreateNewCustomerSucceed} />
-        </Modal>
 
     </React.Fragment>
 }

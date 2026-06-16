@@ -145,7 +145,7 @@ it("selects an existing customer and reveals the selected summary with the order
     renderCreateScreen();
 
     await userEvent.type(screen.getByPlaceholderText("Nhập số điện thoại"), "0900");
-    await userEvent.click(screen.getByRole("button", {name: ""}));
+    await userEvent.click(screen.getByRole("button", {name: /search/i}));
     await userEvent.click(await screen.findByRole("button", {name: /Tạo đơn/i}));
 
     expect(await screen.findByTestId("selected-customer-summary")).toBeInTheDocument();
@@ -158,7 +158,7 @@ it("adds a new customer inline and continues to the order form", async () => {
     renderCreateScreen();
 
     await userEvent.type(screen.getByPlaceholderText("Nhập số điện thoại"), "0911111111");
-    await userEvent.click(screen.getByRole("button", {name: ""}));
+    await userEvent.click(screen.getByRole("button", {name: /search/i}));
     await userEvent.click(await screen.findByRole("button", {name: /Tạo đơn khách mới/i}));
 
     await userEvent.type(await screen.findByPlaceholderText("Nhập tên"), "New Customer");
