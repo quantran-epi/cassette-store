@@ -23,7 +23,7 @@ import {List} from "@components/List";
 import {useMessage} from "@components/Message";
 import {SmartForm, useSmartForm} from "@components/SmartForm";
 import {Typography} from "@components/Typography";
-import {useOrder, useScreenTitle, useToggle} from "@hooks";
+import {getOrderWorkflowMessage, hasOrderWorkflowSyncFailures, useOrder, useScreenTitle, useToggle} from "@hooks";
 import {nanoid} from "@reduxjs/toolkit";
 import {RootRoutes} from "@routing/RootRoutes";
 import {Order} from "@store/Models/Order";
@@ -95,12 +95,13 @@ export const OrderCreateScreen = () => {
         onSubmit: (values) => {
             // console.log(values.transformValues);
             toggleSaveLoading.show();
-            orderUtils.createOrder(values.transformValues, orderCustomer, files).then(newOrder => {
-                if (newOrder !== null) {
-                    message.success("Tạo đơn hàng thành công");
+            orderUtils.createOrder(values.transformValues, orderCustomer, files).then(result => {
+                if (result.localUpdated) {
+                    if (hasOrderWorkflowSyncFailures(result)) message.warning(getOrderWorkflowMessage(result));
+                    else message.success("Tạo đơn hàng thành công");
                     addOrderForm.reset();
                     navigate(RootRoutes.AuthorizedRoutes.OrderRoutes.List());
-                } else message.error("Tạo đơn hàng lỗi");
+                } else message.error(getOrderWorkflowMessage(result));
                 toggleSaveLoading.hide();
             });
         },

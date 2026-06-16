@@ -39,7 +39,7 @@ import { RootState } from "@store/Store";
 import React, { FunctionComponent, useMemo } from "react";
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { useDispatch, useSelector } from "react-redux";
-import { useToggle, useOrder } from "@hooks";
+import { getOrderWorkflowMessage, hasOrderWorkflowSyncFailures, OrderWorkflowResult, useToggle, useOrder } from "@hooks";
 import { Modal } from "@components/Modal";
 import { Input } from "@components/Form/Input";
 import { OrderChangeShippingCodeWidget } from "./OrderChangeShippingCode.widget";
@@ -140,6 +140,12 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
         dispatch(removeOrder([props.item.id]));
     }
 
+    const _showWorkflowResult = (result: OrderWorkflowResult<unknown>, successMessage: string) => {
+        if (!result.localUpdated) message.error(getOrderWorkflowMessage(result));
+        else if (hasOrderWorkflowSyncFailures(result)) message.warning(getOrderWorkflowMessage(result));
+        else message.success(successMessage);
+    }
+
     const _onMoreActionClick = async (e) => {
         switch (e.key) {
             case "place-items":
@@ -183,9 +189,8 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                     title: "Đánh dấu đơn là thành công, thao tác này không thể chỉnh sửa?",
                     cancelText: "Huỷ",
                     onOk: async () => {
-                        let error = await orderUtils.markOrderAsShipped(props.item.id);
-                        if (error) message.error(error);
-                        else message.success("Đã đánh dấu đơn hoàn thành");
+                        let result = await orderUtils.markOrderAsShipped(props.item.id);
+                        _showWorkflowResult(result, "Đã đánh dấu đơn hoàn thành");
                     }
                 })
                 break;
@@ -204,9 +209,8 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                     title: "Đánh dấu đơn là bị bom hàng?",
                     cancelText: "Huỷ",
                     onOk: async () => {
-                        let error = await orderUtils.markOrderAsRefuseToReceive(props.item.id);
-                        if (error) message.error(error);
-                        else message.success("Đã đánh dấu đơn bom");
+                        let result = await orderUtils.markOrderAsRefuseToReceive(props.item.id);
+                        _showWorkflowResult(result, "Đã đánh dấu đơn bom");
                     }
                 })
                 break;
@@ -221,9 +225,8 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                     title: "Đánh dấu đơn là hàng lỗi?",
                     cancelText: "Huỷ",
                     onOk: async () => {
-                        let error = await orderUtils.markOrderAsBrokenItems(props.item.id);
-                        if (error) message.error(error);
-                        else message.success("Đã đánh dấu đơn hàng lỗi");
+                        let result = await orderUtils.markOrderAsBrokenItems(props.item.id);
+                        _showWorkflowResult(result, "Đã đánh dấu đơn hàng lỗi");
                     }
                 })
                 break;
@@ -232,13 +235,12 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
 
     const _onChangeShippingCode = async (value: string) => {
         toggleLoadingChangeShippingCode.show();
-        let error = await orderUtils.changeShippingCode(props.item.id, value);
+        let result = await orderUtils.changeShippingCode(props.item.id, value);
         toggleLoadingChangeShippingCode.hide();
-        if (error) message.error(error);
-        else {
+        if (result.localUpdated) {
             toggleInputShippingCodeEditor.hide();
-            message.success("Lưu mã vận đơn thành công");
         }
+        _showWorkflowResult(result, "Lưu mã vận đơn thành công");
     }
 
     const _onFirstAddShippingCode = () => {
@@ -476,4 +478,3 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
             order={props.item} customer={orderCustomer} />
     </React.Fragment>
 }
-

@@ -5,7 +5,7 @@ import { Stack } from "@components/Layout/Stack";
 import { useMessage } from "@components/Message";
 import { Modal } from "@components/Modal";
 import { SmartForm } from "@components/SmartForm";
-import { useOrder, useToggle } from "@hooks";
+import { getOrderWorkflowMessage, hasOrderWorkflowSyncFailures, useOrder, useToggle } from "@hooks";
 import { Order } from "@store/Models/Order";
 import { RadioChangeEvent } from "antd";
 import { FunctionComponent, useEffect, useState } from "react"
@@ -28,12 +28,13 @@ export const OrderPriorityWidget: FunctionComponent<OrderPriorityProps> = props 
 
     const _onSave = async () => {
         toggleLoading.show();
-        let card = await orderUtils.updateOrder(order);
+        let result = await orderUtils.updateOrder(order);
         toggleLoading.hide();
-        if (card) {
-            message.success("Lưu độ ưu tiên thành công");
+        if (result.localUpdated) {
+            if (hasOrderWorkflowSyncFailures(result)) message.warning(getOrderWorkflowMessage(result));
+            else message.success("Lưu độ ưu tiên thành công");
             props.onClose();
-        } else message.error("Lỗi lưu độ ưu tiên")
+        } else message.error(getOrderWorkflowMessage(result))
     }
 
     const _onChangePriorityStatus = (e: RadioChangeEvent) => {

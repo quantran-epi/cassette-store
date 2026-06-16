@@ -1,6 +1,6 @@
 import React, {FunctionComponent, useEffect, useMemo, useState} from "react";
 import {Order} from "@store/Models/Order";
-import {useOrder, useToggle, useTrello} from "@hooks";
+import {getOrderWorkflowMessage, hasOrderWorkflowSyncFailures, useOrder, useToggle, useTrello} from "@hooks";
 import {Modal} from "@components/Modal";
 import {Stack} from "@components/Layout/Stack";
 import {Button} from "@components/Button";
@@ -60,13 +60,15 @@ export const OrderAttachmentsWidget: FunctionComponent<OrderAttachmentsWidgetPro
         try {
             toggleLoading.show();
             let deletePromises = deleteAttachments.map(e => trello.deleteAttachment({idAttachment: e.id}, props.order.trelloCardId));
-            let addPromises = orderUtils.attachImagesToOrderOnTrello(props.order, addAttachments);
-            await Promise.all([deletePromises, addPromises]);
+            await Promise.all(deletePromises);
+            let addResult = await orderUtils.attachImagesToOrderOnTrello(props.order, addAttachments);
             toggleLoading.hide();
             _reset();
-            message.success("Lưu Ảnh đính kèm thành công");
+            if (hasOrderWorkflowSyncFailures(addResult)) message.warning(getOrderWorkflowMessage(addResult));
+            else message.success("Lưu Ảnh đính kèm thành công");
             props.onClose();
         } catch (e) {
+            toggleLoading.hide();
             message.error("Lỗi lưu Ảnh đính kèm")
         }
     }

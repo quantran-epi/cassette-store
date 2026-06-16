@@ -1,6 +1,6 @@
 import React, {FunctionComponent, useEffect, useState} from "react";
 import {Order} from "@store/Models/Order";
-import {useOrder, useToggle} from "@hooks";
+import {getOrderWorkflowMessage, hasOrderWorkflowSyncFailures, useOrder, useToggle} from "@hooks";
 import {Modal} from "@components/Modal";
 import {Stack} from "@components/Layout/Stack";
 import {Button} from "@components/Button";
@@ -76,12 +76,13 @@ export const OrderShippinInfoWidget: FunctionComponent<OrderShippingInfoWidgetPr
 
     const _onSave = async () => {
         toggleLoading.show();
-        let card = await orderUtils.updateOrder(order);
+        let result = await orderUtils.updateOrder(order);
         toggleLoading.hide();
-        if (card) {
-            message.success("Lưu thông tin vận chuyển thành công");
+        if (result.localUpdated) {
+            if (hasOrderWorkflowSyncFailures(result)) message.warning(getOrderWorkflowMessage(result));
+            else message.success("Lưu thông tin vận chuyển thành công");
             props.onClose();
-        } else message.error("Lỗi lưu thông tin vận chuyển")
+        } else message.error(getOrderWorkflowMessage(result))
     }
 
     return <Modal title={props.order.name} open={props.open} destroyOnClose={true} onCancel={props.onClose}

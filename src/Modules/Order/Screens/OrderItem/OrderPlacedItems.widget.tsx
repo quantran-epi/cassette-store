@@ -12,7 +12,7 @@ import {Input, message} from "antd";
 import {Modal} from "@components/Modal";
 import {Typography} from "@components/Typography";
 import {Divider} from "@components/Layout/Divider";
-import {useOrder, useToggle} from "@hooks";
+import {getOrderWorkflowMessage, hasOrderWorkflowSyncFailures, useOrder, useToggle} from "@hooks";
 import {SmartForm} from "@components/SmartForm";
 import {TextArea} from "@components/Form/Input";
 import {InputNumber} from "@components/Form/InputNumber";
@@ -83,12 +83,13 @@ export const OrderPlacedItemsWidget: FunctionComponent<OrderPlacedItemsWidgetPro
 
     const _onSave = async () => {
         toggleLoading.show();
-        let card = await orderUtils.updateOrder(order);
+        let result = await orderUtils.updateOrder(order);
         toggleLoading.hide();
-        if (card) {
-            message.success("Lưu danh sách băng thành công");
+        if (result.localUpdated) {
+            if (hasOrderWorkflowSyncFailures(result)) message.warning(getOrderWorkflowMessage(result));
+            else message.success("Lưu danh sách băng thành công");
             props.onClose();
-        } else message.error("Lỗi lưu danh sách băng")
+        } else message.error(getOrderWorkflowMessage(result))
     }
 
     return <Modal title={props.order.name} open={props.open} destroyOnClose={true} onCancel={props.onClose}

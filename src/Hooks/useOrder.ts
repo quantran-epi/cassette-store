@@ -4,9 +4,11 @@ import {editCustomer} from "@store/Reducers/CustomerReducer";
 import {
     addCodPayment,
     addOrder,
+    clearOrderSyncFailures,
     editOrder,
     removeDoneOrder,
-    setDoneOrders
+    setDoneOrders,
+    upsertSyncFailure
 } from "@store/Reducers/OrderReducer";
 import {RootState, store} from "@store/Store";
 import {cloneDeep, uniq} from "lodash";
@@ -14,18 +16,21 @@ import {useDispatch, useSelector} from "react-redux";
 import {useTrello} from "./Trello/useTrello";
 import {Customer} from "@store/Models/Customer";
 import {TrelloCard} from "./Trello/Models/TrelloCard";
-import {TrelloCreateCardParam} from "./Trello/Models/ApiParam";
 import {OrderItem} from "@store/Models/OrderItem";
 import {RcFile} from "antd/es/upload";
 import {TrelloAttachment} from "./Trello/Models/TrelloAttachment";
 import {nanoid} from "nanoid";
 import moment from "moment";
 import {CodPaymentCycle} from "@store/Models/CodPaymentCycle";
+import {OrderDomainHelper} from "@common/Helpers/OrderDomainHelper";
+import {createOrderTrelloAdapter} from "./Trello/OrderTrelloAdapter";
+import {isTrelloOperationFailure, TrelloOperationFailure, TrelloOperationResult} from "./Trello/TrelloOperationResult";
+import {OrderSyncFailure} from "@store/Models/OrderSyncFailure";
 import {
-    OrderDomainHelper,
-    ORDER_TRELLO_LABEL_KEYS,
-    OrderTrelloLabelKey
-} from "@common/Helpers/OrderDomainHelper";
+    createOrderWorkflowFailure,
+    createOrderWorkflowSuccess,
+    OrderWorkflowResult
+} from "./OrderWorkflowResult";
 
 type UseOrder = {
     isShipped: (orderId: string) => boolean;
@@ -35,23 +40,23 @@ type UseOrder = {
     canMarkAsReturned: (orderId: string) => boolean;
     canMarkAsShipped: (orderId: string) => boolean;
     canMarkAsPayCOD: (orderId: string) => boolean;
-    markOrderAsRefuseToReceive: (orderId: string) => Promise<string>;
-    markOrderAsBrokenItems: (orderId: string) => Promise<string>;
+    markOrderAsRefuseToReceive: (orderId: string) => Promise<OrderWorkflowResult<TrelloCard>>;
+    markOrderAsBrokenItems: (orderId: string) => Promise<OrderWorkflowResult<TrelloCard>>;
     markOrderAsWaitingForReturn: (orderId: string) => string;
     markOrderAsReturned: (orderId: string) => string;
-    markOrderAsShipped: (orderId: string) => Promise<string>;
+    markOrderAsShipped: (orderId: string) => Promise<OrderWorkflowResult<TrelloCard>>;
     markOrderAsPayCOD: (orderId: string) => void;
-    changeShippingCode: (orderId: string, code: string) => Promise<string>;
+    changeShippingCode: (orderId: string, code: string) => Promise<OrderWorkflowResult<TrelloCard>>;
     isPushedTrello: (orderId: string) => boolean;
     canPushToTrello: (orderId: string) => boolean;
-    pushToTrelloToDoList: (order: Order) => Promise<TrelloCard>;
+    pushToTrelloToDoList: (order: Order) => Promise<TrelloOperationResult<TrelloCard>>;
     calculateOrderPaymentAmount: (placedItems: OrderItem[], customerId: string, isFreeShip?: boolean) => number;
     getAutoCODAmount: (paymentMethod: string, paymentAmount: number) => number;
     assignTrelloId: (orderId: string, trelloCard: TrelloCard) => void;
-    moveOrderToTrelloList: (orderId: string, listId: string) => Promise<TrelloCard>;
-    createOrder: (order: Order, customer: Customer, fileAttachments: RcFile[]) => Promise<TrelloCard>;
-    updateOrder: (order: Order) => Promise<TrelloCard>;
-    attachImagesToOrderOnTrello: (order: Order, files: RcFile[]) => Promise<TrelloAttachment[]>;
+    moveOrderToTrelloList: (orderId: string, listId: string) => Promise<TrelloOperationResult<TrelloCard>>;
+    createOrder: (order: Order, customer: Customer, fileAttachments: RcFile[]) => Promise<OrderWorkflowResult<TrelloCard>>;
+    updateOrder: (order: Order) => Promise<OrderWorkflowResult<TrelloCard>>;
+    attachImagesToOrderOnTrello: (order: Order, files: RcFile[]) => Promise<OrderWorkflowResult<TrelloAttachment[]>>;
     isVipOrder: (order: Order) => boolean;
     isPriority: (order: Order) => boolean;
     isCustomerReturnLessThan4: (order: Order) => boolean;
@@ -84,6 +89,7 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
     const orders = useSelector((state: RootState) => state.order.orders);
     const customers = useSelector((state: RootState) => state.customer.customers);
     const trello = useTrello();
+    const orderTrelloAdapter = createOrderTrelloAdapter(trello);
 
     const _findOrderById = (orderId: string): Order => {
         let order = orders.find(e => e.id == orderId);
@@ -95,33 +101,43 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
         return cloneDeep(customer);
     }
 
-    const _getLabelId = (key: OrderTrelloLabelKey): string => {
-        switch (key) {
-            case ORDER_TRELLO_LABEL_KEYS.VIP:
-                return trello.TRELLO_LIST_LABEL_IDS.VIP;
-            case ORDER_TRELLO_LABEL_KEYS.URGENT:
-                return trello.TRELLO_LIST_LABEL_IDS.URGENT;
-            case ORDER_TRELLO_LABEL_KEYS.PRIORITY:
-                return trello.TRELLO_LIST_LABEL_IDS.PRIORITY;
-            case ORDER_TRELLO_LABEL_KEYS.BANK_TRANSFER_IN_ADVANCE:
-                return trello.TRELLO_LIST_LABEL_IDS.BANK_TRANSFER_IN_ADVANCE;
-            case ORDER_TRELLO_LABEL_KEYS.CUSTOMER_RETURN_LESS_THAN_4:
-                return trello.TRELLO_LIST_LABEL_IDS.CUSTOMER_RETURN_LESS_THAN_4;
+    const _buildSyncFailureId = (orderId: string, failure: TrelloOperationFailure, trelloCardId?: string): string => {
+        const retryPayload = failure.retryPayload as any;
+        const contextKey = retryPayload?.attachment?.name || retryPayload?.shippingCode || retryPayload?.idList || trelloCardId || "local";
+        return `${orderId}:${failure.operation}:${contextKey}`;
+    }
+
+    const _recordTrelloResult = <T>(orderId: string, result: TrelloOperationResult<T>, trelloCardId?: string): OrderSyncFailure | null => {
+        if (!isTrelloOperationFailure(result)) {
+            dispatch(clearOrderSyncFailures({orderId, operation: result.operation}));
+            return null;
         }
+
+        const now = new Date().toISOString();
+        const syncFailure: OrderSyncFailure = {
+            id: _buildSyncFailureId(orderId, result, trelloCardId),
+            orderId,
+            operation: result.operation,
+            status: "failed",
+            message: result.message,
+            retryable: result.retryable,
+            createdAt: now,
+            updatedAt: now,
+            trelloCardId,
+            retryPayload: result.retryPayload
+        };
+        dispatch(upsertSyncFailure(syncFailure));
+        return syncFailure;
     }
 
-    const _getLabelIds = (order: Order): string[] => {
-        let customer = _findCustomerById(order.customerId);
-        return OrderDomainHelper.getOrderTrelloLabelKeys(order, customer)
-            .map(_getLabelId)
-            .filter(Boolean);
+    const _moveOrderToTrelloList = async (orderId: string, listId: string): Promise<{ result: TrelloOperationResult<TrelloCard>, syncFailure: OrderSyncFailure | null }> => {
+        let order = _findOrderById(orderId);
+        const result = await orderTrelloAdapter.moveOrderCard(order?.trelloCardId, listId, orderId);
+        const syncFailure = _recordTrelloResult(orderId, result, order?.trelloCardId);
+        return {result, syncFailure};
     }
 
-    const _buildDesc = (order: Order, customer: Customer): string => {
-        return OrderDomainHelper.buildOrderTrelloDescription(order, customer);
-    }
-
-    const markOrderAsRefuseToReceive = async (orderId: string): Promise<string> => {
+    const markOrderAsRefuseToReceive = async (orderId: string): Promise<OrderWorkflowResult<TrelloCard>> => {
         try {
             let order = _findOrderById(orderId);
             let customer = _findCustomerById(order.customerId);
@@ -132,14 +148,19 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
             dispatch(editOrder({order, customer}));
             dispatch(editCustomer(customer));
 
-            let updatedCard = await moveOrderToTrelloList(orderId, trello.TRELLO_LIST_IDS.NOT_DELIVERED_LIST);
-            return updatedCard === null ? "Lỗi khi chuyển đơn Trello" : null;
+            let {result, syncFailure} = await _moveOrderToTrelloList(orderId, trello.TRELLO_LIST_IDS.NOT_DELIVERED_LIST);
+            return createOrderWorkflowSuccess({
+                operation: "mark-refuse-to-receive",
+                data: isTrelloOperationFailure(result) ? undefined : result.data,
+                syncFailures: syncFailure ? [syncFailure] : [],
+                message: "Đã đánh dấu đơn bom"
+            });
         } catch (e) {
-            return e;
+            return createOrderWorkflowFailure({operation: "mark-refuse-to-receive", message: "Không thể đánh dấu đơn bom", error: e});
         }
     }
 
-    const markOrderAsBrokenItems = async (orderId: string): Promise<string> => {
+    const markOrderAsBrokenItems = async (orderId: string): Promise<OrderWorkflowResult<TrelloCard>> => {
         try {
             let order = _findOrderById(orderId);
             let customer = _findCustomerById(order.customerId);
@@ -148,10 +169,15 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
             customer = transition.customer;
             dispatch(editOrder({order, customer}));
 
-            let updatedCard = await moveOrderToTrelloList(orderId, trello.TRELLO_LIST_IDS.NOT_DELIVERED_LIST);
-            return updatedCard === null ? "Lỗi khi chuyển đơn Trello" : null;
+            let {result, syncFailure} = await _moveOrderToTrelloList(orderId, trello.TRELLO_LIST_IDS.NOT_DELIVERED_LIST);
+            return createOrderWorkflowSuccess({
+                operation: "mark-broken-items",
+                data: isTrelloOperationFailure(result) ? undefined : result.data,
+                syncFailures: syncFailure ? [syncFailure] : [],
+                message: "Đã đánh dấu đơn hàng lỗi"
+            });
         } catch (e) {
-            return e;
+            return createOrderWorkflowFailure({operation: "mark-broken-items", message: "Không thể đánh dấu đơn hàng lỗi", error: e});
         }
     }
 
@@ -175,7 +201,7 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
         return null;
     }
 
-    const markOrderAsShipped = async (orderId: string): Promise<string> => {
+    const markOrderAsShipped = async (orderId: string): Promise<OrderWorkflowResult<TrelloCard>> => {
         try {
             let order = _findOrderById(orderId);
             let customer = _findCustomerById(order.customerId);
@@ -186,10 +212,15 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
             dispatch(editOrder({order, customer}));
             dispatch(editCustomer(customer));
 
-            let updatedCard = await moveOrderToTrelloList(orderId, trello.TRELLO_LIST_IDS.DONE_LIST);
-            return updatedCard === null ? "Lỗi khi chuyển đơn Trello" : null;
+            let {result, syncFailure} = await _moveOrderToTrelloList(orderId, trello.TRELLO_LIST_IDS.DONE_LIST);
+            return createOrderWorkflowSuccess({
+                operation: "mark-shipped",
+                data: isTrelloOperationFailure(result) ? undefined : result.data,
+                syncFailures: syncFailure ? [syncFailure] : [],
+                message: "Đã đánh dấu đơn hoàn thành"
+            });
         } catch (e) {
-            return e;
+            return createOrderWorkflowFailure({operation: "mark-shipped", message: "Không thể đánh dấu đơn hoàn thành", error: e});
         }
     }
 
@@ -240,7 +271,7 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
         return OrderDomainHelper.canMarkAsPayCOD(order);
     }
 
-    const changeShippingCode = async (orderId: string, code: string): Promise<string> => {
+    const changeShippingCode = async (orderId: string, code: string): Promise<OrderWorkflowResult<TrelloCard>> => {
         try {
             let order = _findOrderById(orderId);
             let customer = _findCustomerById(order.customerId);
@@ -250,18 +281,27 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
             dispatch(editOrder({order, customer}));
 
             // comment on trello
-            let action = await trello.createComment({text: code}, order.trelloCardId);
-            if (action === null) return "Lỗi bình luận Trello";
+            const syncFailures: OrderSyncFailure[] = [];
+            let action = await orderTrelloAdapter.createShippingCodeComment(order.trelloCardId, code, order.id);
+            let commentFailure = _recordTrelloResult(order.id, action, order.trelloCardId);
+            if (commentFailure) syncFailures.push(commentFailure);
 
-            if (transition.isFirstShippingCode) {
-                let updatedCard = await moveOrderToTrelloList(orderId, trello.TRELLO_LIST_IDS.DELIVERY_CREATED_LIST);
-                if (updatedCard === null) return "Lỗi khi chuyển đơn Trello";
+            let updatedCard: TrelloCard = undefined;
+            if (transition.isFirstShippingCode && !commentFailure) {
+                let move = await _moveOrderToTrelloList(orderId, trello.TRELLO_LIST_IDS.DELIVERY_CREATED_LIST);
+                if (move.syncFailure) syncFailures.push(move.syncFailure);
+                else updatedCard = isTrelloOperationFailure(move.result) ? undefined : move.result.data;
             }
 
-            dispatch(removeDoneOrder(order.trelloCardId));
-            return null;
+            if (syncFailures.length === 0) dispatch(removeDoneOrder(order.trelloCardId));
+            return createOrderWorkflowSuccess({
+                operation: "change-shipping-code",
+                data: updatedCard,
+                syncFailures,
+                message: "Lưu mã vận đơn thành công"
+            });
         } catch (e) {
-            return e;
+            return createOrderWorkflowFailure({operation: "change-shipping-code", message: "Không thể lưu mã vận đơn", error: e});
         }
     }
 
@@ -283,21 +323,11 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
         return order.status === ORDER_STATUS.PLACED && !Boolean(order.trelloCardId);
     }
 
-    const pushToTrelloToDoList = async (order: Order): Promise<TrelloCard> => {
+    const pushToTrelloToDoList = async (order: Order): Promise<TrelloOperationResult<TrelloCard>> => {
         let customer = _findCustomerById(order.customerId);
-        try {
-            let newCard = await trello.createCard({
-                name: order.name,
-                desc: _buildDesc(order, customer),
-                start: new Date(),
-                pos: order.position,
-                idLabels: _getLabelIds(order),
-                idList: trello.TRELLO_LIST_IDS.TODO_LIST
-            });
-            return newCard;
-        } catch (e) {
-            return null;
-        }
+        const result = await orderTrelloAdapter.createOrderCard(order, customer);
+        _recordTrelloResult(order.id, result, order.trelloCardId);
+        return result;
     }
 
     const calculateOrderPaymentAmount = (placedItems: OrderItem[], customerId: string, isFreeShip?: boolean): number => {
@@ -316,84 +346,116 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
         dispatch(editOrder({order, customer}));
     }
 
-    const moveOrderToTrelloList = async (orderId: string, listId: string): Promise<TrelloCard> => {
+    const moveOrderToTrelloList = async (orderId: string, listId: string): Promise<TrelloOperationResult<TrelloCard>> => {
+        return (await _moveOrderToTrelloList(orderId, listId)).result;
+    }
+
+    const createOrder = async (order: Order, customer: Customer, fileAttachments: RcFile[]): Promise<OrderWorkflowResult<TrelloCard>> => {
+        // let previousPendingOrders = orders.filter(o => o.status === ORDER_STATUS.PLACED);
         try {
-            let order = _findOrderById(orderId);
-            let updatedCard = await trello.updateCard({
-                id: order.trelloCardId,
-                idList: listId
+            dispatch(addOrder({order: order, customer})); // add first to get position
+            let createdOrder = store.getState().order.orders.find(e => e.id === order.id);
+            let trelloCard = await orderTrelloAdapter.createOrderCard(createdOrder, customer);
+            let cardFailure = _recordTrelloResult(createdOrder.id, trelloCard, createdOrder.trelloCardId);
+            const syncFailures: OrderSyncFailure[] = cardFailure ? [cardFailure] : [];
+
+            // //update all other pending orders's position
+            // let currentPendingOrders = store.getState().order.orders.filter(o => o.status === ORDER_STATUS.PLACED);
+            // const oldPosMap = new Map(previousPendingOrders.map(order => [order.id, order.position]));
+            // let changedPositionOrders = currentPendingOrders.filter(order => {
+            //     const oldPos = oldPosMap.get(order.id);
+            //     return oldPos !== undefined && oldPos !== order.position;
+            // });
+            // let promises = changedPositionOrders.map(o => trello.updateCard({
+            //     id: o.trelloCardId,
+            //     pos: o.position
+            // }));
+            // await Promise.all(promises);
+
+            if (!isTrelloOperationFailure(trelloCard)) {
+                //save trello card id
+                createdOrder = cloneDeep(createdOrder);
+                createdOrder.trelloCardId = trelloCard.data.id;
+                dispatch(editOrder({order: createdOrder, customer}));
+
+                // upload images
+                let attachmentResult = await attachImagesToOrderOnTrello(createdOrder, fileAttachments);
+                syncFailures.push(...attachmentResult.syncFailures);
+            }
+
+            return createOrderWorkflowSuccess({
+                operation: "create-order",
+                data: isTrelloOperationFailure(trelloCard) ? undefined : trelloCard.data,
+                syncFailures,
+                message: "Tạo đơn hàng thành công"
             });
-            return updatedCard;
         } catch (e) {
-            return null;
+            return createOrderWorkflowFailure({operation: "create-order", message: "Tạo đơn hàng lỗi", error: e});
         }
     }
 
-    const createOrder = async (order: Order, customer: Customer, fileAttachments: RcFile[]): Promise<TrelloCard> => {
-        // let previousPendingOrders = orders.filter(o => o.status === ORDER_STATUS.PLACED);
-        dispatch(addOrder({order: order, customer})); // add first to get position
-        let createdOrder = store.getState().order.orders.find(e => e.id === order.id);
-        let trelloCard = await pushToTrelloToDoList(createdOrder);
+    const updateOrder = async (order: Order): Promise<OrderWorkflowResult<TrelloCard>> => {
+        try {
+            let previousPendingOrders = orders.filter(o => o.status === ORDER_STATUS.PLACED && o.id !== order.id);
+            let customer = _findCustomerById(order.customerId);
+            dispatch(editOrder({order, customer}));
+            let updatedOrder = store.getState().order.orders.find(e => e.id === order.id);
+            const syncFailures: OrderSyncFailure[] = [];
 
-        // //update all other pending orders's position
-        // let currentPendingOrders = store.getState().order.orders.filter(o => o.status === ORDER_STATUS.PLACED);
-        // const oldPosMap = new Map(previousPendingOrders.map(order => [order.id, order.position]));
-        // let changedPositionOrders = currentPendingOrders.filter(order => {
-        //     const oldPos = oldPosMap.get(order.id);
-        //     return oldPos !== undefined && oldPos !== order.position;
-        // });
-        // let promises = changedPositionOrders.map(o => trello.updateCard({
-        //     id: o.trelloCardId,
-        //     pos: o.position
-        // }));
-        // await Promise.all(promises);
+            let updatedCard = await orderTrelloAdapter.updateOrderCard(updatedOrder, customer);
+            let mainFailure = _recordTrelloResult(updatedOrder.id, updatedCard, updatedOrder.trelloCardId);
+            if (mainFailure) syncFailures.push(mainFailure);
 
-        //save trello card id
-        createdOrder = cloneDeep(createdOrder);
-        createdOrder.trelloCardId = trelloCard.id;
-        dispatch(editOrder({order: createdOrder, customer}));
-
-        // upload images
-        await attachImagesToOrderOnTrello(createdOrder, fileAttachments);
-        return trelloCard;
+            //update all other pending orders's position
+            let currentPendingOrders = store.getState().order.orders.filter(o => o.status === ORDER_STATUS.PLACED);
+            const oldPosMap = new Map(previousPendingOrders.map(order => [order.id, order.position]));
+            let changedPositionOrders = currentPendingOrders.filter(order => {
+                const oldPos = oldPosMap.get(order.id);
+                return oldPos !== undefined && oldPos !== order.position;
+            });
+            let relatedResults = await Promise.all(changedPositionOrders.map(o => {
+                let relatedCustomer = _findCustomerById(o.customerId);
+                return orderTrelloAdapter.updateOrderCard(o, relatedCustomer);
+            }));
+            relatedResults.forEach((result, index) => {
+                const relatedOrder = changedPositionOrders[index];
+                const failure = _recordTrelloResult(relatedOrder.id, result, relatedOrder.trelloCardId);
+                if (failure) syncFailures.push(failure);
+            });
+            return createOrderWorkflowSuccess({
+                operation: "update-order",
+                data: isTrelloOperationFailure(updatedCard) ? undefined : updatedCard.data,
+                syncFailures,
+                message: "Đã lưu thay đổi"
+            });
+        } catch (e) {
+            return createOrderWorkflowFailure({operation: "update-order", message: "Không thể lưu thay đổi", error: e});
+        }
     }
 
-    const updateOrder = async (order: Order): Promise<TrelloCard> => {
-        let previousPendingOrders = orders.filter(o => o.status === ORDER_STATUS.PLACED && o.id !== order.id);
-        let customer = _findCustomerById(order.customerId);
-        dispatch(editOrder({order, customer}));
-        let updatedOrder = store.getState().order.orders.find(e => e.id === order.id);
-
-        let updatedCard = await trello.updateCard({
-            id: updatedOrder.trelloCardId,
-            desc: _buildDesc(updatedOrder, customer),
-            pos: updatedOrder.position,
-            idLabels: _getLabelIds(updatedOrder)
-        });
-
-        //update all other pending orders's position
-        let currentPendingOrders = store.getState().order.orders.filter(o => o.status === ORDER_STATUS.PLACED);
-        const oldPosMap = new Map(previousPendingOrders.map(order => [order.id, order.position]));
-        let changedPositionOrders = currentPendingOrders.filter(order => {
-            const oldPos = oldPosMap.get(order.id);
-            return oldPos !== undefined && oldPos !== order.position;
-        });
-        let promises = changedPositionOrders.map(o => trello.updateCard({
-            id: o.trelloCardId,
-            pos: o.position
-        }));
-        await Promise.all(promises);
-        return updatedCard;
-    }
-
-    const attachImagesToOrderOnTrello = async (order: Order, files: RcFile[]): Promise<TrelloAttachment[]> => {
-        let promises: Promise<TrelloAttachment>[] = [];
-        promises = files.map(file => trello.createAttachment({
-            name: order.name.concat("attachment").concat(nanoid(2)),
-            mimeType: file.type,
-            file: file
-        }, order.trelloCardId));
-        return Promise.all(promises);
+    const attachImagesToOrderOnTrello = async (order: Order, files: RcFile[]): Promise<OrderWorkflowResult<TrelloAttachment[]>> => {
+        try {
+            const syncFailures: OrderSyncFailure[] = [];
+            const attachments: TrelloAttachment[] = [];
+            let results = await Promise.all(files.map(file => orderTrelloAdapter.createOrderAttachment(order, {
+                name: order.name.concat("attachment").concat(nanoid(2)),
+                mimeType: file.type,
+                file: file
+            })));
+            results.forEach(result => {
+                const failure = _recordTrelloResult(order.id, result, order.trelloCardId);
+                if (failure) syncFailures.push(failure);
+                else if (!isTrelloOperationFailure(result)) attachments.push(result.data);
+            });
+            return createOrderWorkflowSuccess({
+                operation: "attach-images",
+                data: attachments,
+                syncFailures,
+                message: "Lưu ảnh đính kèm thành công"
+            });
+        } catch (e) {
+            return createOrderWorkflowFailure({operation: "attach-images", message: "Không thể lưu ảnh đính kèm", error: e});
+        }
     }
 
     const isVipOrder = (order: Order): boolean => {

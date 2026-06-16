@@ -4,6 +4,7 @@ import {Provider} from "react-redux";
 import {useOrder} from "./useOrder";
 import {store} from "@store/Store";
 import {removeAllDoneOrder, setOrderState} from "@store/Reducers/OrderReducer";
+import {setCustomerState} from "@store/Reducers/CustomerReducer";
 import {
     createOrderWorkflowFailure,
     createOrderWorkflowSuccess,
@@ -11,8 +12,22 @@ import {
     hasOrderWorkflowSyncFailures
 } from "./OrderWorkflowResult";
 import type {OrderSyncFailure} from "@store/Models/OrderSyncFailure";
+import type {Order} from "@store/Models/Order";
+import type {Customer} from "@store/Models/Customer";
+import {
+    ORDER_PAYMENT_METHOD,
+    ORDER_PRIORITY_STATUS,
+    ORDER_SHIPPING_PARTNER,
+    ORDER_STATUS
+} from "@common/Constants/AppConstants";
 
 const mockGetCardsByList = jest.fn();
+const mockCreateCard = jest.fn();
+const mockUpdateCard = jest.fn();
+const mockCreateComment = jest.fn();
+const mockCreateAttachment = jest.fn();
+const mockDeleteAttachment = jest.fn();
+const mockGetAttachmentsOfCard = jest.fn();
 
 jest.mock("idb-keyval", () => ({
     get: jest.fn(() => Promise.resolve(null)),
@@ -21,16 +36,31 @@ jest.mock("idb-keyval", () => ({
 }));
 
 jest.mock("nanoid", () => ({
-    nanoid: jest.fn(() => "test-id")
+    nanoid: () => "test-id"
 }));
 
 jest.mock("./Trello/useTrello", () => ({
     useTrello: () => ({
         TRELLO_LIST_IDS: {
-            TODO_LIST: "todo-list"
+            TODO_LIST: "todo-list",
+            DELIVERY_CREATED_LIST: "delivery-created-list",
+            DONE_LIST: "done-list",
+            NOT_DELIVERED_LIST: "not-delivered-list"
         },
-        TRELLO_LIST_LABEL_IDS: {},
-        getCardsByList: mockGetCardsByList
+        TRELLO_LIST_LABEL_IDS: {
+            VIP: "label-vip",
+            URGENT: "label-urgent",
+            PRIORITY: "label-priority",
+            BANK_TRANSFER_IN_ADVANCE: "label-bank-transfer",
+            CUSTOMER_RETURN_LESS_THAN_4: "label-return-less-than-4"
+        },
+        getCardsByList: mockGetCardsByList,
+        createCard: mockCreateCard,
+        updateCard: mockUpdateCard,
+        createComment: mockCreateComment,
+        createAttachment: mockCreateAttachment,
+        deleteAttachment: mockDeleteAttachment,
+        getAttachmentsOfCard: mockGetAttachmentsOfCard
     })
 }));
 
@@ -76,6 +106,66 @@ const seedDoneOrders = (doneOrders: string[]) => {
     }));
 }
 
+const seedOrderState = (orders: Order[], customers: Customer[] = [buildCustomer()]): void => {
+    store.dispatch(setCustomerState({customers}));
+    store.dispatch(setOrderState({
+        orders,
+        lastSequence: orders.length,
+        doneOrders: [],
+        codPayments: [],
+        syncFailures: []
+    }));
+}
+
+const buildCustomer = (overrides: Partial<Customer> = {}): Customer => ({
+    id: "customer-1",
+    name: "Customer One",
+    province: "TP. Hồ Chí Minh",
+    area: "Miền nam",
+    address: "123 Test Street",
+    mobile: "0900000000",
+    buyCount: 0,
+    buyAmount: 0,
+    isVIP: false,
+    isInBlacklist: false,
+    difficulty: "Dễ",
+    note: "",
+    ...overrides
+});
+
+const buildOrder = (overrides: Partial<Order> = {}): Order => ({
+    id: "order-1",
+    sequence: 1,
+    createdDate: "2026-06-16T00:00:00.000Z",
+    name: "1. Customer One-TP. Hồ Chí Minh",
+    placedItems: [],
+    changeItems: [],
+    status: ORDER_STATUS.PLACED,
+    shippingCost: 20520,
+    returnReason: "",
+    isRefund: false,
+    refundAmount: 0,
+    paymentMethod: ORDER_PAYMENT_METHOD.CASH_COD,
+    paymentAmount: 120000,
+    shippingPartner: ORDER_SHIPPING_PARTNER.VNPOST,
+    shippingCode: "",
+    codAmount: 120000,
+    priorityMark: 0,
+    priorityStatus: ORDER_PRIORITY_STATUS.NONE,
+    dueDate: "2026-06-17T00:00:00.000Z" as any,
+    customerId: "customer-1",
+    trelloCardId: "trello-card-1",
+    position: 0,
+    note: "",
+    isFreeShip: false,
+    isPayCOD: false,
+    ...overrides
+});
+
+const buildFile = (name: string): File => {
+    return new File(["image"], name, {type: "image/jpeg"});
+}
+
 const buildSyncFailure = (overrides: Partial<OrderSyncFailure> = {}): OrderSyncFailure => ({
     id: "failure-1",
     orderId: "order-1",
@@ -92,6 +182,12 @@ const buildSyncFailure = (overrides: Partial<OrderSyncFailure> = {}): OrderSyncF
 beforeEach(() => {
     seedDoneOrders([]);
     mockGetCardsByList.mockReset();
+    mockCreateCard.mockReset();
+    mockUpdateCard.mockReset();
+    mockCreateComment.mockReset();
+    mockCreateAttachment.mockReset();
+    mockDeleteAttachment.mockReset();
+    mockGetAttachmentsOfCard.mockReset();
 });
 
 afterEach(() => {
@@ -178,5 +274,119 @@ describe("OrderWorkflowResult helpers", () => {
         expect(result.syncFailures).toEqual([]);
         expect(hasOrderWorkflowSyncFailures(result)).toBe(false);
         expect(getOrderWorkflowMessage(result)).toBe("Không thể tạo đơn");
+    });
+});
+
+describe("useOrder local-first Trello failure handling", () => {
+    it("keeps a locally-created order and records sync failure when Trello card creation fails", async () => {
+        const customer = buildCustomer();
+        const order = buildOrder({trelloCardId: ""});
+        seedOrderState([], [customer]);
+        mockCreateCard.mockRejectedValue(new Error("Trello create failed"));
+        const {getOrderUtils} = renderUseOrder();
+
+        let result;
+        await act(async () => {
+            result = await getOrderUtils().createOrder(order, customer, []);
+        });
+
+        const state = store.getState().order;
+        expect(result.localUpdated).toBe(true);
+        expect(result.syncFailures).toHaveLength(1);
+        expect(state.orders.find(item => item.id === order.id)).toBeTruthy();
+        expect(state.orders.find(item => item.id === order.id).trelloCardId).toBe("");
+        expect(state.syncFailures).toEqual(expect.arrayContaining([
+            expect.objectContaining({
+                orderId: order.id,
+                operation: "create-card",
+                status: "failed",
+                retryable: true,
+                message: "Trello create failed"
+            })
+        ]));
+    });
+
+    it("saves shipping code locally and records sync failure when Trello comment fails", async () => {
+        const customer = buildCustomer();
+        const order = buildOrder({shippingCode: "", status: ORDER_STATUS.PLACED});
+        seedOrderState([order], [customer]);
+        mockCreateComment.mockRejectedValue(new Error("Comment failed"));
+        const {getOrderUtils} = renderUseOrder();
+
+        let result;
+        await act(async () => {
+            result = await getOrderUtils().changeShippingCode(order.id, "VN123456");
+        });
+
+        const updatedOrder = store.getState().order.orders.find(item => item.id === order.id);
+        expect(result.localUpdated).toBe(true);
+        expect(updatedOrder.status).toBe(ORDER_STATUS.CREATE_DELIVERY);
+        expect(updatedOrder.shippingCode).toBe("VN123456");
+        expect(store.getState().order.syncFailures).toEqual(expect.arrayContaining([
+            expect.objectContaining({
+                orderId: order.id,
+                operation: "create-comment",
+                status: "failed",
+                message: "Comment failed",
+                retryPayload: expect.objectContaining({shippingCode: "VN123456"})
+            })
+        ]));
+    });
+
+    it("marks an order shipped locally and records sync failure when Trello move fails", async () => {
+        const customer = buildCustomer({buyCount: 1, buyAmount: 500000});
+        const order = buildOrder({paymentAmount: 120000});
+        seedOrderState([order], [customer]);
+        mockUpdateCard.mockRejectedValue(new Error("Move failed"));
+        const {getOrderUtils} = renderUseOrder();
+
+        let result;
+        await act(async () => {
+            result = await getOrderUtils().markOrderAsShipped(order.id);
+        });
+
+        const updatedOrder = store.getState().order.orders.find(item => item.id === order.id);
+        const updatedCustomer = store.getState().customer.customers.find(item => item.id === customer.id);
+        expect(result.localUpdated).toBe(true);
+        expect(updatedOrder.status).toBe(ORDER_STATUS.SHIPPED);
+        expect(updatedCustomer.buyCount).toBe(2);
+        expect(updatedCustomer.buyAmount).toBe(620000);
+        expect(store.getState().order.syncFailures).toEqual(expect.arrayContaining([
+            expect.objectContaining({
+                orderId: order.id,
+                operation: "move-card",
+                status: "failed",
+                message: "Move failed",
+                retryPayload: expect.objectContaining({idList: "done-list"})
+            })
+        ]));
+    });
+
+    it("records failed attachment upload without removing the local order", async () => {
+        const customer = buildCustomer();
+        const order = buildOrder();
+        seedOrderState([order], [customer]);
+        mockCreateAttachment.mockRejectedValue(new Error("Upload failed"));
+        const {getOrderUtils} = renderUseOrder();
+
+        let result;
+        await act(async () => {
+            result = await getOrderUtils().attachImagesToOrderOnTrello(order, [buildFile("order.jpg") as any]);
+        });
+
+        expect(result.localUpdated).toBe(true);
+        expect(result.data).toEqual([]);
+        expect(store.getState().order.orders.find(item => item.id === order.id)).toBeTruthy();
+        expect(store.getState().order.syncFailures).toEqual(expect.arrayContaining([
+            expect.objectContaining({
+                orderId: order.id,
+                operation: "create-attachment",
+                status: "failed",
+                message: "Upload failed",
+                retryPayload: expect.objectContaining({
+                    attachment: expect.objectContaining({name: "1. Customer One-TP. Hồ Chí Minhattachmenttest-id"})
+                })
+            })
+        ]));
     });
 });
