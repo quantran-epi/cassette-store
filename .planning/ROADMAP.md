@@ -66,12 +66,21 @@ Plans:
   4. Existing order creation, shipping, return, refund, COD, and attachment behavior still works through the refactored boundaries.
 
 **Plans**: 4 plans
-
 Plans:
+**Wave 1**
 
 - [ ] 02-01: Extract pure order calculations and transition functions with focused tests.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 02-02: Create typed Trello/order integration adapter and operation result types.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 02-03: Refactor order workflows to use domain transitions and integration adapter.
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 02-04: Add recovery/retry handling and regression coverage for partial sync failures.
 
 ### Phase 3: Fast Order and Shipping Workflows
