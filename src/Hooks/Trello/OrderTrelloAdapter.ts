@@ -105,7 +105,7 @@ export const createOrderTrelloAdapter = (trello: UseTrello): OrderTrelloAdapter 
                 idList
             });
             if (!card) return _emptyTrelloResponseFailure("create-card", retryPayload);
-            return createTrelloOperationSuccess("create-card", card);
+            return createTrelloOperationSuccess("create-card", card, retryPayload);
         } catch (e) {
             return _failure("create-card", e, retryPayload, "Could not create Trello card");
         }
@@ -122,7 +122,7 @@ export const createOrderTrelloAdapter = (trello: UseTrello): OrderTrelloAdapter 
                 idLabels: _getLabelIds(order, customer)
             });
             if (!card) return _emptyTrelloResponseFailure("update-card", retryPayload);
-            return createTrelloOperationSuccess("update-card", card);
+            return createTrelloOperationSuccess("update-card", card, retryPayload);
         } catch (e) {
             return _failure("update-card", e, retryPayload, "Could not update Trello card");
         }
@@ -134,7 +134,7 @@ export const createOrderTrelloAdapter = (trello: UseTrello): OrderTrelloAdapter 
         try {
             const card = await trello.updateCard({id: trelloCardId, idList});
             if (!card) return _emptyTrelloResponseFailure("move-card", retryPayload);
-            return createTrelloOperationSuccess("move-card", card);
+            return createTrelloOperationSuccess("move-card", card, retryPayload);
         } catch (e) {
             return _failure("move-card", e, retryPayload, "Could not move Trello card");
         }
@@ -146,7 +146,7 @@ export const createOrderTrelloAdapter = (trello: UseTrello): OrderTrelloAdapter 
         try {
             const action = await trello.createComment({text: shippingCode}, trelloCardId);
             if (!action) return _emptyTrelloResponseFailure("create-comment", retryPayload);
-            return createTrelloOperationSuccess("create-comment", action);
+            return createTrelloOperationSuccess("create-comment", action, retryPayload);
         } catch (e) {
             return _failure("create-comment", e, retryPayload, "Could not create Trello comment");
         }
@@ -158,7 +158,8 @@ export const createOrderTrelloAdapter = (trello: UseTrello): OrderTrelloAdapter 
             trelloCardId: order.trelloCardId,
             attachment: {
                 name: params.name,
-                mimeType: params.mimeType
+                mimeType: params.mimeType,
+                retryKey: params.retryKey
             },
             requiresFileReselect: true
         };
@@ -166,7 +167,7 @@ export const createOrderTrelloAdapter = (trello: UseTrello): OrderTrelloAdapter 
         try {
             const attachment = await trello.createAttachment(params, order.trelloCardId);
             if (!attachment) return _emptyTrelloResponseFailure("create-attachment", retryPayload);
-            return createTrelloOperationSuccess("create-attachment", attachment);
+            return createTrelloOperationSuccess("create-attachment", attachment, retryPayload);
         } catch (e) {
             return _failure("create-attachment", e, retryPayload, "Could not create Trello attachment");
         }
@@ -178,7 +179,7 @@ export const createOrderTrelloAdapter = (trello: UseTrello): OrderTrelloAdapter 
         if (!idAttachment) return _missingLocalValueFailure("delete-attachment", "Missing Trello attachment ID", retryPayload);
         try {
             await trello.deleteAttachment({idAttachment}, trelloCardId);
-            return createTrelloOperationSuccess("delete-attachment", undefined);
+            return createTrelloOperationSuccess("delete-attachment", undefined, retryPayload);
         } catch (e) {
             return _failure("delete-attachment", e, retryPayload, "Could not delete Trello attachment");
         }
@@ -190,7 +191,7 @@ export const createOrderTrelloAdapter = (trello: UseTrello): OrderTrelloAdapter 
         try {
             const attachments = await trello.getAttachmentsOfCard(trelloCardId);
             if (!attachments) return _emptyTrelloResponseFailure("get-attachments", retryPayload);
-            return createTrelloOperationSuccess("get-attachments", attachments);
+            return createTrelloOperationSuccess("get-attachments", attachments, retryPayload);
         } catch (e) {
             return _failure("get-attachments", e, retryPayload, "Could not get Trello attachments");
         }

@@ -15,6 +15,7 @@ export type TrelloCreateAttachmentParam = {
     name: string;
     file: Blob;
     mimeType: string;
+    retryKey?: string;
 }
 
 export type TrelloCreateCommentParam = {

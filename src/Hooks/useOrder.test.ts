@@ -402,6 +402,44 @@ describe("useOrder local-first Trello failure handling", () => {
             })
         ]));
     });
+
+    it("keeps a failed attachment sync failure when another attachment in the same batch succeeds", async () => {
+        const customer = buildCustomer();
+        const order = buildOrder();
+        seedOrderState([order], [customer]);
+        mockCreateAttachment
+            .mockRejectedValueOnce(new Error("First upload failed"))
+            .mockResolvedValueOnce({
+                id: "attachment-ok",
+                name: "Second attachment",
+                url: "https://trello.test/attachment-ok.jpg",
+                mimeType: "image/jpeg",
+                previews: []
+            });
+        const {getOrderUtils} = renderUseOrder();
+
+        let result;
+        await act(async () => {
+            result = await getOrderUtils().attachImagesToOrderOnTrello(order, [
+                buildFile("first.jpg") as any,
+                buildFile("second.jpg") as any
+            ]);
+        });
+
+        expect(result.localUpdated).toBe(true);
+        expect(result.syncFailures).toHaveLength(1);
+        expect(result.data).toEqual([expect.objectContaining({id: "attachment-ok"})]);
+        expect(store.getState().order.syncFailures).toEqual(expect.arrayContaining([
+            expect.objectContaining({
+                orderId: order.id,
+                operation: "create-attachment",
+                message: "First upload failed",
+                retryPayload: expect.objectContaining({
+                    attachment: expect.objectContaining({name: "1. Customer One-TP. Hồ Chí Minhattachmenttest-id"})
+                })
+            })
+        ]));
+    });
 });
 
 describe("useOrder sync failure retry handling", () => {

@@ -4,7 +4,6 @@ import {editCustomer} from "@store/Reducers/CustomerReducer";
 import {
     addCodPayment,
     addOrder,
-    clearOrderSyncFailures,
     clearSyncFailure,
     editOrder,
     markSyncFailureRetrying,
@@ -27,7 +26,7 @@ import moment from "moment";
 import {CodPaymentCycle} from "@store/Models/CodPaymentCycle";
 import {OrderDomainHelper} from "@common/Helpers/OrderDomainHelper";
 import {createOrderTrelloAdapter} from "./Trello/OrderTrelloAdapter";
-import {isTrelloOperationFailure, TrelloOperationFailure, TrelloOperationResult} from "./Trello/TrelloOperationResult";
+import {isTrelloOperationFailure, TrelloOperationResult} from "./Trello/TrelloOperationResult";
 import {OrderSyncFailure} from "@store/Models/OrderSyncFailure";
 import {
     createOrderWorkflowFailure,
@@ -107,21 +106,21 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
         return cloneDeep(customer);
     }
 
-    const _buildSyncFailureId = (orderId: string, failure: TrelloOperationFailure, trelloCardId?: string): string => {
-        const retryPayload = failure.retryPayload as any;
-        const contextKey = retryPayload?.attachment?.name || retryPayload?.shippingCode || retryPayload?.idList || trelloCardId || "local";
-        return `${orderId}:${failure.operation}:${contextKey}`;
+    const _buildSyncFailureId = (orderId: string, operation: string, retryPayload: unknown, trelloCardId?: string): string => {
+        const payload = retryPayload as any;
+        const contextKey = payload?.attachment?.retryKey || payload?.attachment?.name || payload?.shippingCode || payload?.idList || trelloCardId || "local";
+        return `${orderId}:${operation}:${contextKey}`;
     }
 
     const _recordTrelloResult = <T>(orderId: string, result: TrelloOperationResult<T>, trelloCardId?: string): OrderSyncFailure | null => {
         if (!isTrelloOperationFailure(result)) {
-            dispatch(clearOrderSyncFailures({orderId, operation: result.operation}));
+            dispatch(clearSyncFailure(_buildSyncFailureId(orderId, result.operation, result.retryPayload, trelloCardId)));
             return null;
         }
 
         const now = new Date().toISOString();
         const syncFailure: OrderSyncFailure = {
-            id: _buildSyncFailureId(orderId, result, trelloCardId),
+            id: _buildSyncFailureId(orderId, result.operation, result.retryPayload, trelloCardId),
             orderId,
             operation: result.operation,
             status: "failed",
@@ -469,11 +468,15 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
         try {
             const syncFailures: OrderSyncFailure[] = [];
             const attachments: TrelloAttachment[] = [];
-            let results = await Promise.all(files.map(file => orderTrelloAdapter.createOrderAttachment(order, {
-                name: order.name.concat("attachment").concat(nanoid(2)),
-                mimeType: file.type,
-                file: file
-            })));
+            let results = await Promise.all(files.map(file => {
+                const retryKey = `${file.name}:${nanoid(2)}`;
+                return orderTrelloAdapter.createOrderAttachment(order, {
+                    name: order.name.concat("attachment").concat(nanoid(2)),
+                    mimeType: file.type,
+                    file: file,
+                    retryKey
+                });
+            }));
             results.forEach(result => {
                 const failure = _recordTrelloResult(order.id, result, order.trelloCardId);
                 if (failure) syncFailures.push(failure);

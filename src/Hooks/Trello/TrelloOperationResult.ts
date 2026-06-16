@@ -11,6 +11,7 @@ export type TrelloOperationSuccess<T> = {
     ok: true;
     operation: TrelloOperationName;
     data: T;
+    retryPayload?: unknown;
 }
 
 export type TrelloOperationFailure = {
@@ -25,11 +26,15 @@ export type TrelloOperationFailure = {
 
 export type TrelloOperationResult<T> = TrelloOperationSuccess<T> | TrelloOperationFailure;
 
-export const createTrelloOperationSuccess = <T>(operation: TrelloOperationName, data: T): TrelloOperationSuccess<T> => ({
-    ok: true,
-    operation,
-    data
-});
+export const createTrelloOperationSuccess = <T>(operation: TrelloOperationName, data: T, retryPayload?: unknown): TrelloOperationSuccess<T> => {
+    const result: TrelloOperationSuccess<T> = {
+        ok: true,
+        operation,
+        data
+    };
+    if (retryPayload !== undefined) result.retryPayload = retryPayload;
+    return result;
+};
 
 export const createTrelloOperationFailure = (failure: Omit<TrelloOperationFailure, "ok">): TrelloOperationFailure => ({
     ok: false,
