@@ -430,7 +430,13 @@ describe("useOrder sync failure retry handling", () => {
         const updatedOrder = store.getState().order.orders.find(item => item.id === order.id);
         expect(result.localUpdated).toBe(true);
         expect(mockCreateCard).toHaveBeenCalledWith(expect.objectContaining({idList: "todo-list"}));
-        expect(updatedOrder.trelloCardId).toBe("trello-card-new");
+        expect(updatedOrder).toMatchObject({
+            id: order.id,
+            name: order.name,
+            status: order.status,
+            paymentAmount: order.paymentAmount,
+            trelloCardId: "trello-card-new"
+        });
         expect(store.getState().order.syncFailures).toEqual([]);
     });
 

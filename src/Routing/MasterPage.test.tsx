@@ -88,7 +88,8 @@ const resetStore = () => {
         orders: [],
         lastSequence: 0,
         doneOrders: [],
-        codPayments: []
+        codPayments: [],
+        syncFailures: []
     }));
     store.dispatch(setCustomerState({customers: []}));
     store.dispatch(setAppContextState({currentFeatureName: ""}));
@@ -105,7 +106,8 @@ const seedBackupState = () => {
             cycleDate: "2026-06-15T00:00:00.000Z",
             paymentOrders: ["order-before-backup"],
             debitFeeOrders: ["fee-before-backup"]
-        }]
+        }],
+        syncFailures: []
     }));
     store.dispatch(setCustomerState({
         customers: [{id: "customer-before-backup", name: "Customer before backup"}] as any

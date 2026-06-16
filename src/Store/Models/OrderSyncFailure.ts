@@ -1,4 +1,4 @@
-import type {TrelloOperationName} from "@hooks/Trello/TrelloOperationResult";
+import type {TrelloOperationName} from "../../Hooks/Trello/TrelloOperationResult";
 
 export type OrderSyncFailureStatus = "failed" | "retrying";
 
