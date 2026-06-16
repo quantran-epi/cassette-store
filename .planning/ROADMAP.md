@@ -99,7 +99,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 03-01: Correct order route naming/components and add route smoke coverage.
+- [x] 03-01: Correct order route naming/components and add route smoke coverage.
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -159,7 +159,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 |-------|----------------|--------|-----------|
 | 1. Data Safety and Refactor Baseline | 4/4 | Complete    | 2026-06-15 |
 | 2. Order State and Trello Sync Reliability | 4/4 | Complete    | 2026-06-16 |
-| 3. Fast Order and Shipping Workflows | 0/3 | Not started | - |
+| 3. Fast Order and Shipping Workflows | 1/3 | In Progress|  |
 | 4. COD, Search, and Operational Utilities | 0/4 | Not started | - |
 | 5. Cohesive UI/UX Refresh | 0/4 | Not started | - |
 

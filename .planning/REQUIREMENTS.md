@@ -34,7 +34,7 @@ Requirements for the first GSD-managed refactor milestone. Each maps to roadmap 
 - [x] **ORD-02**: Order state transitions for shipped, returned, waiting-for-return, COD paid, refund, and shipping-code update are testable without rendering React components.
 - [x] **ORD-03**: Trello integration is accessed through a small typed adapter/port instead of direct logic spread through order workflows.
 - [ ] **ORD-04**: Derived order/customer dashboard values are provided by memoized selectors or tested helpers rather than repeated render-time reductions.
-- [ ] **ORD-05**: Route naming and routing components are corrected so order routes use order-specific route names and layout components.
+- [x] **ORD-05**: Route naming and routing components are corrected so order routes use order-specific route names and layout components.
 
 ### Daily Operator Utilities
 
@@ -108,7 +108,7 @@ Which phases or deferred release buckets cover which requirements. Updated durin
 | ORD-01 | Phase 2 | Complete |
 | ORD-02 | Phase 2 | Complete |
 | ORD-03 | Phase 2 | Complete |
-| ORD-05 | Phase 3 | Pending |
+| ORD-05 | Phase 3 | Complete |
 | OPS-01 | Phase 3 | Pending |
 | OPS-02 | Phase 3 | Pending |
 | ORD-04 | Phase 4 | Pending |
