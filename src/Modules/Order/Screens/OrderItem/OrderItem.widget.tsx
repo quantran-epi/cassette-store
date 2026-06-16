@@ -417,12 +417,10 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                         </CopyToClipboard>}
                         {!props.item.shippingCode && props.item.status === ORDER_STATUS.PLACED && orderUtils.isPushedTrello(props.item.id) &&
                             <OrderInlineShippingCodeWidget
-                                order={props.item}
                                 loading={toggleLoadingChangeShippingCode.value}
                                 value={props.item.shippingCode}
                                 disabled={!orderUtils.isPushedTrello(props.item.id)}
-                                onSave={_onChangeShippingCode}
-                                onOpenModal={toggleInputShippingCodeEditor.show}/>
+                                onSave={_onChangeShippingCode}/>
                         }
                         {orderCustomer && <React.Fragment>
                             <CopyToClipboard text={orderCustomer.mobile}

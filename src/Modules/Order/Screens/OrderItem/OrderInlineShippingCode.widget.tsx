@@ -4,15 +4,12 @@ import {Button} from "@components/Button";
 import {Input} from "@components/Form/Input";
 import {Space} from "@components/Layout/Space";
 import {OrderWorkflowResult} from "@hooks";
-import {Order} from "@store/Models/Order";
 
 type OrderInlineShippingCodeWidgetProps = {
-    order: Order;
     loading: boolean;
     value: string;
     disabled?: boolean;
     onSave: (code: string) => Promise<OrderWorkflowResult<unknown>>;
-    onOpenModal?: () => void;
 }
 
 export const OrderInlineShippingCodeWidget: FunctionComponent<OrderInlineShippingCodeWidgetProps> = (props) => {
