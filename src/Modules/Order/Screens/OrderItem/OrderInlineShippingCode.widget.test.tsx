@@ -160,6 +160,7 @@ beforeEach(() => {
         value: {readText: mockClipboardReadText}
     });
     mockClipboardReadText.mockResolvedValue("SPX123456");
+    mockChangeShippingCode.mockReset();
     mockChangeShippingCode.mockResolvedValue({
         ok: true,
         operation: "change-shipping-code",
@@ -189,7 +190,7 @@ it("reads clipboard only after explicit paste and populates the shipping-code fi
     await userEvent.click(screen.getByRole("button", {name: /Dán mã/i}));
 
     expect(mockClipboardReadText).toHaveBeenCalledTimes(1);
-    expect(screen.getByPlaceholderText("Nhập mã vận đơn")).toHaveValue("SPX123456");
+    await waitFor(() => expect(screen.getByPlaceholderText("Nhập mã vận đơn")).toHaveValue("SPX123456"));
 });
 
 it("saves through changeShippingCode and leaves row-scoped sync controls visible on Trello failure", async () => {

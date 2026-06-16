@@ -53,6 +53,7 @@ import moment from "moment";
 import { Badge } from "antd";
 import { OrderCustomerInfoWidget } from "@modules/Order/Screens/OrderItem/OrderCustomerInfo.widget";
 import { OrderSyncStatusWidget } from "@modules/Order/Screens/OrderItem/OrderSyncStatus.widget";
+import { OrderInlineShippingCodeWidget } from "@modules/Order/Screens/OrderItem/OrderInlineShippingCode.widget";
 
 type OrderItemProps = {
     item: Order;
@@ -238,7 +239,7 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
         }
     }
 
-    const _onChangeShippingCode = async (value: string) => {
+    const _onChangeShippingCode = async (value: string): Promise<OrderWorkflowResult<unknown>> => {
         toggleLoadingChangeShippingCode.show();
         let result = await orderUtils.changeShippingCode(props.item.id, value);
         toggleLoadingChangeShippingCode.hide();
@@ -246,6 +247,7 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
             toggleInputShippingCodeEditor.hide();
         }
         _showWorkflowResult(result, "Lưu mã vận đơn thành công");
+        return result;
     }
 
     const _onFirstAddShippingCode = () => {
@@ -413,6 +415,15 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                                 }}>{props.item.shippingCode}</Typography.Paragraph>
                             </Space>
                         </CopyToClipboard>}
+                        {!props.item.shippingCode && props.item.status === ORDER_STATUS.PLACED && orderUtils.isPushedTrello(props.item.id) &&
+                            <OrderInlineShippingCodeWidget
+                                order={props.item}
+                                loading={toggleLoadingChangeShippingCode.value}
+                                value={props.item.shippingCode}
+                                disabled={!orderUtils.isPushedTrello(props.item.id)}
+                                onSave={_onChangeShippingCode}
+                                onOpenModal={toggleInputShippingCodeEditor.show}/>
+                        }
                         {orderCustomer && <React.Fragment>
                             <CopyToClipboard text={orderCustomer.mobile}
                                 onCopy={() => message.success("Đã sao chép số điện thoại")}>
