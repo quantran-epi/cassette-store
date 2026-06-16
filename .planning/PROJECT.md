@@ -22,14 +22,13 @@ An internal operator can manage cassette orders, shipping, COD, and customer fol
 - Done: Trello card creation, card movement, comments, attachments, list checks, and backup upload exist through `src/Hooks/Trello/useTrello.ts`, `src/Hooks/useAPI.ts`, and `src/Routing/MasterPage.tsx`.
 - Done: Browser-local persistence exists through Redux Toolkit, redux-persist, IndexedDB, and `src/Store/idbStorage.ts`.
 - Done: Static deployment output exists under `docs/`, with app routing configured for `/cassette-store`.
+- Validated in Phase 1: One-shot tests and production build pass; backup/restore/done-refresh state handling is covered by focused tests and visible operator status.
+- Validated in Phase 2: Order domain helpers, Trello operation results, local-first workflow results, durable sync failures, and order-level retry/manual recovery controls are implemented and verified.
 
 ### Active
 
 <!-- Current milestone scope. These are hypotheses until shipped and verified. -->
 
-- [ ] Make local state, backup, restore, and Trello synchronization safer so order data cannot silently drift or restore incompletely.
-- [ ] Keep enough refactor safety in place for an internal app: fix test execution, repair stale tests, and create a reliable build/deploy verification path.
-- [ ] Refactor the order domain so pure calculations, Redux updates, and Trello side effects are easier to test and change independently.
 - [ ] Improve the daily operator workflow for order creation, shipping updates, COD payment cycles, backup/restore, quick actions, search, and filters.
 - [ ] Refresh the UI/UX for a more beautiful, mobile-friendly, efficient internal operations surface while preserving existing business behavior.
 - [ ] Preserve useful current workflows during the refactor so the app remains usable between phases.
@@ -51,7 +50,8 @@ An internal operator can manage cassette orders, shipping, COD, and customer fol
 - The codebase has already been mapped in `.planning/codebase/`. Important references include `.planning/codebase/ARCHITECTURE.md`, `.planning/codebase/STACK.md`, `.planning/codebase/INTEGRATIONS.md`, `.planning/codebase/TESTING.md`, and `.planning/codebase/CONCERNS.md`.
 - Current data is browser-local and persisted through IndexedDB. Trello is used both as an operational board and as a backup attachment target.
 - This milestone assumes trusted internal use. External-user/public-hosting concerns are deliberately not driving the v1 roadmap.
-- `CI=true yarn test --watchAll=false` currently fails before assertions because Jest cannot resolve the `@store/Store` alias from `src/App.tsx`; the only app test is also still the stale CRA sample assertion.
+- Phase 1 repaired the one-shot test/build baseline. `CI=true yarn test --watchAll=false && yarn build` passes, though the brownfield app still emits non-failing Redux Persist, React `act(...)`, CRA/Babel, Browserslist, and ESLint warnings.
+- Phase 2 made core order workflows local-first around Trello side effects: failures are persisted as order sync failures, affected order items show retry/recovery controls, and attachment failures that need browser files require manual reselect.
 - Daily operator utility is the product direction: fewer clicks, clearer actions, better search/filtering, safer batch/COD/shipping workflows, and less manual recovery when sync fails.
 - UI/UX improvement matters, but it should follow the operational nature of the app: dense, clear, fast, mobile-friendly, and built for repeated use rather than a marketing-style redesign.
 
@@ -95,4 +95,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-15 after initialization*
+*Last updated: 2026-06-16 after Phase 2 verification*
