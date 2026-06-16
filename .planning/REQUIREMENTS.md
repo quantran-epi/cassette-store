@@ -38,7 +38,7 @@ Requirements for the first GSD-managed refactor milestone. Each maps to roadmap 
 
 ### Daily Operator Utilities
 
-- [ ] **OPS-01**: Operator can create an order with fewer steps while preserving existing pricing, priority, customer, payment, and attachment behavior.
+- [x] **OPS-01**: Operator can create an order with fewer steps while preserving existing pricing, priority, customer, payment, and attachment behavior.
 - [ ] **OPS-02**: Operator can update a shipping code quickly and clearly see whether local state and Trello were updated.
 - [ ] **OPS-03**: Operator can manage COD payment cycles with clearer selection, totals, included orders, debit shipping fees, and confirmation.
 - [ ] **OPS-04**: Operator can search, filter, and sort orders by status, COD state, shipping code, customer, and date without losing list context.
@@ -109,7 +109,7 @@ Which phases or deferred release buckets cover which requirements. Updated durin
 | ORD-02 | Phase 2 | Complete |
 | ORD-03 | Phase 2 | Complete |
 | ORD-05 | Phase 3 | Complete |
-| OPS-01 | Phase 3 | Pending |
+| OPS-01 | Phase 3 | Complete |
 | OPS-02 | Phase 3 | Pending |
 | ORD-04 | Phase 4 | Pending |
 | OPS-03 | Phase 4 | Pending |

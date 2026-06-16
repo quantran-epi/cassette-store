@@ -103,7 +103,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 03-02: Streamline order creation around existing business behavior and attachments.
+- [x] 03-02: Streamline order creation around existing business behavior and attachments.
 - [ ] 03-03: Improve shipping-code update flow and local/Trello status feedback.
 
 ### Phase 4: COD, Search, and Operational Utilities
@@ -159,7 +159,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 |-------|----------------|--------|-----------|
 | 1. Data Safety and Refactor Baseline | 4/4 | Complete    | 2026-06-15 |
 | 2. Order State and Trello Sync Reliability | 4/4 | Complete    | 2026-06-16 |
-| 3. Fast Order and Shipping Workflows | 1/3 | In Progress|  |
+| 3. Fast Order and Shipping Workflows | 2/3 | In Progress|  |
 | 4. COD, Search, and Operational Utilities | 0/4 | Not started | - |
 | 5. Cohesive UI/UX Refresh | 0/4 | Not started | - |
 
