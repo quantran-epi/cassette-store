@@ -9,7 +9,7 @@ import {TrelloAttachment} from "./Models/TrelloAttachment";
 import {TrelloCard} from "./Models/TrelloCard";
 import {useAPI} from "../useAPI";
 
-type UseTrello = {
+export type UseTrello = {
     TRELLO_LIST_IDS: {
         TODO_LIST: string;
         DELIVERY_CREATED_LIST: string;
