@@ -25,7 +25,7 @@ Requirements for the first GSD-managed refactor milestone. Each maps to roadmap 
 
 - [x] **SYNC-01**: Order workflows report structured success/failure results for Trello card creation, movement, comments, and attachments.
 - [x] **SYNC-02**: Local Redux updates and Trello side effects have a clear ordering and recovery strategy for partial failure.
-- [ ] **SYNC-03**: Operator can retry or recover failed Trello sync actions without manually editing application state.
+- [x] **SYNC-03**: Operator can retry or recover failed Trello sync actions without manually editing application state.
 - [x] **SYNC-04**: Done-order refresh has visible loading, success, empty, and failure states.
 
 ### Order Domain Refactor
@@ -104,7 +104,7 @@ Which phases or deferred release buckets cover which requirements. Updated durin
 | SYNC-04 | Phase 1 | Complete |
 | SYNC-01 | Phase 2 | Complete |
 | SYNC-02 | Phase 2 | Complete |
-| SYNC-03 | Phase 2 | Pending |
+| SYNC-03 | Phase 2 | Complete |
 | ORD-01 | Phase 2 | Complete |
 | ORD-02 | Phase 2 | Complete |
 | ORD-03 | Phase 2 | Complete |

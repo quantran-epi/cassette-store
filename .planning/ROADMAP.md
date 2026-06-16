@@ -14,7 +14,7 @@ This roadmap turns the existing cassette operations app into a more reliable, co
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Data Safety and Refactor Baseline** - Backup, restore, refresh, tests, and build checks become dependable enough for daily app refactoring. (completed 2026-06-15)
-- [ ] **Phase 2: Order State and Trello Sync Reliability** - Order transitions and Trello side effects become structured, testable, and recoverable.
+- [x] **Phase 2: Order State and Trello Sync Reliability** - Order transitions and Trello side effects become structured, testable, and recoverable. (completed 2026-06-16)
 - [ ] **Phase 3: Fast Order and Shipping Workflows** - Order creation and shipping-code updates become faster and clearer for operators.
 - [ ] **Phase 4: COD, Search, and Operational Utilities** - COD cycles, list utilities, quick actions, and operational alerts become practical daily tools.
 - [ ] **Phase 5: Cohesive UI/UX Refresh** - Refactored workflows get a consistent, mobile-friendly internal-operations interface.
@@ -81,7 +81,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 02-04: Add recovery/retry handling and regression coverage for partial sync failures.
+- [x] 02-04: Add recovery/retry handling and regression coverage for partial sync failures.
 
 ### Phase 3: Fast Order and Shipping Workflows
 
@@ -155,7 +155,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Data Safety and Refactor Baseline | 4/4 | Complete    | 2026-06-15 |
-| 2. Order State and Trello Sync Reliability | 3/4 | In Progress|  |
+| 2. Order State and Trello Sync Reliability | 4/4 | Complete   | 2026-06-16 |
 | 3. Fast Order and Shipping Workflows | 0/3 | Not started | - |
 | 4. COD, Search, and Operational Utilities | 0/4 | Not started | - |
 | 5. Cohesive UI/UX Refresh | 0/4 | Not started | - |
