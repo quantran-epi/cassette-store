@@ -1,9 +1,4 @@
-import {
-    ORDER_PAYMENT_METHOD,
-    ORDER_PRIORITY_STATUS,
-    ORDER_RETURN_REASON,
-    ORDER_STATUS
-} from "@common/Constants/AppConstants";
+import {ORDER_RETURN_REASON, ORDER_STATUS} from "@common/Constants/AppConstants";
 import {Order} from "@store/Models/Order";
 import {editCustomer} from "@store/Reducers/CustomerReducer";
 import {
@@ -20,13 +15,17 @@ import {useTrello} from "./Trello/useTrello";
 import {Customer} from "@store/Models/Customer";
 import {TrelloCard} from "./Trello/Models/TrelloCard";
 import {TrelloCreateCardParam} from "./Trello/Models/ApiParam";
-import {OrderHelper} from "@common/Helpers/OrderHelper";
 import {OrderItem} from "@store/Models/OrderItem";
 import {RcFile} from "antd/es/upload";
 import {TrelloAttachment} from "./Trello/Models/TrelloAttachment";
 import {nanoid} from "nanoid";
 import moment from "moment";
 import {CodPaymentCycle} from "@store/Models/CodPaymentCycle";
+import {
+    OrderDomainHelper,
+    ORDER_TRELLO_LABEL_KEYS,
+    OrderTrelloLabelKey
+} from "@common/Helpers/OrderDomainHelper";
 
 type UseOrder = {
     isShipped: (orderId: string) => boolean;
@@ -96,29 +95,39 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
         return cloneDeep(customer);
     }
 
+    const _getLabelId = (key: OrderTrelloLabelKey): string => {
+        switch (key) {
+            case ORDER_TRELLO_LABEL_KEYS.VIP:
+                return trello.TRELLO_LIST_LABEL_IDS.VIP;
+            case ORDER_TRELLO_LABEL_KEYS.URGENT:
+                return trello.TRELLO_LIST_LABEL_IDS.URGENT;
+            case ORDER_TRELLO_LABEL_KEYS.PRIORITY:
+                return trello.TRELLO_LIST_LABEL_IDS.PRIORITY;
+            case ORDER_TRELLO_LABEL_KEYS.BANK_TRANSFER_IN_ADVANCE:
+                return trello.TRELLO_LIST_LABEL_IDS.BANK_TRANSFER_IN_ADVANCE;
+            case ORDER_TRELLO_LABEL_KEYS.CUSTOMER_RETURN_LESS_THAN_4:
+                return trello.TRELLO_LIST_LABEL_IDS.CUSTOMER_RETURN_LESS_THAN_4;
+        }
+    }
+
     const _getLabelIds = (order: Order): string[] => {
-        let labelIds = [];
-        if (isVipOrder(order)) labelIds.push(trello.TRELLO_LIST_LABEL_IDS.VIP);
-        if (isUrgent(order)) labelIds.push(trello.TRELLO_LIST_LABEL_IDS.URGENT);
-        else if (isPriority(order)) labelIds.push(trello.TRELLO_LIST_LABEL_IDS.PRIORITY);
-        if (isBankTransferInAdvance(order)) labelIds.push(trello.TRELLO_LIST_LABEL_IDS.BANK_TRANSFER_IN_ADVANCE);
-        if (isCustomerReturnLessThan4(order)) labelIds.push(trello.TRELLO_LIST_LABEL_IDS.CUSTOMER_RETURN_LESS_THAN_4);
-        return labelIds;
+        let customer = _findCustomerById(order.customerId);
+        return OrderDomainHelper.getOrderTrelloLabelKeys(order, customer)
+            .map(_getLabelId)
+            .filter(Boolean);
     }
 
     const _buildDesc = (order: Order, customer: Customer): string => {
-        return `${customer.name}\n${customer.mobile}\n${customer.address}\n${order.placedItems.map(item => `${item.count} băng ${item.type}\n`)}\nThu ${order.codAmount.toLocaleString()}đ\n${order.note}`
+        return OrderDomainHelper.buildOrderTrelloDescription(order, customer);
     }
 
     const markOrderAsRefuseToReceive = async (orderId: string): Promise<string> => {
         try {
             let order = _findOrderById(orderId);
-            order.status = ORDER_STATUS.WAITING_FOR_RETURNED;
-            order.returnReason = ORDER_RETURN_REASON.REFUSE_TO_RECEIVE;
-
             let customer = _findCustomerById(order.customerId);
-            customer.isInBlacklist = true;
-            customer.isVIP = false;
+            let transition = OrderDomainHelper.markOrderAsRefuseToReceiveTransition(order, customer);
+            order = transition.order;
+            customer = transition.customer;
 
             dispatch(editOrder({order, customer}));
             dispatch(editCustomer(customer));
@@ -134,8 +143,9 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
         try {
             let order = _findOrderById(orderId);
             let customer = _findCustomerById(order.customerId);
-            order.status = ORDER_STATUS.WAITING_FOR_RETURNED;
-            order.returnReason = ORDER_RETURN_REASON.BROKEN_ITEMS;
+            let transition = OrderDomainHelper.markOrderAsBrokenItemsTransition(order, customer);
+            order = transition.order;
+            customer = transition.customer;
             dispatch(editOrder({order, customer}));
 
             let updatedCard = await moveOrderToTrelloList(orderId, trello.TRELLO_LIST_IDS.NOT_DELIVERED_LIST);
@@ -148,7 +158,9 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
     const markOrderAsWaitingForReturn = (orderId: string): string => {
         let order = _findOrderById(orderId);
         let customer = _findCustomerById(order.customerId);
-        order.status = ORDER_STATUS.WAITING_FOR_RETURNED;
+        let transition = OrderDomainHelper.markOrderAsWaitingForReturnTransition(order, customer);
+        order = transition.order;
+        customer = transition.customer;
         dispatch(editOrder({order, customer}));
         return null;
     }
@@ -156,7 +168,9 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
     const markOrderAsReturned = (orderId: string): string => {
         let order = _findOrderById(orderId);
         let customer = _findCustomerById(order.customerId);
-        order.status = ORDER_STATUS.RETURNED;
+        let transition = OrderDomainHelper.markOrderAsReturnedTransition(order, customer);
+        order = transition.order;
+        customer = transition.customer;
         dispatch(editOrder({order, customer}));
         return null;
     }
@@ -164,13 +178,10 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
     const markOrderAsShipped = async (orderId: string): Promise<string> => {
         try {
             let order = _findOrderById(orderId);
-            order.status = ORDER_STATUS.SHIPPED;
-            order.returnReason = null;
-
             let customer = _findCustomerById(order.customerId);
-            customer.buyCount += 1;
-            customer.buyAmount += order.paymentAmount;
-            if ((customer.buyCount > 4 && customer.buyAmount >= 2000000) || customer.buyAmount >= 3000000) customer.isVIP = true;
+            let transition = OrderDomainHelper.markOrderAsShippedTransition(order, customer);
+            order = transition.order;
+            customer = transition.customer;
 
             dispatch(editOrder({order, customer}));
             dispatch(editCustomer(customer));
@@ -185,7 +196,9 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
     const markOrderAsPayCOD = (orderId: string): void => {
         let order = _findOrderById(orderId);
         let customer = _findCustomerById(order.customerId);
-        order.isPayCOD = true;
+        let transition = OrderDomainHelper.markOrderAsPayCODTransition(order, customer);
+        order = transition.order;
+        customer = transition.customer;
         dispatch(editOrder({order, customer}));
     }
 
@@ -206,41 +219,41 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
     const canMarkAsWaitingForReturn = (orderId: string): boolean => {
         let order = _findOrderById(orderId);
         if (order === null) return false;
-        return order.status !== ORDER_STATUS.WAITING_FOR_RETURNED && !isShipped(orderId);
+        return OrderDomainHelper.canMarkAsWaitingForReturn(order);
     }
 
     const canMarkAsReturned = (orderId: string): boolean => {
         let order = _findOrderById(orderId);
         if (order === null) return false;
-        return order.status !== ORDER_STATUS.RETURNED && !isShipped(orderId);
+        return OrderDomainHelper.canMarkAsReturned(order);
     }
 
     const canMarkAsShipped = (orderId: string): boolean => {
         let order = _findOrderById(orderId);
         if (order === null) return false;
-        return order.status !== ORDER_STATUS.SHIPPED;
+        return OrderDomainHelper.canMarkAsShipped(order);
     }
 
     const canMarkAsPayCOD = (orderId: string): boolean => {
         let order = _findOrderById(orderId);
         if (order === null) return false;
-        return order.isPayCOD === false;
+        return OrderDomainHelper.canMarkAsPayCOD(order);
     }
 
     const changeShippingCode = async (orderId: string, code: string): Promise<string> => {
         try {
             let order = _findOrderById(orderId);
             let customer = _findCustomerById(order.customerId);
-            let isAlreadyHasShippingCode = Boolean(order.shippingCode);
-            if (order.status !== ORDER_STATUS.CREATE_DELIVERY) order.status = ORDER_STATUS.CREATE_DELIVERY;
-            order.shippingCode = code;
+            let transition = OrderDomainHelper.changeShippingCodeTransition(order, customer, code);
+            order = transition.order;
+            customer = transition.customer;
             dispatch(editOrder({order, customer}));
 
             // comment on trello
             let action = await trello.createComment({text: code}, order.trelloCardId);
             if (action === null) return "Lỗi bình luận Trello";
 
-            if (!isAlreadyHasShippingCode) {
+            if (transition.isFirstShippingCode) {
                 let updatedCard = await moveOrderToTrelloList(orderId, trello.TRELLO_LIST_IDS.DELIVERY_CREATED_LIST);
                 if (updatedCard === null) return "Lỗi khi chuyển đơn Trello";
             }
@@ -289,11 +302,11 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
 
     const calculateOrderPaymentAmount = (placedItems: OrderItem[], customerId: string, isFreeShip?: boolean): number => {
         let customer = _findCustomerById(customerId);
-        return OrderHelper.calculateTotalOrderItemsAmount(placedItems) + (Boolean(isFreeShip) ? 0 : OrderHelper.getShippingAmountByArea(customer.area));
+        return OrderDomainHelper.calculateOrderPaymentAmountFromCustomer(placedItems, customer, isFreeShip);
     }
 
     const getAutoCODAmount = (paymentMethod: string, paymentAmount: number): number => {
-        return paymentMethod === ORDER_PAYMENT_METHOD.BANK_TRANSFER_IN_ADVANCE ? 0 : paymentAmount;
+        return OrderDomainHelper.getAutoCODAmount(paymentMethod, paymentAmount);
     }
 
     const assignTrelloId = (orderId: string, trelloCard: TrelloCard): void => {
@@ -385,31 +398,32 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
 
     const isVipOrder = (order: Order): boolean => {
         let customer = _findCustomerById(order.customerId);
-        return customer.isVIP;
+        return OrderDomainHelper.isVipOrder(order, customer);
     }
 
     const isPriority = (order: Order): boolean => {
-        return order.priorityStatus === ORDER_PRIORITY_STATUS.PRIORITY;
+        return OrderDomainHelper.isPriority(order);
     }
 
     const isUrgent = (order: Order): boolean => {
-        return order.priorityStatus === ORDER_PRIORITY_STATUS.URGENT;
+        return OrderDomainHelper.isUrgent(order);
     }
 
     const isCustomerReturnLessThan4 = (order: Order): boolean => {
         let customer = _findCustomerById(order.customerId);
-        return customer.buyCount > 1 && customer.buyCount <= 4;
+        return OrderDomainHelper.isCustomerReturnLessThan4(order, customer);
     }
 
     const isBankTransferInAdvance = (order: Order): boolean => {
-        return order.paymentMethod === ORDER_PAYMENT_METHOD.BANK_TRANSFER_IN_ADVANCE;
+        return OrderDomainHelper.isBankTransferInAdvance(order);
     }
 
     const refund = (orderId: string, amount: number): void => {
         let order = _findOrderById(orderId);
         let customer = _findCustomerById(order.customerId);
-        order.isRefund = amount > 0;
-        order.refundAmount = amount;
+        let transition = OrderDomainHelper.refundTransition(order, customer, amount);
+        order = transition.order;
+        customer = transition.customer;
         dispatch(editOrder({order, customer}));
     }
 
@@ -481,7 +495,9 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
         paymentCycle.paymentOrders.forEach(orderId => {
             let order = _findOrderById(orderId);
             let customer = _findCustomerById(order.customerId);
-            order.isPayCOD = true;
+            let transition = OrderDomainHelper.markOrderAsPayCODTransition(order, customer);
+            order = transition.order;
+            customer = transition.customer;
             dispatch(editOrder({order, customer}));
         });
     }
