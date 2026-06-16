@@ -18,7 +18,7 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-06-15)
+See: .planning/PROJECT.md (updated 2026-06-16)
 
 **Core value:** An internal operator can manage cassette orders, shipping, COD, and customer follow-up quickly and confidently without losing data or desynchronizing Trello.
 **Current focus:** Phase 03 — fast-order-and-shipping-workflows
