@@ -7,19 +7,22 @@ import {Customer} from "@store/Models/Customer";
 import {cloneDeep} from 'lodash';
 import {RootState} from '@store/Store';
 import {CodPaymentCycle} from "@store/Models/CodPaymentCycle";
+import {OrderSyncFailure, OrderSyncFailureOperation} from "@store/Models/OrderSyncFailure";
 
 export interface OrderState {
     orders: Order[];
     lastSequence: number;
     doneOrders: string[];
     codPayments: CodPaymentCycle[];
+    syncFailures: OrderSyncFailure[];
 }
 
 const initialState: OrderState = {
     orders: [],
     lastSequence: 0,
     doneOrders: [],
-    codPayments: []
+    codPayments: [],
+    syncFailures: []
 }
 
 export const orderSlice = createSlice({
@@ -64,6 +67,7 @@ export const orderSlice = createSlice({
             state.lastSequence = action.payload.lastSequence || 0;
             state.doneOrders = action.payload.doneOrders || [];
             state.codPayments = action.payload.codPayments || [];
+            state.syncFailures = action.payload.syncFailures || [];
         },
         setDoneOrders: (state, action: PayloadAction<string[]>) => {
             state.doneOrders = action.payload || [];
@@ -82,6 +86,31 @@ export const orderSlice = createSlice({
         },
         addCodPayment: (state, action: PayloadAction<CodPaymentCycle>) => {
             state.codPayments = [...state.codPayments||[], action.payload];
+        },
+        upsertSyncFailure: (state, action: PayloadAction<OrderSyncFailure>) => {
+            const index = state.syncFailures.findIndex(failure => failure.id === action.payload.id);
+            if (index >= 0) state.syncFailures[index] = action.payload;
+            else state.syncFailures = [...state.syncFailures || [], action.payload];
+        },
+        markSyncFailureRetrying: (state, action: PayloadAction<{ id: string, updatedAt: string }>) => {
+            state.syncFailures = (state.syncFailures || []).map(failure => {
+                if (failure.id !== action.payload.id) return failure;
+                return {
+                    ...failure,
+                    status: "retrying",
+                    updatedAt: action.payload.updatedAt
+                };
+            });
+        },
+        clearSyncFailure: (state, action: PayloadAction<string>) => {
+            state.syncFailures = (state.syncFailures || []).filter(failure => failure.id !== action.payload);
+        },
+        clearOrderSyncFailures: (state, action: PayloadAction<{ orderId: string, operation?: OrderSyncFailureOperation }>) => {
+            state.syncFailures = (state.syncFailures || []).filter(failure => {
+                if (failure.orderId !== action.payload.orderId) return true;
+                if (!action.payload.operation) return false;
+                return failure.operation !== action.payload.operation;
+            });
         },
     },
 })
@@ -117,7 +146,11 @@ export const {
     removeDoneOrder,
     removeAllDoneOrder,
     setDoneOrders,
-    addCodPayment
+    addCodPayment,
+    upsertSyncFailure,
+    markSyncFailureRetrying,
+    clearSyncFailure,
+    clearOrderSyncFailures
 } = orderSlice.actions
 
 export default orderSlice.reducer

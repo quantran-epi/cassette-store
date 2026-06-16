@@ -55,7 +55,8 @@ const _normalizeOrderState = (order: Record<string, any>): OrderState => {
         orders: _asArray(order.orders),
         lastSequence: _asNumber(order.lastSequence, 0),
         doneOrders: _asArray<string>(order.doneOrders),
-        codPayments: _asArray(order.codPayments)
+        codPayments: _asArray(order.codPayments),
+        syncFailures: _asArray(order.syncFailures)
     }
 }
 

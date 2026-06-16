@@ -17,7 +17,17 @@ const createRootState = (overrides: any = {}) => ({
         orders: [{id: "order-1", name: "Order 1"}],
         lastSequence: 7,
         doneOrders: ["card-1"],
-        codPayments: [{id: "cod-1", name: "Cycle 1"}]
+        codPayments: [{id: "cod-1", name: "Cycle 1"}],
+        syncFailures: [{
+            id: "failure-1",
+            orderId: "order-1",
+            operation: "create-card",
+            status: "failed",
+            message: "Could not create card",
+            retryable: true,
+            createdAt: "2026-06-15T00:00:00.000Z",
+            updatedAt: "2026-06-15T00:00:00.000Z"
+        }]
     },
     ...overrides
 });
@@ -32,6 +42,16 @@ describe("BackupHelper", () => {
         expect(envelope.payload.order.lastSequence).toBe(7);
         expect(envelope.payload.order.doneOrders).toEqual(["card-1"]);
         expect(envelope.payload.order.codPayments).toEqual([{id: "cod-1", name: "Cycle 1"}]);
+        expect(envelope.payload.order.syncFailures).toEqual([{ 
+            id: "failure-1",
+            orderId: "order-1",
+            operation: "create-card",
+            status: "failed",
+            message: "Could not create card",
+            retryable: true,
+            createdAt: "2026-06-15T00:00:00.000Z",
+            updatedAt: "2026-06-15T00:00:00.000Z"
+        }]);
         expect(envelope.payload.customer.customers).toEqual([{id: "customer-1", name: "Customer 1"}]);
         expect(envelope.payload.appContext).toEqual({loading: false, currentFeatureName: "Đơn hàng"});
     });
@@ -45,6 +65,12 @@ describe("BackupHelper", () => {
         expect(result.isLegacy).toBe(false);
         expect(result.payload.order.doneOrders).toEqual(["card-1"]);
         expect(result.payload.order.codPayments).toEqual([{id: "cod-1", name: "Cycle 1"}]);
+        expect(result.payload.order.syncFailures).toHaveLength(1);
+        expect(result.payload.order.syncFailures[0]).toMatchObject({
+            id: "failure-1",
+            operation: "create-card",
+            status: "failed"
+        });
     });
 
     test("normalizes legacy raw RootState backups with explicit defaults", () => {
@@ -66,6 +92,7 @@ describe("BackupHelper", () => {
         expect(result.payload.order.lastSequence).toBe(3);
         expect(result.payload.order.doneOrders).toEqual([]);
         expect(result.payload.order.codPayments).toEqual([]);
+        expect(result.payload.order.syncFailures).toEqual([]);
         expect(result.payload.customer.customers).toEqual([]);
         expect(result.payload.appContext).toEqual({loading: false, currentFeatureName: ""});
     });
