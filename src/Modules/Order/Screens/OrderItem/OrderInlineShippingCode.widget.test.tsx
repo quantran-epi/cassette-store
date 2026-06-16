@@ -2,14 +2,13 @@ import React from "react";
 import {act, render, screen, waitFor} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import {Provider} from "react-redux";
-import {OrderSyncStatusWidget} from "./OrderSyncStatus.widget";
 import {OrderItemWidget} from "./OrderItem.widget";
 import {store} from "@store/Store";
-import {setOrderState} from "@store/Reducers/OrderReducer";
 import {setCustomerState} from "@store/Reducers/CustomerReducer";
-import type {OrderSyncFailure} from "@store/Models/OrderSyncFailure";
+import {setOrderState} from "@store/Reducers/OrderReducer";
 import type {Order} from "@store/Models/Order";
 import type {Customer} from "@store/Models/Customer";
+import type {OrderSyncFailure} from "@store/Models/OrderSyncFailure";
 import {
     ORDER_PAYMENT_METHOD,
     ORDER_PRIORITY_STATUS,
@@ -17,8 +16,8 @@ import {
     ORDER_STATUS
 } from "@common/Constants/AppConstants";
 
-const mockRetryOrderSyncFailure = jest.fn();
-const mockClearOrderSyncFailure = jest.fn();
+const mockChangeShippingCode = jest.fn();
+const mockClipboardReadText = jest.fn();
 const mockMessage = {
     error: jest.fn(),
     success: jest.fn(),
@@ -43,8 +42,8 @@ jest.mock("@hooks", () => ({
     hasOrderWorkflowSyncFailures: jest.requireActual("@hooks/OrderWorkflowResult").hasOrderWorkflowSyncFailures,
     useTrello: () => ({}),
     useOrder: () => ({
-        retryOrderSyncFailure: mockRetryOrderSyncFailure,
-        clearOrderSyncFailure: mockClearOrderSyncFailure,
+        retryOrderSyncFailure: jest.fn(),
+        clearOrderSyncFailure: jest.fn(),
         canMarkAsShipped: () => true,
         canMarkAsPayCOD: () => true,
         isRefuseToReceive: () => false,
@@ -58,7 +57,7 @@ jest.mock("@hooks", () => ({
         markOrderAsWaitingForReturn: jest.fn(),
         markOrderAsReturned: jest.fn(),
         markOrderAsBrokenItems: jest.fn(),
-        changeShippingCode: jest.fn()
+        changeShippingCode: mockChangeShippingCode
     })
 }));
 
@@ -78,20 +77,6 @@ jest.mock("@modules/Order/Screens/OrderItem/OrderShippingInfo.widget", () => ({O
 jest.mock("@modules/Order/Screens/OrderItem/OrderAttachments.widget", () => ({OrderAttachmentsWidget: () => null}));
 jest.mock("./OrderPriority.widget", () => ({OrderPriorityWidget: () => null}));
 jest.mock("@modules/Order/Screens/OrderItem/OrderCustomerInfo.widget", () => ({OrderCustomerInfoWidget: () => null}));
-
-const buildSyncFailure = (overrides: Partial<OrderSyncFailure> = {}): OrderSyncFailure => ({
-    id: "failure-1",
-    orderId: "order-1",
-    operation: "move-card",
-    status: "failed",
-    message: "Move failed",
-    retryable: true,
-    createdAt: "2026-06-16T00:00:00.000Z",
-    updatedAt: "2026-06-16T00:00:00.000Z",
-    trelloCardId: "trello-card-1",
-    retryPayload: {orderId: "order-1", trelloCardId: "trello-card-1", idList: "done-list"},
-    ...overrides
-});
 
 const buildCustomer = (overrides: Partial<Customer> = {}): Customer => ({
     id: "customer-1",
@@ -138,93 +123,94 @@ const buildOrder = (overrides: Partial<Order> = {}): Order => ({
     ...overrides
 });
 
-beforeEach(() => {
-    mockRetryOrderSyncFailure.mockResolvedValue({
-        ok: true,
-        operation: "retry-sync",
-        localUpdated: true,
-        syncFailures: [],
-        message: "Đồng bộ Trello thành công"
-    });
-    mockClearOrderSyncFailure.mockClear();
-    Object.values(mockMessage).forEach(mock => mock.mockClear());
-    store.dispatch(setCustomerState({customers: []}));
-    store.dispatch(setOrderState({
-        orders: [],
-        lastSequence: 0,
-        doneOrders: [],
-        codPayments: [],
-        syncFailures: []
-    }));
+const buildSyncFailure = (overrides: Partial<OrderSyncFailure> = {}): OrderSyncFailure => ({
+    id: "failure-1",
+    orderId: "order-1",
+    operation: "create-comment",
+    status: "failed",
+    message: "Trello comment failed",
+    retryable: true,
+    createdAt: "2026-06-16T00:00:00.000Z",
+    updatedAt: "2026-06-16T00:00:00.000Z",
+    trelloCardId: "trello-card-1",
+    retryPayload: {orderId: "order-1", trelloCardId: "trello-card-1", shippingCode: "SPX123"},
+    ...overrides
 });
 
-afterEach(() => {
-    jest.restoreAllMocks();
-});
+const renderOrderRow = (props: {order?: Order; failures?: OrderSyncFailure[]} = {}) => {
+    const order = props.order || buildOrder();
 
-it("renders no visible text for an empty failures array", () => {
-    render(<OrderSyncStatusWidget failures={[]}/>);
-
-    expect(screen.queryByText(/Lỗi đồng bộ Trello/i)).not.toBeInTheDocument();
-});
-
-it("renders a compact Vietnamese warning when failures exist", () => {
-    render(<OrderSyncStatusWidget failures={[buildSyncFailure()]}/>);
-
-    expect(screen.getByText("Lỗi đồng bộ Trello")).toBeInTheDocument();
-    expect(screen.getByText(/Chuyển thẻ Trello: Move failed/i)).toBeInTheDocument();
-});
-
-it("clicking retry calls retryOrderSyncFailure with the selected failure ID", async () => {
-    render(<OrderSyncStatusWidget failures={[buildSyncFailure()]}/>);
-
-    await act(async () => {
-        await userEvent.click(screen.getByRole("button", {name: /Thử lại/i}));
-    });
-
-    await waitFor(() => expect(mockRetryOrderSyncFailure).toHaveBeenCalledWith("failure-1"));
-    await waitFor(() => expect(mockMessage.success).toHaveBeenCalledWith("Đồng bộ Trello thành công"));
-});
-
-it("clicking manual resolved calls clearOrderSyncFailure with the selected failure ID", async () => {
-    render(<OrderSyncStatusWidget failures={[buildSyncFailure()]}/>);
-
-    await userEvent.click(screen.getByRole("button", {name: /Đã xử lý/i}));
-
-    expect(mockClearOrderSyncFailure).toHaveBeenCalledWith("failure-1");
-});
-
-it("shows retry and manual-resolved controls for shipping-code sync failures", () => {
-    render(<OrderSyncStatusWidget failures={[buildSyncFailure({
-        operation: "create-comment",
-        message: "Shipping comment failed",
-        retryPayload: {orderId: "order-1", shippingCode: "SPX123"}
-    })]}/>);
-
-    expect(screen.getByText(/Bình luận mã vận đơn: Shipping comment failed/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", {name: /Thử lại/i})).toBeInTheDocument();
-    expect(screen.getByRole("button", {name: /Đã xử lý/i})).toBeInTheDocument();
-});
-
-it("OrderItemWidget passes only failures for the current order", () => {
-    const order = buildOrder();
     store.dispatch(setCustomerState({customers: [buildCustomer()]}));
     store.dispatch(setOrderState({
         orders: [order],
         lastSequence: 1,
         doneOrders: [],
         codPayments: [],
-        syncFailures: [
-            buildSyncFailure({id: "visible-failure", orderId: order.id, message: "Visible failure"}),
-            buildSyncFailure({id: "hidden-failure", orderId: "other-order", message: "Hidden failure"})
-        ]
+        syncFailures: props.failures || []
     }));
 
-    render(<Provider store={store}>
+    return render(<Provider store={store}>
         <OrderItemWidget item={order} onDelete={jest.fn()}/>
     </Provider>);
+}
 
+beforeEach(() => {
+    Object.defineProperty(navigator, "clipboard", {
+        configurable: true,
+        value: {readText: mockClipboardReadText}
+    });
+    mockClipboardReadText.mockResolvedValue("SPX123456");
+    mockChangeShippingCode.mockResolvedValue({
+        ok: true,
+        operation: "change-shipping-code",
+        localUpdated: true,
+        syncFailures: [],
+        message: "Lưu mã vận đơn thành công"
+    });
+    Object.values(mockMessage).forEach(mock => mock.mockClear());
+});
+
+afterEach(() => {
+    jest.restoreAllMocks();
+});
+
+it("renders inline shipping-code entry for eligible rows without reading the clipboard", () => {
+    renderOrderRow();
+
+    expect(screen.getByPlaceholderText("Nhập mã vận đơn")).toBeInTheDocument();
+    expect(screen.getByRole("button", {name: /Dán mã/i})).toBeInTheDocument();
+    expect(screen.getByRole("button", {name: /Lưu mã/i})).toBeInTheDocument();
+    expect(mockClipboardReadText).not.toHaveBeenCalled();
+});
+
+it("reads clipboard only after explicit paste and populates the shipping-code field", async () => {
+    renderOrderRow();
+
+    await userEvent.click(screen.getByRole("button", {name: /Dán mã/i}));
+
+    expect(mockClipboardReadText).toHaveBeenCalledTimes(1);
+    expect(screen.getByPlaceholderText("Nhập mã vận đơn")).toHaveValue("SPX123456");
+});
+
+it("saves through changeShippingCode and leaves row-scoped sync controls visible on Trello failure", async () => {
+    mockChangeShippingCode.mockResolvedValueOnce({
+        ok: true,
+        operation: "change-shipping-code",
+        localUpdated: true,
+        syncFailures: [buildSyncFailure()],
+        message: "Lưu mã vận đơn thành công"
+    });
+    renderOrderRow({failures: [buildSyncFailure()]});
+
+    await userEvent.type(screen.getByPlaceholderText("Nhập mã vận đơn"), "SPX123");
+    await act(async () => {
+        await userEvent.click(screen.getByRole("button", {name: /Lưu mã/i}));
+    });
+
+    await waitFor(() => expect(mockChangeShippingCode).toHaveBeenCalledWith("order-1", "SPX123"));
+    await waitFor(() => expect(mockMessage.warning).toHaveBeenCalledWith("Lưu mã vận đơn thành công. Cần đồng bộ lại Trello."));
     expect(screen.getByText("Lỗi đồng bộ Trello")).toBeInTheDocument();
-    expect(screen.getByText(/Visible failure/i)).toBeInTheDocument();
-    expect(screen.queryByText(/Hidden failure/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/Bình luận mã vận đơn: Trello comment failed/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", {name: /Thử lại/i})).toBeInTheDocument();
+    expect(screen.getByRole("button", {name: /Đã xử lý/i})).toBeInTheDocument();
 });
