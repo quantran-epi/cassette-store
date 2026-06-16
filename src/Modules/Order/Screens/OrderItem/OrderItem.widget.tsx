@@ -52,6 +52,7 @@ import { OrderPriorityWidget } from "./OrderPriority.widget";
 import moment from "moment";
 import { Badge } from "antd";
 import { OrderCustomerInfoWidget } from "@modules/Order/Screens/OrderItem/OrderCustomerInfo.widget";
+import { OrderSyncStatusWidget } from "@modules/Order/Screens/OrderItem/OrderSyncStatus.widget";
 
 type OrderItemProps = {
     item: Order;
@@ -62,6 +63,7 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
     const customers = useSelector((state: RootState) => state.customer.customers);
     const orders = useSelector((state: RootState) => state.order.orders);
     const doneOrders = useSelector((state: RootState) => state.order.doneOrders);
+    const syncFailures = useSelector((state: RootState) => state.order.syncFailures);
     const dispatch = useDispatch();
     const message = useMessage();
     const modal = useModal();
@@ -77,6 +79,9 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
     const orderCustomer = useMemo(() => {
         return customers.find(e => e.id == props.item.customerId);
     }, [props.item.customerId])
+    const orderSyncFailures = useMemo(() => {
+        return (syncFailures || []).filter(failure => failure.orderId === props.item.id);
+    }, [syncFailures, props.item.id])
     const orderUtils = useOrder();
 
     const _getCustomerColor = () => {
@@ -384,6 +389,7 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                         {props.item.returnReason && _renderReturnReason()}
                         {props.item.priorityStatus !== ORDER_PRIORITY_STATUS.NONE && _renderPriority()}
                     </Space>
+                    <OrderSyncStatusWidget failures={orderSyncFailures}/>
                     <Stack gap={2} direction="column" align={"flex-start"}>
                         <Space>
                             <DollarOutlined />
