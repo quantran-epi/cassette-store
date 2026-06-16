@@ -4,6 +4,13 @@ import {Provider} from "react-redux";
 import {useOrder} from "./useOrder";
 import {store} from "@store/Store";
 import {removeAllDoneOrder, setOrderState} from "@store/Reducers/OrderReducer";
+import {
+    createOrderWorkflowFailure,
+    createOrderWorkflowSuccess,
+    getOrderWorkflowMessage,
+    hasOrderWorkflowSyncFailures
+} from "./OrderWorkflowResult";
+import type {OrderSyncFailure} from "@store/Models/OrderSyncFailure";
 
 const mockGetCardsByList = jest.fn();
 
@@ -64,9 +71,23 @@ const seedDoneOrders = (doneOrders: string[]) => {
         orders: [],
         lastSequence: 0,
         doneOrders,
-        codPayments: []
+        codPayments: [],
+        syncFailures: []
     }));
 }
+
+const buildSyncFailure = (overrides: Partial<OrderSyncFailure> = {}): OrderSyncFailure => ({
+    id: "failure-1",
+    orderId: "order-1",
+    operation: "create-card",
+    status: "failed",
+    message: "Could not create Trello card",
+    retryable: true,
+    createdAt: "2026-06-16T00:00:00.000Z",
+    updatedAt: "2026-06-16T00:00:00.000Z",
+    retryPayload: {orderId: "order-1"},
+    ...overrides
+});
 
 beforeEach(() => {
     seedDoneOrders([]);
@@ -125,5 +146,37 @@ describe("useOrder.refreshDoneOrders", () => {
         expect(dispatchSpy).not.toHaveBeenCalledWith(expect.objectContaining({
             type: removeAllDoneOrder.type
         }));
+    });
+});
+
+describe("OrderWorkflowResult helpers", () => {
+    it("represents local success with retryable Trello sync failures", () => {
+        const result = createOrderWorkflowSuccess({
+            operation: "create-order",
+            data: {orderId: "order-1"},
+            syncFailures: [buildSyncFailure()],
+            message: "Đã tạo đơn"
+        });
+
+        expect(result.ok).toBe(true);
+        expect(result.localUpdated).toBe(true);
+        expect(result.syncFailures).toHaveLength(1);
+        expect(hasOrderWorkflowSyncFailures(result)).toBe(true);
+        expect(getOrderWorkflowMessage(result)).toBe("Đã tạo đơn. Cần đồng bộ lại Trello.");
+    });
+
+    it("represents fatal local failure without requiring sync failure state", () => {
+        const error = new Error("Local validation failed");
+        const result = createOrderWorkflowFailure({
+            operation: "create-order",
+            message: "Không thể tạo đơn",
+            error
+        });
+
+        expect(result.ok).toBe(false);
+        expect(result.localUpdated).toBe(false);
+        expect(result.syncFailures).toEqual([]);
+        expect(hasOrderWorkflowSyncFailures(result)).toBe(false);
+        expect(getOrderWorkflowMessage(result)).toBe("Không thể tạo đơn");
     });
 });
