@@ -43,8 +43,8 @@ created: 2026-06-16
 | 03-01-02 | 03-01 | 1 | ORD-05 | - | N/A | build/type regression | `yarn build` | existing | pending |
 | 03-02-01 | 03-02 | 2 | OPS-01 | - | N/A | create flow UI | `CI=true yarn test --watchAll=false --runTestsByPath src/Modules/Order/Screens/OrderCreate/OrderCreate.screen.test.tsx` | planned | pending |
 | 03-02-02 | 03-02 | 2 | OPS-01 | - | N/A | workflow regression | `CI=true yarn test --watchAll=false --runTestsByPath src/Hooks/useOrder.test.ts src/Common/Helpers/OrderDomainHelper.test.ts` | existing | pending |
-| 03-03-01 | 03-03 | 3 | OPS-02 | - | N/A | shipping row UI | `CI=true yarn test --watchAll=false --runTestsByPath src/Modules/Order/Screens/OrderItem/OrderSyncStatus.widget.test.tsx` plus any new inline shipping test | existing / planned | pending |
-| 03-03-02 | 03-03 | 3 | OPS-02 | - | N/A | full regression | `CI=true yarn test --watchAll=false && yarn build` | existing | pending |
+| 03-03-01 | 03-03 | 2 | OPS-02 | - | N/A | shipping row UI | `CI=true yarn test --watchAll=false --runTestsByPath src/Modules/Order/Screens/OrderItem/OrderSyncStatus.widget.test.tsx` plus any new inline shipping test | existing / planned | pending |
+| 03-03-02 | 03-03 | 2 | OPS-02 | - | N/A | full regression | `CI=true yarn test --watchAll=false && yarn build` | existing | pending |
 
 *Status: pending / green / red / flaky*
 

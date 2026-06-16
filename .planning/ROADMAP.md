@@ -96,10 +96,13 @@ Plans:
   3. Operator can update shipping codes quickly and see local/Trello update status immediately.
 
 **Plans**: 3 plans
-
 Plans:
+**Wave 1**
 
 - [ ] 03-01: Correct order route naming/components and add route smoke coverage.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 03-02: Streamline order creation around existing business behavior and attachments.
 - [ ] 03-03: Improve shipping-code update flow and local/Trello status feedback.
 
