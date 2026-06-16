@@ -77,7 +77,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 02-03: Refactor order workflows to use domain transitions and integration adapter.
+- [x] 02-03: Refactor order workflows to use domain transitions and integration adapter.
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
@@ -155,7 +155,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Data Safety and Refactor Baseline | 4/4 | Complete    | 2026-06-15 |
-| 2. Order State and Trello Sync Reliability | 2/4 | In Progress|  |
+| 2. Order State and Trello Sync Reliability | 3/4 | In Progress|  |
 | 3. Fast Order and Shipping Workflows | 0/3 | Not started | - |
 | 4. COD, Search, and Operational Utilities | 0/4 | Not started | - |
 | 5. Cohesive UI/UX Refresh | 0/4 | Not started | - |
