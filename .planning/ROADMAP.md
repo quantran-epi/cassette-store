@@ -129,7 +129,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 04-02: Improve COD cycle selection, totals, confirmation, and review behavior.
+- [x] 04-02: Improve COD cycle selection, totals, confirmation, and review behavior.
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -171,7 +171,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | 1. Data Safety and Refactor Baseline | 4/4 | Complete    | 2026-06-15 |
 | 2. Order State and Trello Sync Reliability | 4/4 | Complete    | 2026-06-16 |
 | 3. Fast Order and Shipping Workflows | 3/3 | Complete    | 2026-06-16 |
-| 4. COD, Search, and Operational Utilities | 1/4 | In Progress|  |
+| 4. COD, Search, and Operational Utilities | 2/4 | In Progress|  |
 | 5. Cohesive UI/UX Refresh | 0/4 | Not started | - |
 
 ## Requirement Coverage
@@ -197,7 +197,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | OPS-01 | Phase 3 | Pending |
 | OPS-02 | Phase 3 | Pending |
 | ORD-04 | Phase 4 | Pending |
-| OPS-03 | Phase 4 | Pending |
+| OPS-03 | Phase 4 | Complete |
 | OPS-04 | Phase 4 | Pending |
 | OPS-05 | Phase 4 | Pending |
 | OPS-06 | Phase 4 | Pending |
