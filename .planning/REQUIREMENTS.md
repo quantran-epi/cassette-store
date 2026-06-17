@@ -33,7 +33,7 @@ Requirements for the first GSD-managed refactor milestone. Each maps to roadmap 
 - [x] **ORD-01**: Pure order calculations are extracted from `useOrder` into tested helper/service functions.
 - [x] **ORD-02**: Order state transitions for shipped, returned, waiting-for-return, COD paid, refund, and shipping-code update are testable without rendering React components.
 - [x] **ORD-03**: Trello integration is accessed through a small typed adapter/port instead of direct logic spread through order workflows.
-- [ ] **ORD-04**: Derived order/customer dashboard values are provided by memoized selectors or tested helpers rather than repeated render-time reductions.
+- [x] **ORD-04**: Derived order/customer dashboard values are provided by memoized selectors or tested helpers rather than repeated render-time reductions.
 - [x] **ORD-05**: Route naming and routing components are corrected so order routes use order-specific route names and layout components.
 
 ### Daily Operator Utilities
@@ -41,7 +41,7 @@ Requirements for the first GSD-managed refactor milestone. Each maps to roadmap 
 - [x] **OPS-01**: Operator can create an order with fewer steps while preserving existing pricing, priority, customer, payment, and attachment behavior.
 - [x] **OPS-02**: Operator can update a shipping code quickly and clearly see whether local state and Trello were updated.
 - [ ] **OPS-03**: Operator can manage COD payment cycles with clearer selection, totals, included orders, debit shipping fees, and confirmation.
-- [ ] **OPS-04**: Operator can search, filter, and sort orders by status, COD state, shipping code, customer, and date without losing list context.
+- [x] **OPS-04**: Operator can search, filter, and sort orders by status, COD state, shipping code, customer, and date without losing list context.
 - [ ] **OPS-05**: Operator can perform common order actions from a clear contextual action surface instead of hunting through modals.
 - [ ] **OPS-06**: Operator can see operational alerts for sync, backup, and done-order checks from a consistent status area.
 
@@ -111,9 +111,9 @@ Which phases or deferred release buckets cover which requirements. Updated durin
 | ORD-05 | Phase 3 | Complete |
 | OPS-01 | Phase 3 | Complete |
 | OPS-02 | Phase 3 | Complete |
-| ORD-04 | Phase 4 | Pending |
+| ORD-04 | Phase 4 | Complete |
 | OPS-03 | Phase 4 | Pending |
-| OPS-04 | Phase 4 | Pending |
+| OPS-04 | Phase 4 | Complete |
 | OPS-05 | Phase 4 | Pending |
 | OPS-06 | Phase 4 | Pending |
 | UX-01 | Phase 5 | Pending |
