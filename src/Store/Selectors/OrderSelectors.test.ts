@@ -1,7 +1,8 @@
 import {ORDER_PAYMENT_METHOD, ORDER_PRIORITY_STATUS, ORDER_RETURN_REASON, ORDER_SHIPPING_PARTNER, ORDER_STATUS} from "@common/Constants/AppConstants";
 import type {Customer} from "@store/Models/Customer";
 import type {Order} from "@store/Models/Order";
-import {buildOrderListReadModel, DEFAULT_ORDER_LIST_QUERY, OrderListQuery} from "./OrderSelectors";
+import {DEFAULT_ORDER_LIST_QUERY, OrderListQuery} from "@common/Helpers/OrderListQueryHelper";
+import {buildOrderListReadModel} from "./OrderSelectors";
 
 const buildCustomer = (overrides: Partial<Customer> = {}): Customer => ({
     id: "customer-1",
@@ -170,5 +171,15 @@ describe("OrderSelectors", () => {
         expect(model.summary.cashAmount).toBe(340000);
         expect(model.summary.codReceivedAmount).toBe(340000);
         expect(model.summary.statusCounts[ORDER_STATUS.SHIPPED]).toBe(2);
+    });
+
+    it("returns selector paging fields from URL query values", () => {
+        const model = readModel({sort: "oldest", page: 2, pageSize: 2});
+
+        expect(model.allFilteredRows.map(order => order.id)).toEqual(["returned-order", "non-cod-missing-code", "unpaid-cod", "paid-cod"]);
+        expect(model.pageRows.map(order => order.id)).toEqual(["unpaid-cod", "paid-cod"]);
+        expect(model.page).toBe(2);
+        expect(model.pageSize).toBe(2);
+        expect(model.totalPages).toBe(2);
     });
 });
