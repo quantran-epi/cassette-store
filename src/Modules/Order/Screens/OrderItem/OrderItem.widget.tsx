@@ -1,30 +1,14 @@
 import {
     BarcodeOutlined,
-    CheckCircleOutlined,
-    ClockCircleOutlined,
-    CloseOutlined,
-    CloudUploadOutlined,
-    DeleteOutlined,
-    DollarOutlined,
-    DoubleLeftOutlined,
-    EnvironmentOutlined,
-    FileTextOutlined,
-    MoreOutlined,
-    PhoneOutlined,
-    TruckOutlined,
-    ToolOutlined,
-    HighlightOutlined,
-    PaperClipOutlined,
-    DropboxOutlined,
-    RollbackOutlined,
-    DoubleRightOutlined,
     CalendarOutlined,
-    CheckCircleTwoTone,
-    UserOutlined
+    DollarOutlined,
+    EnvironmentOutlined,
+    PhoneOutlined,
+    TruckOutlined
 } from "@ant-design/icons";
 import { COLORS, ORDER_PAYMENT_METHOD, ORDER_PRIORITY_STATUS, ORDER_STATUS } from "@common/Constants/AppConstants";
+import {buildOrderActionModel, OrderActionKey} from "@common/Helpers/OrderActionHelper";
 import { Button } from "@components/Button";
-import { Dropdown } from "@components/Dropdown";
 import { Space } from "@components/Layout/Space";
 import { Stack } from "@components/Layout/Stack";
 import { List } from "@components/List";
@@ -34,14 +18,12 @@ import { Tag } from "@components/Tag";
 import { Tooltip } from "@components/Tootip";
 import { Typography } from "@components/Typography";
 import { Order } from "@store/Models/Order";
-import { editOrder, removeOrder } from "@store/Reducers/OrderReducer";
+import {removeOrder} from "@store/Reducers/OrderReducer";
 import { RootState } from "@store/Store";
-import React, { FunctionComponent, useMemo } from "react";
+import React, {useMemo} from "react";
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { useDispatch, useSelector } from "react-redux";
 import { getOrderWorkflowMessage, hasOrderWorkflowSyncFailures, OrderWorkflowResult, useToggle, useOrder } from "@hooks";
-import { Modal } from "@components/Modal";
-import { Input } from "@components/Form/Input";
 import { OrderChangeShippingCodeWidget } from "./OrderChangeShippingCode.widget";
 import { OrderCreateDeliveryAssistantWidget } from "@modules/Order/Screens/OrderItem/OrderCreateDeliveryAssistant.widget";
 import { OrderRefundWidget } from "@modules/Order/Screens/OrderItem/OrderRefund.widget";
@@ -54,11 +36,21 @@ import { Badge } from "antd";
 import { OrderCustomerInfoWidget } from "@modules/Order/Screens/OrderItem/OrderCustomerInfo.widget";
 import { OrderSyncStatusWidget } from "@modules/Order/Screens/OrderItem/OrderSyncStatus.widget";
 import { OrderInlineShippingCodeWidget } from "@modules/Order/Screens/OrderItem/OrderInlineShippingCode.widget";
+import {OrderActionSurfaceWidget} from "@modules/Order/Screens/OrderItem/OrderActionSurface.widget";
 
 type OrderItemProps = {
     item: Order;
     onDelete: (item: Order) => void;
 }
+
+const DELIVERY_ACTION_KEYS: OrderActionKey[] = [
+    "mark-as-done",
+    "mark-as-payed-cod",
+    "refuse-to-receive",
+    "broken-items",
+    "waiting-return-order",
+    "returned-order"
+];
 
 export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) => {
     const customers = useSelector((state: RootState) => state.customer.customers);
@@ -152,8 +144,20 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
         else message.success(successMessage);
     }
 
-    const _onMoreActionClick = async (e) => {
-        switch (e.key) {
+    const actionModel = buildOrderActionModel(props.item, {
+        isPushedTrello: orderUtils.isPushedTrello(props.item.id),
+        canMarkAsShipped: orderUtils.canMarkAsShipped(props.item.id),
+        canMarkAsPayCOD: orderUtils.canMarkAsPayCOD(props.item.id),
+        canMarkAsWaitingForReturn: orderUtils.canMarkAsWaitingForReturn(props.item.id),
+        canMarkAsReturned: orderUtils.canMarkAsReturned(props.item.id),
+        isRefuseToReceive: orderUtils.isRefuseToReceive(props.item.id),
+        isBrokenItems: orderUtils.isBrokenItems(props.item.id),
+        hasShippingCode: Boolean(props.item.shippingCode),
+        doneInTrello: doneOrders?.includes(props.item.trelloCardId)
+    });
+
+    const _onMoreActionClick = async (key: OrderActionKey) => {
+        switch (key) {
             case "place-items":
                 toggleOrderPlacedItems.show();
                 break;
@@ -188,8 +192,8 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
         }
     }
 
-    const _onDeliveryActionClick = async (e) => {
-        switch (e.key) {
+    const _onDeliveryActionClick = async (key: OrderActionKey) => {
+        switch (key) {
             case "mark-as-done":
                 modal.confirm({
                     title: "Đánh dấu đơn là thành công, thao tác này không thể chỉnh sửa?",
@@ -224,7 +228,13 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                 orderUtils.markOrderAsWaitingForReturn(props.item.id);
                 break;
             case "returned-order":
-                orderUtils.markOrderAsReturned(props.item.id);
+                modal.confirm({
+                    title: "Đánh dấu đơn là đã chuyển hoàn?",
+                    cancelText: "Huỷ",
+                    onOk: async () => {
+                        orderUtils.markOrderAsReturned(props.item.id);
+                    }
+                })
                 break;
             case "broken-items":
                 modal.confirm({
@@ -237,6 +247,11 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                 })
                 break;
         }
+    }
+
+    const _onActionClick = (key: OrderActionKey) => {
+        if (DELIVERY_ACTION_KEYS.includes(key)) _onDeliveryActionClick(key);
+        else _onMoreActionClick(key);
     }
 
     const _onChangeShippingCode = async (value: string): Promise<OrderWorkflowResult<unknown>> => {
@@ -262,105 +277,7 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
         <List.Item
             actions={
                 [
-                    <Dropdown menu={{
-                        items: [
-                            {
-                                label: 'Đã giao hàng',
-                                key: 'mark-as-done',
-                                icon: <CheckCircleOutlined />,
-                                disabled: !orderUtils.canMarkAsShipped(props.item.id)
-                            },
-                            {
-                                label: 'Đã trả COD',
-                                key: 'mark-as-payed-cod',
-                                icon: <DollarOutlined />,
-                                disabled: !orderUtils.canMarkAsPayCOD(props.item.id)
-                            },
-                            {
-                                label: 'Bom hàng',
-                                key: 'refuse-to-receive',
-                                icon: <CloseOutlined />,
-                                danger: true,
-                                disabled: orderUtils.isRefuseToReceive(props.item.id)
-                            },
-                            {
-                                label: 'Hàng lỗi, hoàn về',
-                                key: 'broken-items',
-                                icon: <ToolOutlined />,
-                                danger: true,
-                                disabled: orderUtils.isBrokenItems(props.item.id)
-                            },
-                            {
-                                label: 'Chờ chuyển hoàn',
-                                key: 'waiting-return-order',
-                                icon: <ClockCircleOutlined />,
-                                disabled: !orderUtils.canMarkAsWaitingForReturn(props.item.id)
-                            },
-                            {
-                                label: 'Đã chuyển hoàn',
-                                key: 'returned-order',
-                                icon: <DoubleLeftOutlined />,
-                                disabled: !orderUtils.canMarkAsReturned(props.item.id)
-                            }
-                        ],
-                        onClick: _onDeliveryActionClick
-                    }} placement="bottom">
-                        <Button icon={<TruckOutlined />} />
-                    </Dropdown>,
-                    <Dropdown menu={{
-                        items: [
-                            {
-                                label: 'Mã vận đơn',
-                                key: 'input-shipping-code',
-                                icon: <BarcodeOutlined />,
-                                disabled: !orderUtils.isPushedTrello(props.item.id)
-                            },
-                            {
-                                label: 'Hỗ trợ nhập đơn',
-                                key: 'create-delivery-bill-helpers',
-                                icon: <HighlightOutlined />,
-                            },
-                            {
-                                label: 'Danh sách hàng',
-                                key: 'place-items',
-                                icon: <DropboxOutlined />,
-                            },
-                            {
-                                label: 'Độ ưu tiên',
-                                key: 'priority',
-                                icon: <DoubleRightOutlined />,
-                            },
-                            {
-                                label: 'Ảnh đính kèm',
-                                key: 'file-attachment',
-                                icon: <PaperClipOutlined />,
-                            },
-                            {
-                                label: 'Vận chuyển',
-                                key: 'order-bill',
-                                icon: <TruckOutlined />,
-                            },
-                            {
-                                label: 'Thông tin khách hàng',
-                                key: 'customer-info',
-                                icon: <UserOutlined />,
-                            },
-                            {
-                                label: 'Hoàn tiền khách',
-                                key: 'refund',
-                                icon: <RollbackOutlined />,
-                            },
-                            {
-                                label: 'Xoá đơn hàng',
-                                key: 'delete',
-                                icon: <DeleteOutlined />,
-                                danger: true
-                            },
-                        ],
-                        onClick: _onMoreActionClick
-                    }} placement="bottom">
-                        <Button icon={<MoreOutlined />} />
-                    </Dropdown>
+                    <OrderActionSurfaceWidget model={actionModel} onAction={_onActionClick}/>
                 ]
             }>
             <List.Item.Meta
