@@ -8,7 +8,6 @@ import { Checkbox } from "@components/Form/Checkbox";
 import { Input } from "@components/Form/Input";
 import { Col, Row } from "@components/Grid";
 import { Divider } from "@components/Layout/Divider";
-import { Space } from "@components/Layout/Space";
 import { Stack } from "@components/Layout/Stack";
 import { List } from "@components/List";
 import { Tag } from "@components/Tag";
@@ -31,7 +30,7 @@ export const OrderListScreen = () => {
     const doneOrders = useSelector((state: RootState) => state.order.doneOrders);
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { } = useScreenTitle({ value: "Đơn hàng", deps: [] });
+    useScreenTitle({ value: "Đơn hàng", deps: [] });
     const [searchText, setSearchText] = useState("");
     const [searchStatuses, setSearchStatuses] = useState<string[]>([]);
     const [searchPayCODStatus, setSearchPayCODStatus] = useState<string>("0");

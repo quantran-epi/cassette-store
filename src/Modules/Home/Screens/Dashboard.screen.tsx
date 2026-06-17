@@ -21,7 +21,7 @@ moment.updateLocale('en', { week: { dow: 1 } });
 export const DashboardScreen = () => {
     const orders = useSelector((state: RootState) => state.order.orders);
     const dashboard = useSelector(selectDashboardReadModel);
-    const { } = useScreenTitle({ value: "Thống kê", deps: [] });
+    useScreenTitle({ value: "Thống kê", deps: [] });
 
     const items: TabsProps['items'] = [
         {
