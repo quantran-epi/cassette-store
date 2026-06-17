@@ -9,6 +9,8 @@ import {setOrderState} from "@store/Reducers/OrderReducer";
 import {setCustomerState} from "@store/Reducers/CustomerReducer";
 import {setAppContextState} from "@store/Reducers/AppContextReducer";
 import {BACKUP_SCHEMA_VERSION, createBackupEnvelope} from "@common/Helpers/BackupHelper";
+import type {OrderSyncFailure} from "@store/Models/OrderSyncFailure";
+import {get as idbGet, set as idbSet, del as idbDel} from "idb-keyval";
 
 const mockCreateAttachment = jest.fn();
 const mockRefreshDoneOrders = jest.fn();
@@ -145,12 +147,29 @@ const createDeferred = <T,>() => {
     return {promise, resolve, reject};
 }
 
+const buildSyncFailure = (overrides: Partial<OrderSyncFailure> = {}): OrderSyncFailure => ({
+    id: "failure-1",
+    orderId: "order-1",
+    operation: "move-card",
+    status: "failed",
+    message: "Move failed",
+    retryable: true,
+    createdAt: "2026-06-16T00:00:00.000Z",
+    updatedAt: "2026-06-16T00:00:00.000Z",
+    trelloCardId: "trello-card-1",
+    retryPayload: {orderId: "order-1"},
+    ...overrides
+});
+
 const restoreFromDrawer = async () => {
     userEvent.click(screen.getByLabelText("Mở menu"));
     userEvent.click(await screen.findByRole("button", {name: /Đồng bộ dữ liệu đã lưu trữ/i}));
 }
 
 beforeEach(() => {
+    (idbGet as jest.Mock).mockImplementation(() => Promise.resolve(null));
+    (idbSet as jest.Mock).mockImplementation(() => Promise.resolve());
+    (idbDel as jest.Mock).mockImplementation(() => Promise.resolve());
     resetStore();
     localStorage.setItem("lastCheckTime", Date.now().toString());
     mockCreateAttachment.mockResolvedValue({id: "attachment-id"});
@@ -319,4 +338,31 @@ it("shows done refresh failure status", async () => {
     renderMasterPage();
 
     await waitFor(() => expect(screen.getByText("Lỗi cập nhật đơn đóng hàng")).toBeInTheDocument());
+});
+
+it("renders operational tray safe actions without destructive local-resolution actions", async () => {
+    store.dispatch(setOrderState({
+        orders: [],
+        lastSequence: 0,
+        doneOrders: [],
+        codPayments: [],
+        syncFailures: [buildSyncFailure()]
+    }));
+    store.dispatch(setAppContextState({
+        currentFeatureName: "Orders",
+        codImportIssueCount: 2,
+        lastCodImportIssueText: "Some rows need review"
+    } as any));
+    mockRefreshDoneOrders.mockResolvedValueOnce(0);
+    renderMasterPage();
+
+    expect(await screen.findByText("Trello sync needs attention")).toBeInTheDocument();
+    expect(screen.getByText("COD import needs review")).toBeInTheDocument();
+    expect(screen.getByRole("button", {name: /View failed sync orders/i})).toBeInTheDocument();
+    expect(screen.getByRole("button", {name: /Open COD review/i})).toBeInTheDocument();
+    expect(screen.getByRole("button", {name: /Backup now/i})).toBeInTheDocument();
+    expect(screen.getByRole("button", {name: /Refresh done orders/i})).toBeInTheDocument();
+    expect(screen.queryByRole("button", {name: /Đã xử lý/i})).not.toBeInTheDocument();
+    expect(screen.queryByText(/Apply confirmed COD rows/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/clear-sync-failure/i)).not.toBeInTheDocument();
 });
