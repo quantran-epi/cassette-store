@@ -8,6 +8,7 @@ import reducer, {
     markSyncFailureRetrying,
     setDoneOrders,
     setOrderState,
+    upsertCodPayment,
     upsertSyncFailure
 } from "./OrderReducer";
 import type {OrderState} from "./OrderReducer";
@@ -204,5 +205,38 @@ describe("OrderReducer restore actions", () => {
 
         expect(operationCleared.syncFailures.map(failure => failure.id)).toEqual(["failure-1", "failure-3"]);
         expect(orderCleared.syncFailures.map(failure => failure.id)).toEqual(["failure-3"]);
+    });
+});
+
+describe("OrderReducer COD payment actions", () => {
+    it("upserts COD payments by id without duplicating an imported cycle", () => {
+        const previousState: OrderState = {
+            orders: [],
+            lastSequence: 0,
+            doneOrders: [],
+            codPayments: [
+                buildCodPayment("cod-1"),
+                buildCodPayment("cod-import")
+            ],
+            syncFailures: []
+        };
+        const updatedImport = {
+            ...buildCodPayment("cod-import"),
+            name: "Updated imported COD cycle",
+            paymentOrders: ["order-3"],
+            debitFeeOrders: ["order-4"]
+        };
+
+        const afterReplace = reducer(previousState, upsertCodPayment(updatedImport));
+        const afterInsert = reducer(afterReplace, upsertCodPayment(buildCodPayment("cod-new")));
+
+        expect(afterReplace.codPayments).toHaveLength(2);
+        expect(afterReplace.codPayments.find(payment => payment.id === "cod-1")).toEqual(previousState.codPayments[0]);
+        expect(afterReplace.codPayments.find(payment => payment.id === "cod-import")).toMatchObject({
+            name: "Updated imported COD cycle",
+            paymentOrders: ["order-3"],
+            debitFeeOrders: ["order-4"]
+        });
+        expect(afterInsert.codPayments.map(payment => payment.id)).toEqual(["cod-1", "cod-import", "cod-new"]);
     });
 });

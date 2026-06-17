@@ -14,6 +14,8 @@ import {
 import type {OrderSyncFailure} from "@store/Models/OrderSyncFailure";
 import type {Order} from "@store/Models/Order";
 import type {Customer} from "@store/Models/Customer";
+import type {CodPaymentCycle} from "@store/Models/CodPaymentCycle";
+import type {CodImportApplyPayload} from "@common/Helpers/CodPaymentImportHelper";
 import {
     ORDER_PAYMENT_METHOD,
     ORDER_PRIORITY_STATUS,
@@ -106,13 +108,18 @@ const seedDoneOrders = (doneOrders: string[]) => {
     }));
 }
 
-const seedOrderState = (orders: Order[], customers: Customer[] = [buildCustomer()], syncFailures: OrderSyncFailure[] = []): void => {
+const seedOrderState = (
+    orders: Order[],
+    customers: Customer[] = [buildCustomer()],
+    syncFailures: OrderSyncFailure[] = [],
+    codPayments: CodPaymentCycle[] = []
+): void => {
     store.dispatch(setCustomerState({customers}));
     store.dispatch(setOrderState({
         orders,
         lastSequence: orders.length,
         doneOrders: [],
-        codPayments: [],
+        codPayments,
         syncFailures
     }));
 }
@@ -255,6 +262,81 @@ describe("useOrder.refreshDoneOrders", () => {
         expect(dispatchSpy).not.toHaveBeenCalledWith(expect.objectContaining({
             type: removeAllDoneOrder.type
         }));
+    });
+});
+
+describe("useOrder.applyCodPaymentImportReview", () => {
+    it("upserts the imported COD cycle and marks only confirmed payment orders as paid COD", async () => {
+        const paymentOrder = buildOrder({
+            id: "payment-order",
+            shippingCode: "VN001",
+            codAmount: 120000,
+            isPayCOD: false,
+            status: ORDER_STATUS.SHIPPED
+        });
+        const excludedOrder = buildOrder({
+            id: "excluded-order",
+            shippingCode: "VN002",
+            codAmount: 130000,
+            isPayCOD: false,
+            status: ORDER_STATUS.SHIPPED
+        });
+        const debitFeeOrder = buildOrder({
+            id: "debit-fee-order",
+            shippingCode: "VN003",
+            codAmount: 0,
+            paymentMethod: ORDER_PAYMENT_METHOD.BANK_TRANSFER_IN_ADVANCE,
+            isPayCOD: false,
+            status: ORDER_STATUS.CREATE_DELIVERY
+        });
+        const alreadyPaidOrder = buildOrder({
+            id: "already-paid-order",
+            shippingCode: "VN004",
+            codAmount: 140000,
+            isPayCOD: true,
+            status: ORDER_STATUS.SHIPPED
+        });
+        const existingCycle: CodPaymentCycle = {
+            id: "cod-import-1",
+            name: "Old imported cycle",
+            cycleDate: "2026-06-01T00:00:00.000Z",
+            paymentOrders: ["old-payment-order"],
+            debitFeeOrders: []
+        };
+        const payload: CodImportApplyPayload = {
+            cycleId: "cod-import-1",
+            cycleName: "Kỳ COD import",
+            cycleDate: "2026-06-15T00:00:00.000Z",
+            paymentOrderIds: [paymentOrder.id],
+            debitFeeOrderIds: [debitFeeOrder.id],
+            includedRowIds: ["cod-row-2", "cod-row-9"],
+            blockingIssueIds: []
+        };
+        seedOrderState([
+            paymentOrder,
+            excludedOrder,
+            debitFeeOrder,
+            alreadyPaidOrder
+        ], [buildCustomer()], [], [existingCycle]);
+        const {getOrderUtils} = renderUseOrder();
+
+        await act(async () => {
+            getOrderUtils().applyCodPaymentImportReview(payload);
+        });
+
+        const state = store.getState().order;
+        expect(state.codPayments).toHaveLength(1);
+        expect(state.codPayments[0]).toEqual({
+            id: "cod-import-1",
+            name: "Kỳ COD import",
+            cycleDate: "2026-06-15T00:00:00.000Z",
+            paymentOrders: [paymentOrder.id],
+            debitFeeOrders: [debitFeeOrder.id]
+        });
+        expect(state.orders.find(order => order.id === paymentOrder.id).isPayCOD).toBe(true);
+        expect(state.orders.find(order => order.id === debitFeeOrder.id).isPayCOD).toBe(false);
+        expect(state.orders.find(order => order.id === excludedOrder.id).isPayCOD).toBe(false);
+        expect(state.orders.find(order => order.id === alreadyPaidOrder.id).isPayCOD).toBe(true);
     });
 });
 
