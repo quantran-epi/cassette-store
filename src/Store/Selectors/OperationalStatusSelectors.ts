@@ -1,3 +1,4 @@
+import {createSelector} from "@reduxjs/toolkit";
 import type {OrderSyncFailure} from "@store/Models/OrderSyncFailure";
 import type {RootState} from "@store/Store";
 
@@ -91,8 +92,15 @@ export const buildOperationalStatusReadModel = (input: OperationStatusInput): Op
     };
 }
 
-export const selectOperationalStatusBase = (state: RootState) => ({
-    syncFailures: state.order.syncFailures || [],
-    codImportIssueCount: state.appContext.codImportIssueCount || 0,
-    lastCodImportIssueText: state.appContext.lastCodImportIssueText || ""
-});
+export const selectOperationalStatusBase = createSelector(
+    [
+        (state: RootState) => state.order.syncFailures || [],
+        (state: RootState) => state.appContext.codImportIssueCount || 0,
+        (state: RootState) => state.appContext.lastCodImportIssueText || ""
+    ],
+    (syncFailures, codImportIssueCount, lastCodImportIssueText) => ({
+        syncFailures,
+        codImportIssueCount,
+        lastCodImportIssueText
+    })
+);

@@ -22,7 +22,7 @@ import {useOrder, useTheme, useToggle, useTrello} from "@hooks";
 import {setCustomerState} from "@store/Reducers/CustomerReducer";
 import {RootState, store} from "@store/Store";
 import {Drawer, Flex, FloatButton, Layout} from "antd";
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useMemo, useState} from "react";
 import {useDispatch, useSelector} from "react-redux";
 import {Outlet, useLocation, useNavigate} from "react-router-dom";
 import {RootRoutes} from "./RootRoutes";
@@ -34,9 +34,11 @@ import {CUSTOMER_PROVINCES} from "@common/Constants/AppConstants";
 import {Tag} from "@components/Tag";
 import {AreaHelpers} from "@common/Helpers/AreaHelper";
 import {OrderHelper} from "@common/Helpers/OrderHelper";
-import {useModal} from "@components/Modal/ModalProvider";
 import {createBackupEnvelope, parseBackupText} from "@common/Helpers/BackupHelper";
 import {setAppContextState} from "@store/Reducers/AppContextReducer";
+import {buildOperationalStatusReadModel, selectOperationalStatusBase} from "@store/Selectors/OperationalStatusSelectors";
+import {DEFAULT_ORDER_LIST_QUERY, serializeOrderListQuery} from "@common/Helpers/OrderListQueryHelper";
+import {OperationalStatusTrayWidget} from "./OperationalStatusTray.widget";
 
 const layoutStyles: React.CSSProperties = {
     height: "100%"
@@ -369,16 +371,20 @@ const BottomTabNavigator = () => {
 }
 
 const AppNoti = () => {
-    const theme = useTheme();
     const trello = useTrello();
     const orderUtils = useOrder();
     const message = useMessage();
     const refreshDoneOrderMessageKey = "refreshDoneOrderMessageKey";
     const backupMessageKey = "backupMessageKey";
-    const modal = useModal();
     const navigate = useNavigate();
+    const operationalStatusBase = useSelector(selectOperationalStatusBase);
     const [backupStatus, setBackupStatus] = useState<OperationStatus>(_getInitialBackupStatus);
     const [doneRefreshStatus, setDoneRefreshStatus] = useState<OperationStatus>({type: "idle", text: ""});
+    const operationalStatusReadModel = useMemo(() => buildOperationalStatusReadModel({
+        ...operationalStatusBase,
+        backupStatus,
+        doneRefreshStatus
+    }), [operationalStatusBase, backupStatus, doneRefreshStatus]);
 
     useEffect(() => {
         backup();
@@ -472,25 +478,22 @@ const AppNoti = () => {
         navigate(RootRoutes.AuthorizedRoutes.OrderRoutes.CodPaymentList());
     }
 
+    const _onNavigateToFailedSyncOrders = () => {
+        const params = serializeOrderListQuery({
+            ...DEFAULT_ORDER_LIST_QUERY,
+            syncState: "failed"
+        }).toString();
+        navigate(`${RootRoutes.AuthorizedRoutes.OrderRoutes.List()}?${params}`);
+    }
+
     return <React.Fragment>
-        {(backupStatus.text || doneRefreshStatus.text) && <Box style={{
-            position: "fixed",
-            right: 24,
-            bottom: 132,
-            width: 275,
-            maxWidth: "calc(100vw - 48px)",
-            backgroundColor: "#fff",
-            border: "0.5px solid " + theme.token.colorBorder,
-            borderRadius: 8,
-            padding: 8,
-            zIndex: 10,
-            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.08)"
-        }}>
-            <Stack direction="column" gap={4}>
-                <OperationStatusLine label="Backup" status={backupStatus}/>
-                <OperationStatusLine label="Đóng hàng" status={doneRefreshStatus}/>
-            </Stack>
-        </Box>}
+        <OperationalStatusTrayWidget
+            readModel={operationalStatusReadModel}
+            onViewFailedSyncOrders={_onNavigateToFailedSyncOrders}
+            onOpenCodReview={_onNavigateToOrderPaymentList}
+            onBackupNow={backupNow}
+            onRefreshDoneOrders={_refreshDoneOrder}
+        />
         <FloatButton.Group
             aria-label="Mở tác vụ nhanh"
             trigger="click"
