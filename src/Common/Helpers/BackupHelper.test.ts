@@ -53,7 +53,12 @@ describe("BackupHelper", () => {
             updatedAt: "2026-06-15T00:00:00.000Z"
         }]);
         expect(envelope.payload.customer.customers).toEqual([{id: "customer-1", name: "Customer 1"}]);
-        expect(envelope.payload.appContext).toEqual({loading: false, currentFeatureName: "Đơn hàng"});
+        expect(envelope.payload.appContext).toEqual({
+            loading: false,
+            currentFeatureName: "Đơn hàng",
+            codImportIssueCount: 0,
+            lastCodImportIssueText: ""
+        });
     });
 
     test("normalizes a current backup envelope", () => {
@@ -94,7 +99,12 @@ describe("BackupHelper", () => {
         expect(result.payload.order.codPayments).toEqual([]);
         expect(result.payload.order.syncFailures).toEqual([]);
         expect(result.payload.customer.customers).toEqual([]);
-        expect(result.payload.appContext).toEqual({loading: false, currentFeatureName: ""});
+        expect(result.payload.appContext).toEqual({
+            loading: false,
+            currentFeatureName: "",
+            codImportIssueCount: 0,
+            lastCodImportIssueText: ""
+        });
     });
 
     test("parses valid backup JSON text", () => {

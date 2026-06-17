@@ -3,10 +3,11 @@ import {render, screen, waitFor} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import {Provider} from "react-redux";
 import {MemoryRouter, useLocation} from "react-router-dom";
-import {configureStore} from "@reduxjs/toolkit";
+import {combineReducers, configureStore} from "@reduxjs/toolkit";
 import {OrderListScreen} from "./OrderList.screen";
 import orderReducer from "@store/Reducers/OrderReducer";
 import customerReducer from "@store/Reducers/CustomerReducer";
+import appContextReducer from "@store/Reducers/AppContextReducer";
 import type {Order} from "@store/Models/Order";
 import type {Customer} from "@store/Models/Customer";
 import {
@@ -117,11 +118,18 @@ const defaultOrders = (): Order[] => [
 
 const renderOrderList = (initialEntry: string, options: {orders?: Order[]} = {}) => {
     const store = configureStore({
-        reducer: {
+        reducer: combineReducers({
+            appContext: appContextReducer,
             order: orderReducer,
             customer: customerReducer
-        },
+        }),
         preloadedState: {
+            appContext: {
+                loading: false,
+                currentFeatureName: "",
+                codImportIssueCount: 0,
+                lastCodImportIssueText: ""
+            },
             order: {
                 orders: options.orders || defaultOrders(),
                 lastSequence: 3,
