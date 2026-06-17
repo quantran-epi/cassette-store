@@ -42,8 +42,8 @@ Requirements for the first GSD-managed refactor milestone. Each maps to roadmap 
 - [x] **OPS-02**: Operator can update a shipping code quickly and clearly see whether local state and Trello were updated.
 - [x] **OPS-03**: Operator can manage COD payment cycles with clearer selection, totals, included orders, debit shipping fees, and confirmation.
 - [x] **OPS-04**: Operator can search, filter, and sort orders by status, COD state, shipping code, customer, and date without losing list context.
-- [ ] **OPS-05**: Operator can perform common order actions from a clear contextual action surface instead of hunting through modals.
-- [ ] **OPS-06**: Operator can see operational alerts for sync, backup, and done-order checks from a consistent status area.
+- [x] **OPS-05**: Operator can perform common order actions from a clear contextual action surface instead of hunting through modals.
+- [x] **OPS-06**: Operator can see operational alerts for sync, backup, and done-order checks from a consistent status area.
 
 ### UI/UX Refresh
 
@@ -114,8 +114,8 @@ Which phases or deferred release buckets cover which requirements. Updated durin
 | ORD-04 | Phase 4 | Complete |
 | OPS-03 | Phase 4 | Complete |
 | OPS-04 | Phase 4 | Complete |
-| OPS-05 | Phase 4 | Pending |
-| OPS-06 | Phase 4 | Pending |
+| OPS-05 | Phase 4 | Complete |
+| OPS-06 | Phase 4 | Complete |
 | UX-01 | Phase 5 | Pending |
 | UX-02 | Phase 5 | Pending |
 | UX-03 | Phase 5 | Pending |

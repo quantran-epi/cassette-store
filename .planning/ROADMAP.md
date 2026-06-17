@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Data Safety and Refactor Baseline** - Backup, restore, refresh, tests, and build checks become dependable enough for daily app refactoring. (completed 2026-06-15)
 - [x] **Phase 2: Order State and Trello Sync Reliability** - Order transitions and Trello side effects become structured, testable, and recoverable. (completed 2026-06-16)
 - [x] **Phase 3: Fast Order and Shipping Workflows** - Order creation and shipping-code updates become faster and clearer for operators. (completed 2026-06-16)
-- [ ] **Phase 4: COD, Search, and Operational Utilities** - COD cycles, list utilities, quick actions, and operational alerts become practical daily tools.
+- [x] **Phase 4: COD, Search, and Operational Utilities** - COD cycles, list utilities, quick actions, and operational alerts become practical daily tools. (completed 2026-06-17)
 - [ ] **Phase 5: Cohesive UI/UX Refresh** - Refactored workflows get a consistent, mobile-friendly internal-operations interface.
 
 ## Phase Details
@@ -137,7 +137,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 04-04: Add contextual quick actions and a consistent operational status area.
+- [x] 04-04: Add contextual quick actions and a consistent operational status area.
 
 ### Phase 5: Cohesive UI/UX Refresh
 
@@ -171,7 +171,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | 1. Data Safety and Refactor Baseline | 4/4 | Complete    | 2026-06-15 |
 | 2. Order State and Trello Sync Reliability | 4/4 | Complete    | 2026-06-16 |
 | 3. Fast Order and Shipping Workflows | 3/3 | Complete    | 2026-06-16 |
-| 4. COD, Search, and Operational Utilities | 3/4 | In Progress|  |
+| 4. COD, Search, and Operational Utilities | 4/4 | Complete   | 2026-06-17 |
 | 5. Cohesive UI/UX Refresh | 0/4 | Not started | - |
 
 ## Requirement Coverage
