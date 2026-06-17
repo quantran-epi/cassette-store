@@ -12,7 +12,7 @@ import {
     upsertSyncFailure
 } from "@store/Reducers/OrderReducer";
 import {RootState, store} from "@store/Store";
-import {cloneDeep, uniq} from "lodash";
+import {cloneDeep} from "lodash";
 import {useDispatch, useSelector} from "react-redux";
 import {useTrello} from "./Trello/useTrello";
 import {Customer} from "@store/Models/Customer";
@@ -22,7 +22,6 @@ import {OrderItem} from "@store/Models/OrderItem";
 import {RcFile} from "antd/es/upload";
 import {TrelloAttachment} from "./Trello/Models/TrelloAttachment";
 import {nanoid} from "nanoid";
-import moment from "moment";
 import {CodPaymentCycle} from "@store/Models/CodPaymentCycle";
 import {OrderDomainHelper} from "@common/Helpers/OrderDomainHelper";
 import {createOrderTrelloAdapter} from "./Trello/OrderTrelloAdapter";
@@ -67,20 +66,6 @@ type UseOrder = {
     isBankTransferInAdvance: (order: Order) => boolean;
     isUrgent: (order: Order) => boolean;
     refund: (orderId: string, amount: number) => void;
-
-    //statistic
-    getTotalOrderPending: (fromDate: Date, toDate: Date) => number;
-    getTotalCassettePending: (fromDate: Date, toDate: Date) => number;
-    getTotalCassetteSold: (fromDate: Date, toDate: Date) => number;
-    getTotalOrderSold: (fromDate: Date, toDate: Date) => number;
-    getTotalCustomerSold: (fromDate: Date, toDate: Date) => number;
-    getTotalAmountSold: (fromDate: Date, toDate: Date) => number;
-    getTotalOrderBom: (fromDate: Date, toDate: Date) => number;
-    getTotalAmountBom: (fromDate: Date, toDate: Date) => number;
-    getTotalAmountSoldAll: () => number;
-    getTotalOrderSoldAll: () => number;
-    getTotalAmountBomAll: () => number;
-    getTotalOrderBomAll: () => number;
 
     refreshDoneOrders: () => Promise<number>;
     addPaymentOrderCycle: (paymentCycle: CodPaymentCycle) => void;
@@ -584,62 +569,6 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
         dispatch(editOrder({order, customer}));
     }
 
-    const getTotalOrderPending = (fromDate: Date, toDate: Date): number => {
-        return orders.filter(o => o.status === ORDER_STATUS.PLACED && moment(o.createdDate).isBetween(moment(fromDate), moment(toDate))).length;
-    }
-
-    const getTotalCassettePending = (fromDate: Date, toDate: Date): number => {
-        return orders.filter(o => o.status === ORDER_STATUS.PLACED && moment(o.createdDate).isBetween(moment(fromDate), moment(toDate))).reduce((prev, cur) => {
-            return prev + cur.placedItems.reduce((prev1, cur1) => prev1 + cur1.count, 0);
-        }, 0)
-    }
-    const getTotalCassetteSold = (fromDate: Date, toDate: Date): number => {
-        return orders.filter(o => o.status === ORDER_STATUS.SHIPPED && moment(o.createdDate).isBetween(moment(fromDate), moment(toDate))).reduce((prev, cur) => {
-            return prev + cur.placedItems.reduce((prev1, cur1) => prev1 + cur1.count, 0);
-        }, 0)
-    }
-    const getTotalOrderSold = (fromDate: Date, toDate: Date): number => {
-        return orders.filter(o => o.status === ORDER_STATUS.SHIPPED && moment(o.createdDate).isBetween(moment(fromDate), moment(toDate))).length;
-    }
-    const getTotalCustomerSold = (fromDate: Date, toDate: Date): number => {
-        return uniq(orders.filter(o => o.status === ORDER_STATUS.SHIPPED && moment(o.createdDate).isBetween(moment(fromDate), moment(toDate)))
-            .map(e => e.customerId)).length;
-    }
-    const getTotalAmountSold = (fromDate: Date, toDate: Date): number => {
-        return orders.filter(o => o.status === ORDER_STATUS.SHIPPED && moment(o.createdDate).isBetween(moment(fromDate), moment(toDate))).reduce((prev, cur) => {
-            return prev + cur.placedItems.reduce((prev1, cur1) => prev1 + (cur1.count * cur1.unitPrice), 0);
-        }, 0)
-    }
-    const getTotalOrderBom = (fromDate: Date, toDate: Date): number => {
-        return orders.filter(o => o.status === ORDER_STATUS.RETURNED && o.returnReason === ORDER_RETURN_REASON.REFUSE_TO_RECEIVE
-            && moment(o.createdDate).isBetween(moment(fromDate), moment(toDate))).length;
-    }
-    const getTotalAmountBom = (fromDate: Date, toDate: Date): number => {
-        return orders.filter(o => o.status === ORDER_STATUS.RETURNED && o.returnReason === ORDER_RETURN_REASON.REFUSE_TO_RECEIVE && moment(o.createdDate).isBetween(moment(fromDate), moment(toDate))).reduce((prev, cur) => {
-            return prev + cur.placedItems.reduce((prev1, cur1) => prev1 + (cur1.count * cur1.unitPrice), 0);
-        }, 0)
-    }
-
-    const getTotalAmountSoldAll = (): number => {
-        return orders.filter(o => o.status === ORDER_STATUS.SHIPPED).reduce((prev, cur) => {
-            return prev + cur.placedItems.reduce((prev1, cur1) => prev1 + (cur1.count * cur1.unitPrice), 0);
-        }, 0)
-    }
-
-    const getTotalOrderSoldAll = (): number => {
-        return orders.filter(o => o.status === ORDER_STATUS.SHIPPED).length;
-    }
-
-    const getTotalAmountBomAll = (): number => {
-        return orders.filter(o => o.status === ORDER_STATUS.RETURNED && o.returnReason === ORDER_RETURN_REASON.REFUSE_TO_RECEIVE).reduce((prev, cur) => {
-            return prev + cur.placedItems.reduce((prev1, cur1) => prev1 + (cur1.count * cur1.unitPrice), 0);
-        }, 0)
-    }
-
-    const getTotalOrderBomAll = (): number => {
-        return orders.filter(o => o.status === ORDER_STATUS.RETURNED && o.returnReason === ORDER_RETURN_REASON.REFUSE_TO_RECEIVE).length;
-    }
-
     const refreshDoneOrders = async (): Promise<number> => {
         let cards = await trello.getCardsByList(trello.TRELLO_LIST_IDS.TODO_LIST);
         let doneOrders = cards.filter(e => e.dueComplete == true).map(e => e.id);
@@ -691,18 +620,6 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
         isPriority,
         refund,
         updateOrder,
-        getTotalAmountSold,
-        getTotalCassetteSold,
-        getTotalCustomerSold,
-        getTotalAmountBom,
-        getTotalOrderSold,
-        getTotalCassettePending,
-        getTotalOrderBom,
-        getTotalOrderPending,
-        getTotalAmountSoldAll,
-        getTotalOrderSoldAll,
-        getTotalAmountBomAll,
-        getTotalOrderBomAll,
         canMarkAsPayCOD,
         markOrderAsPayCOD,
         refreshDoneOrders,
