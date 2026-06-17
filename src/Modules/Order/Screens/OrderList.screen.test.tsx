@@ -1,5 +1,6 @@
 import React from "react";
-import {render, screen} from "@testing-library/react";
+import {render, screen, waitFor} from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import {Provider} from "react-redux";
 import {MemoryRouter, useLocation} from "react-router-dom";
 import {configureStore} from "@reduxjs/toolkit";
@@ -93,7 +94,28 @@ const mockMatchMedia = () => {
     });
 }
 
-const renderOrderList = (initialEntry: string) => {
+const defaultOrders = (): Order[] => [
+    buildOrder(),
+    buildOrder({
+        id: "paid-cod",
+        name: "Alice paid COD",
+        shippingCode: "VN002",
+        isPayCOD: true,
+        createdDate: "2026-06-16T08:00:00.000Z"
+    }),
+    buildOrder({
+        id: "bob-order",
+        name: "Bob transfer",
+        customerId: "customer-2",
+        paymentMethod: ORDER_PAYMENT_METHOD.BANK_TRANSFER_IN_ADVANCE,
+        codAmount: 0,
+        shippingCode: "",
+        isPayCOD: false,
+        status: ORDER_STATUS.CREATE_DELIVERY
+    })
+];
+
+const renderOrderList = (initialEntry: string, options: {orders?: Order[]} = {}) => {
     const store = configureStore({
         reducer: {
             order: orderReducer,
@@ -101,26 +123,7 @@ const renderOrderList = (initialEntry: string) => {
         },
         preloadedState: {
             order: {
-                orders: [
-                    buildOrder(),
-                    buildOrder({
-                        id: "paid-cod",
-                        name: "Alice paid COD",
-                        shippingCode: "VN002",
-                        isPayCOD: true,
-                        createdDate: "2026-06-16T08:00:00.000Z"
-                    }),
-                    buildOrder({
-                        id: "bob-order",
-                        name: "Bob transfer",
-                        customerId: "customer-2",
-                        paymentMethod: ORDER_PAYMENT_METHOD.BANK_TRANSFER_IN_ADVANCE,
-                        codAmount: 0,
-                        shippingCode: "",
-                        isPayCOD: false,
-                        status: ORDER_STATUS.CREATE_DELIVERY
-                    })
-                ],
+                orders: options.orders || defaultOrders(),
                 lastSequence: 3,
                 doneOrders: ["trello-1"],
                 codPayments: [],
@@ -155,4 +158,66 @@ it("uses initial URL params for visible controls and filtered rows", () => {
     expect(screen.getByText("Alice unpaid COD")).toBeInTheDocument();
     expect(screen.queryByText("Alice paid COD")).not.toBeInTheDocument();
     expect(screen.queryByText("Bob transfer")).not.toBeInTheDocument();
+});
+
+it("updates URL search params when the search filter changes", async () => {
+    mockMatchMedia();
+    renderOrderList("/order/list");
+
+    await userEvent.type(screen.getByLabelText("Search orders"), "bob");
+
+    await waitFor(() => expect(screen.getByTestId("location-search")).toHaveTextContent("?q=bob"));
+    expect(screen.getByText("Bob transfer")).toBeInTheDocument();
+    expect(screen.queryByText("Alice unpaid COD")).not.toBeInTheDocument();
+});
+
+it("clears all active filters back to the default query", async () => {
+    mockMatchMedia();
+    renderOrderList("/order/list?q=alice&cod=unpaid&ship=has-code&sort=cod");
+
+    await userEvent.click(screen.getByRole("button", {name: /Clear filters/i}));
+
+    await waitFor(() => expect(screen.getByTestId("location-search")).toHaveTextContent(""));
+    expect(screen.getByText("Alice unpaid COD")).toBeInTheDocument();
+    expect(screen.getByText("Alice paid COD")).toBeInTheDocument();
+    expect(screen.getByText("Bob transfer")).toBeInTheDocument();
+});
+
+it("distinguishes filtered-empty state from no orders at all", () => {
+    mockMatchMedia();
+    const {unmount} = renderOrderList("/order/list?q=no-match");
+
+    expect(screen.getByText("No orders match these filters")).toBeInTheDocument();
+    expect(screen.getByText("Clear filters or adjust search to return to the full order list.")).toBeInTheDocument();
+
+    unmount();
+    renderOrderList("/order/list", {orders: []});
+
+    expect(screen.getByText("Chưa có đơn hàng nào")).toBeInTheDocument();
+    expect(screen.queryByText("No orders match these filters")).not.toBeInTheDocument();
+});
+
+it("sanitizes invalid query params back to default controls", () => {
+    mockMatchMedia();
+    renderOrderList("/order/list?cod=bad&ship=bad&sort=bad&page=-9");
+
+    expect(screen.getByText("All COD")).toBeInTheDocument();
+    expect(screen.getByText("All shipping")).toBeInTheDocument();
+    expect(screen.getByText("Newest")).toBeInTheDocument();
+    expect(screen.queryByRole("button", {name: /Clear filters/i})).not.toBeInTheDocument();
+});
+
+it("writes page changes to the URL", async () => {
+    mockMatchMedia();
+    const orders = Array.from({length: 12}).map((_, index) => buildOrder({
+        id: `order-${index + 1}`,
+        name: `Order ${index + 1}`,
+        shippingCode: `VN${index + 1}`,
+        createdDate: `2026-06-${String(index + 1).padStart(2, "0")}T08:00:00.000Z`
+    }));
+    renderOrderList("/order/list", {orders});
+
+    await userEvent.click(screen.getByTitle("2"));
+
+    await waitFor(() => expect(screen.getByTestId("location-search")).toHaveTextContent("?page=2"));
 });
