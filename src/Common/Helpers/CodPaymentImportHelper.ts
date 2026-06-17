@@ -129,10 +129,11 @@ const _matchesAlias = (column: string, aliases: string[]): boolean => {
     return aliases.some(alias => {
         const normalizedAlias = _normalizeText(alias);
         const compactAlias = _compactText(alias);
+        const canUseContainsMatch = normalizedAlias.length >= 4 && normalizedAlias.includes(" ");
         return normalizedColumn === normalizedAlias
             || compactColumn === compactAlias
-            || normalizedColumn.includes(normalizedAlias)
-            || normalizedAlias.includes(normalizedColumn);
+            || (canUseContainsMatch && normalizedColumn.includes(normalizedAlias))
+            || (canUseContainsMatch && normalizedAlias.includes(normalizedColumn));
     });
 }
 

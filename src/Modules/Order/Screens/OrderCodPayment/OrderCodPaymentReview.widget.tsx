@@ -143,6 +143,10 @@ export const OrderCodPaymentReviewWidget: FunctionComponent<OrderCodPaymentRevie
             </Button>
         </Stack>
 
+        <Space wrap>
+            {BUCKET_ORDER.map(bucket => <Tag key={bucket}>{BUCKET_LABELS[bucket]}: {props.review.buckets[bucket].length}</Tag>)}
+        </Space>
+
         <Tabs items={items} />
     </Stack>
 }
