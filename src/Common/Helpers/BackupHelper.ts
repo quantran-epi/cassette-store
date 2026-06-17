@@ -69,7 +69,9 @@ const _normalizeCustomerState = (customer: Record<string, any>): CustomerState =
 export const normalizeAppContextState = (appContext?: Partial<AppContextState> | null): AppContextState => {
     return {
         loading: false,
-        currentFeatureName: _asString(appContext?.currentFeatureName, "") || ""
+        currentFeatureName: _asString(appContext?.currentFeatureName, "") || "",
+        codImportIssueCount: _asNumber(appContext?.codImportIssueCount, 0),
+        lastCodImportIssueText: _asString(appContext?.lastCodImportIssueText, "") || ""
     }
 }
 

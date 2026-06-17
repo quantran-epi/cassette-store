@@ -290,7 +290,9 @@ it("restores legacy raw RootState backups after creating a pre-restore snapshot"
     expect(store.getState().customer.customers).toEqual(restoredCustomerState.customers);
     expect(store.getState().appContext).toEqual({
         loading: false,
-        currentFeatureName: "Restored feature"
+        currentFeatureName: "Restored feature",
+        codImportIssueCount: 0,
+        lastCodImportIssueText: ""
     });
     expect(mockCreateAttachment).toHaveBeenCalledWith(expect.objectContaining({
         name: expect.stringContaining("Pre-restore backup")
@@ -311,7 +313,9 @@ it("restores versioned backup envelopes with the same normalized state shape", a
     expect(store.getState().customer.customers).toEqual(restoredCustomerState.customers);
     expect(store.getState().appContext).toEqual({
         loading: false,
-        currentFeatureName: "Restored feature"
+        currentFeatureName: "Restored feature",
+        codImportIssueCount: 0,
+        lastCodImportIssueText: ""
     });
 });
 

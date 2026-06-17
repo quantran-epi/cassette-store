@@ -4,9 +4,10 @@ import {mergeOrderListQuery} from "@common/Helpers/OrderListQueryHelper";
 import type {OrderListQuery} from "@common/Helpers/OrderListQueryHelper";
 import type {Customer} from "@store/Models/Customer";
 import type {Order} from "@store/Models/Order";
+import type {OrderSyncFailure} from "@store/Models/OrderSyncFailure";
 import type {RootState} from "@store/Store";
 
-export type {OrderListCodState, OrderListQuery, OrderListShippingState, OrderListSort} from "@common/Helpers/OrderListQueryHelper";
+export type {OrderListCodState, OrderListQuery, OrderListShippingState, OrderListSort, OrderListSyncState} from "@common/Helpers/OrderListQueryHelper";
 export {DEFAULT_ORDER_LIST_QUERY, mergeOrderListQuery} from "@common/Helpers/OrderListQueryHelper";
 
 export type OrderListSummary = {
@@ -39,6 +40,7 @@ type BuildOrderListReadModelProps = {
     orders: Order[];
     customers: Customer[];
     doneOrders?: string[];
+    syncFailures?: OrderSyncFailure[];
     query?: Partial<OrderListQuery>;
 }
 
@@ -102,6 +104,7 @@ export const buildOrderListReadModel = (props: BuildOrderListReadModelProps): Or
     const query = mergeOrderListQuery(props.query);
     const customerById = new Map((props.customers || []).map(customer => [customer.id, customer]));
     const doneOrderIds = new Set(props.doneOrders || []);
+    const failedSyncOrderIds = new Set((props.syncFailures || []).map(failure => failure.orderId));
     const text = normalizeText(query.text);
     const fromTime = parseDayTime(query.dateFrom);
     const toTime = parseDayTime(query.dateTo, true);
@@ -121,6 +124,7 @@ export const buildOrderListReadModel = (props: BuildOrderListReadModelProps): Or
         if (query.shippingState === "has-code" && !hasShippingCode(order)) return false;
         if (query.shippingState === "missing-code" && hasShippingCode(order)) return false;
         if (query.shippingState === "done-order" && !order.doneInTrello) return false;
+        if (query.syncState === "failed" && !failedSyncOrderIds.has(order.id)) return false;
 
         const orderTime = getOrderDayTime(order);
         if (fromTime !== null && orderTime < fromTime) return false;
@@ -163,8 +167,9 @@ export const buildOrderListReadModel = (props: BuildOrderListReadModelProps): Or
 const selectOrders = (state: RootState) => state.order.orders || [];
 const selectCustomers = (state: RootState) => state.customer.customers || [];
 const selectDoneOrders = (state: RootState) => state.order.doneOrders || [];
+const selectSyncFailures = (state: RootState) => state.order.syncFailures || [];
 
 export const selectOrderListReadModel = createSelector(
-    [selectOrders, selectCustomers, selectDoneOrders, (_state: RootState, query: Partial<OrderListQuery>) => query],
-    (orders, customers, doneOrders, query) => buildOrderListReadModel({orders, customers, doneOrders, query})
+    [selectOrders, selectCustomers, selectDoneOrders, selectSyncFailures, (_state: RootState, query: Partial<OrderListQuery>) => query],
+    (orders, customers, doneOrders, syncFailures, query) => buildOrderListReadModel({orders, customers, doneOrders, syncFailures, query})
 );

@@ -3,12 +3,14 @@ import {ORDER_STATUS} from "@common/Constants/AppConstants";
 export type OrderListSort = "newest" | "oldest" | "priority" | "amount" | "cod";
 export type OrderListCodState = "all" | "paid" | "unpaid" | "non-cod";
 export type OrderListShippingState = "all" | "has-code" | "missing-code" | "done-order";
+export type OrderListSyncState = "all" | "failed";
 
 export type OrderListQuery = {
     text: string;
     statuses: string[];
     codState: OrderListCodState;
     shippingState: OrderListShippingState;
+    syncState: OrderListSyncState;
     dateFrom?: string;
     dateTo?: string;
     sort: OrderListSort;
@@ -23,6 +25,7 @@ export const ORDER_LIST_QUERY_PARAMS = {
     statuses: "status",
     codState: "cod",
     shippingState: "ship",
+    syncState: "sync",
     dateFrom: "from",
     dateTo: "to",
     sort: "sort",
@@ -34,6 +37,7 @@ export const DEFAULT_ORDER_LIST_QUERY: OrderListQuery = {
     statuses: [],
     codState: "all",
     shippingState: "all",
+    syncState: "all",
     sort: "newest",
     page: 1,
     pageSize: 10
@@ -41,6 +45,7 @@ export const DEFAULT_ORDER_LIST_QUERY: OrderListQuery = {
 
 const VALID_COD_STATES: OrderListCodState[] = ["all", "paid", "unpaid", "non-cod"];
 const VALID_SHIPPING_STATES: OrderListShippingState[] = ["all", "has-code", "missing-code", "done-order"];
+const VALID_SYNC_STATES: OrderListSyncState[] = ["all", "failed"];
 const VALID_SORTS: OrderListSort[] = ["newest", "oldest", "priority", "amount", "cod"];
 
 const STATUS_VALUE_BY_KEY = Object.entries(ORDER_STATUS).reduce<Record<string, string>>((result, [key, value]) => {
@@ -104,6 +109,7 @@ const _normalizeQuery = (query: Partial<OrderListQuery> = {}): OrderListQuery =>
         .filter(status => Boolean(STATUS_KEY_BY_VALUE[status]))),
     codState: VALID_COD_STATES.includes(query.codState as OrderListCodState) ? query.codState as OrderListCodState : DEFAULT_ORDER_LIST_QUERY.codState,
     shippingState: VALID_SHIPPING_STATES.includes(query.shippingState as OrderListShippingState) ? query.shippingState as OrderListShippingState : DEFAULT_ORDER_LIST_QUERY.shippingState,
+    syncState: VALID_SYNC_STATES.includes(query.syncState as OrderListSyncState) ? query.syncState as OrderListSyncState : DEFAULT_ORDER_LIST_QUERY.syncState,
     dateFrom: _asDate(query.dateFrom),
     dateTo: _asDate(query.dateTo),
     sort: VALID_SORTS.includes(query.sort as OrderListSort) ? query.sort as OrderListSort : DEFAULT_ORDER_LIST_QUERY.sort,
@@ -118,6 +124,7 @@ export const parseOrderListQuery = (query: URLSearchParams | string | undefined)
         statuses: _parseStatuses(params.get(ORDER_LIST_QUERY_PARAMS.statuses)),
         codState: _asOption(params.get(ORDER_LIST_QUERY_PARAMS.codState), VALID_COD_STATES, DEFAULT_ORDER_LIST_QUERY.codState),
         shippingState: _asOption(params.get(ORDER_LIST_QUERY_PARAMS.shippingState), VALID_SHIPPING_STATES, DEFAULT_ORDER_LIST_QUERY.shippingState),
+        syncState: _asOption(params.get(ORDER_LIST_QUERY_PARAMS.syncState), VALID_SYNC_STATES, DEFAULT_ORDER_LIST_QUERY.syncState),
         dateFrom: params.get(ORDER_LIST_QUERY_PARAMS.dateFrom) || undefined,
         dateTo: params.get(ORDER_LIST_QUERY_PARAMS.dateTo) || undefined,
         sort: _asOption(params.get(ORDER_LIST_QUERY_PARAMS.sort), VALID_SORTS, DEFAULT_ORDER_LIST_QUERY.sort),
@@ -135,6 +142,7 @@ export const serializeOrderListQuery = (query: Partial<OrderListQuery> = {}): UR
 
     if (normalized.codState !== DEFAULT_ORDER_LIST_QUERY.codState) params.set(ORDER_LIST_QUERY_PARAMS.codState, normalized.codState);
     if (normalized.shippingState !== DEFAULT_ORDER_LIST_QUERY.shippingState) params.set(ORDER_LIST_QUERY_PARAMS.shippingState, normalized.shippingState);
+    if (normalized.syncState !== DEFAULT_ORDER_LIST_QUERY.syncState) params.set(ORDER_LIST_QUERY_PARAMS.syncState, normalized.syncState);
     if (normalized.dateFrom) params.set(ORDER_LIST_QUERY_PARAMS.dateFrom, normalized.dateFrom);
     if (normalized.dateTo) params.set(ORDER_LIST_QUERY_PARAMS.dateTo, normalized.dateTo);
     if (normalized.sort !== DEFAULT_ORDER_LIST_QUERY.sort) params.set(ORDER_LIST_QUERY_PARAMS.sort, normalized.sort);
@@ -167,6 +175,7 @@ export const hasActiveOrderListFilters = (query: Partial<OrderListQuery> = {}): 
         || normalized.statuses.length > 0
         || normalized.codState !== DEFAULT_ORDER_LIST_QUERY.codState
         || normalized.shippingState !== DEFAULT_ORDER_LIST_QUERY.shippingState
+        || normalized.syncState !== DEFAULT_ORDER_LIST_QUERY.syncState
         || normalized.dateFrom
         || normalized.dateTo
         || normalized.sort !== DEFAULT_ORDER_LIST_QUERY.sort

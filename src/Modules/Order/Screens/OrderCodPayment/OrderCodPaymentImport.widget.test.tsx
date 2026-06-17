@@ -1,6 +1,7 @@
 import React from "react";
 import {render, screen, waitFor} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import {Provider} from "react-redux";
 import {OrderCodPaymentImportWidget} from "./OrderCodPaymentImport.widget";
 import {parseCodWorkbookRows} from "@common/Helpers/CodPaymentImportHelper";
 import type {CodImportRawRow} from "@common/Helpers/CodPaymentImportHelper";
@@ -11,6 +12,9 @@ import {
     ORDER_SHIPPING_PARTNER,
     ORDER_STATUS
 } from "@common/Constants/AppConstants";
+import {store} from "@store/Store";
+import {setAppContextState} from "@store/Reducers/AppContextReducer";
+import {del, get, set} from "idb-keyval";
 
 const mockConfirm = jest.fn();
 const mockMessage = {
@@ -28,6 +32,16 @@ jest.mock("@common/Helpers/CodPaymentImportHelper", () => {
         parseCodWorkbookRows: jest.fn()
     };
 });
+
+jest.mock("idb-keyval", () => ({
+    get: jest.fn(() => Promise.resolve(null)),
+    set: jest.fn(() => Promise.resolve()),
+    del: jest.fn(() => Promise.resolve())
+}));
+
+jest.mock("nanoid", () => ({
+    nanoid: jest.fn(() => "test-id")
+}));
 
 jest.mock("@components/Message", () => ({
     useMessage: () => mockMessage
@@ -93,10 +107,20 @@ const uploadCodFile = async (container: HTMLElement) => {
     await userEvent.upload(input, new File(["cod"], "cod.xlsx", {type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}));
 }
 
+const renderImportWidget = (props: React.ComponentProps<typeof OrderCodPaymentImportWidget>) => render(
+    <Provider store={store}>
+        <OrderCodPaymentImportWidget {...props}/>
+    </Provider>
+);
+
 beforeEach(() => {
+    (get as jest.Mock).mockImplementation(() => Promise.resolve(null));
+    (set as jest.Mock).mockImplementation(() => Promise.resolve());
+    (del as jest.Mock).mockImplementation(() => Promise.resolve());
     mockParseCodWorkbookRows.mockReset();
     mockConfirm.mockImplementation(({onOk}) => onOk?.());
     Object.values(mockMessage).forEach(mock => mock.mockClear());
+    store.dispatch(setAppContextState({currentFeatureName: ""}));
 });
 
 afterEach(() => {
@@ -104,7 +128,7 @@ afterEach(() => {
 });
 
 it("renders empty state and import controls before a file is selected", () => {
-    render(<OrderCodPaymentImportWidget orders={orders}/>);
+    renderImportWidget({orders});
 
     expect(screen.getByText("No COD file imported")).toBeInTheDocument();
     expect(screen.getAllByText("Import a COD Excel file to review matched orders before applying payment.").length).toBeGreaterThan(0);
@@ -114,7 +138,7 @@ it("renders empty state and import controls before a file is selected", () => {
 
 it("renders all review bucket labels after parsing a COD file", async () => {
     mockParseCodWorkbookRows.mockResolvedValue(reviewRawRows);
-    const {container} = render(<OrderCodPaymentImportWidget orders={orders} onApply={jest.fn()}/>);
+    const {container} = renderImportWidget({orders, onApply: jest.fn()});
 
     await uploadCodFile(container);
 
@@ -132,17 +156,19 @@ it("renders all review bucket labels after parsing a COD file", async () => {
 
 it("keeps apply disabled while included unresolved rows remain", async () => {
     mockParseCodWorkbookRows.mockResolvedValue(reviewRawRows);
-    const {container} = render(<OrderCodPaymentImportWidget orders={orders} onApply={jest.fn()}/>);
+    const {container} = renderImportWidget({orders, onApply: jest.fn()});
 
     await uploadCodFile(container);
 
     expect(await screen.findByText("Some rows need review. Resolve or exclude them before applying.")).toBeInTheDocument();
     expect(screen.getByRole("button", {name: /Apply confirmed COD rows/i})).toBeDisabled();
+    expect(store.getState().appContext.codImportIssueCount).toBe(1);
+    expect(store.getState().appContext.lastCodImportIssueText).toBe("Some rows need review. Resolve or exclude them before applying.");
 });
 
 it("shows manual column mapping when detection confidence is low", async () => {
     mockParseCodWorkbookRows.mockResolvedValue(changedFormatRawRows);
-    const {container} = render(<OrderCodPaymentImportWidget orders={orders} onApply={jest.fn()}/>);
+    const {container} = renderImportWidget({orders, onApply: jest.fn()});
 
     await uploadCodFile(container);
 
@@ -155,7 +181,7 @@ it("shows manual column mapping when detection confidence is low", async () => {
 it("confirms and sends the helper-built payload for confirmed matched rows", async () => {
     const onApply = jest.fn();
     mockParseCodWorkbookRows.mockResolvedValue(matchedRawRows);
-    const {container} = render(<OrderCodPaymentImportWidget orders={orders} onApply={onApply}/>);
+    const {container} = renderImportWidget({orders, onApply});
 
     await uploadCodFile(container);
 
@@ -175,4 +201,6 @@ it("confirms and sends the helper-built payload for confirmed matched rows", asy
         blockingIssueIds: []
     })));
     expect(screen.getByText("No COD file imported")).toBeInTheDocument();
+    expect(store.getState().appContext.codImportIssueCount).toBe(0);
+    expect(store.getState().appContext.lastCodImportIssueText).toBe("");
 });

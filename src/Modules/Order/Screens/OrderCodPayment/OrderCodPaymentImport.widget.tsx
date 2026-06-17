@@ -22,6 +22,8 @@ import {
 import type {CodImportApplyPayload, CodImportColumnDetection, CodImportColumnMap, CodImportRawRow, CodImportReview} from "@common/Helpers/CodPaymentImportHelper";
 import {OrderCodPaymentColumnMapWidget} from "./OrderCodPaymentColumnMap.widget";
 import {OrderCodPaymentReviewWidget} from "./OrderCodPaymentReview.widget";
+import {useDispatch} from "react-redux";
+import {clearCodImportIssueStatus, setCodImportIssueStatus} from "@store/Reducers/AppContextReducer";
 
 type OrderCodPaymentImportWidgetProps = {
     orders: Order[];
@@ -30,6 +32,11 @@ type OrderCodPaymentImportWidgetProps = {
 }
 
 const LOW_CONFIDENCE_THRESHOLD = 0.8;
+const COD_REVIEW_ISSUE_TEXT = "Some rows need review. Resolve or exclude them before applying.";
+
+const _countUnresolvedIncludedRows = (review: CodImportReview): number => {
+    return review.rows.filter(row => row.included && (!row.confirmed || row.issueIds.length > 0 || row.bucket !== "matched")).length;
+}
 
 export const OrderCodPaymentImportWidget: FunctionComponent<OrderCodPaymentImportWidgetProps> = (props) => {
     const [rawRows, setRawRows] = useState<CodImportRawRow[]>([]);
@@ -39,12 +46,28 @@ export const OrderCodPaymentImportWidget: FunctionComponent<OrderCodPaymentImpor
     const [parseError, setParseError] = useState("");
     const [parsing, setParsing] = useState(false);
     const [showColumnMap, setShowColumnMap] = useState(false);
+    const dispatch = useDispatch();
     const modal = useModal();
     const message = useMessage();
 
+    const _syncCodImportIssueStatus = (nextReview: CodImportReview) => {
+        const unresolvedCount = _countUnresolvedIncludedRows(nextReview);
+        if (unresolvedCount > 0) dispatch(setCodImportIssueStatus({
+            count: unresolvedCount,
+            text: COD_REVIEW_ISSUE_TEXT
+        }));
+        else dispatch(clearCodImportIssueStatus());
+    }
+
+    const _onReviewChange = (nextReview: CodImportReview) => {
+        setReview(nextReview);
+        _syncCodImportIssueStatus(nextReview);
+    }
+
     const _buildReview = (rows: CodImportRawRow[], nextColumnMap: CodImportColumnMap) => {
         const settlementRows = normalizeCodImportRows(rows, nextColumnMap);
-        setReview(buildCodImportReview(settlementRows, props.orders, nextColumnMap));
+        const nextReview = buildCodImportReview(settlementRows, props.orders, nextColumnMap);
+        _onReviewChange(nextReview);
     }
 
     const _onParseFile = async (file: File) => {
@@ -82,6 +105,7 @@ export const OrderCodPaymentImportWidget: FunctionComponent<OrderCodPaymentImpor
         setDetection(null);
         setReview(null);
         setShowColumnMap(false);
+        dispatch(clearCodImportIssueStatus());
     }
 
     const _onApply = () => {
@@ -94,6 +118,10 @@ export const OrderCodPaymentImportWidget: FunctionComponent<OrderCodPaymentImpor
                     message.success("COD payments applied");
                     _clearReview();
                 } catch (e) {
+                    dispatch(setCodImportIssueStatus({
+                        count: Math.max(_countUnresolvedIncludedRows(review), 1),
+                        text: e?.message || "Could not apply COD payments"
+                    }));
                     message.error(e?.message || "Could not apply COD payments");
                 }
             }
@@ -148,7 +176,7 @@ export const OrderCodPaymentImportWidget: FunctionComponent<OrderCodPaymentImpor
         {review && <OrderCodPaymentReviewWidget
             review={review}
             orders={props.orders}
-            onChange={setReview}
+            onChange={_onReviewChange}
             onApply={props.onApply ? _onApply : undefined}
             applying={props.applying}
         />}

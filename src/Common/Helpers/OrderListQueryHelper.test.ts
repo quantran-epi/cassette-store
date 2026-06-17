@@ -10,7 +10,7 @@ import {ORDER_STATUS} from "@common/Constants/AppConstants";
 
 describe("OrderListQueryHelper", () => {
     it("parses all supported URL params into a complete query", () => {
-        const query = parseOrderListQuery("?q=alice&status=SHIPPED,RETURNED&cod=unpaid&ship=has-code&from=2026-06-01&to=2026-06-17&sort=cod&page=2");
+        const query = parseOrderListQuery("?q=alice&status=SHIPPED,RETURNED&cod=unpaid&ship=has-code&sync=failed&from=2026-06-01&to=2026-06-17&sort=cod&page=2");
 
         expect(query).toEqual({
             ...DEFAULT_ORDER_LIST_QUERY,
@@ -18,6 +18,7 @@ describe("OrderListQueryHelper", () => {
             statuses: [ORDER_STATUS.SHIPPED, ORDER_STATUS.RETURNED],
             codState: "unpaid",
             shippingState: "has-code",
+            syncState: "failed",
             dateFrom: "2026-06-01",
             dateTo: "2026-06-17",
             sort: "cod",
@@ -34,20 +35,22 @@ describe("OrderListQueryHelper", () => {
             statuses: [ORDER_STATUS.SHIPPED, ORDER_STATUS.RETURNED],
             codState: "paid",
             shippingState: "done-order",
+            syncState: "failed",
             dateFrom: "2026-06-01",
             dateTo: "2026-06-17",
             sort: "amount",
             page: 3
         });
 
-        expect(serialized.toString()).toBe("q=bob&status=SHIPPED%2CRETURNED&cod=paid&ship=done-order&from=2026-06-01&to=2026-06-17&sort=amount&page=3");
+        expect(serialized.toString()).toBe("q=bob&status=SHIPPED%2CRETURNED&cod=paid&ship=done-order&sync=failed&from=2026-06-01&to=2026-06-17&sort=amount&page=3");
     });
 
     it("sanitizes invalid option and page params back to defaults", () => {
-        const query = parseOrderListQuery("?cod=bad&ship=bad&sort=bad&page=-10&status=SHIPPED,,RETURNED");
+        const query = parseOrderListQuery("?cod=bad&ship=bad&sync=bad&sort=bad&page=-10&status=SHIPPED,,RETURNED");
 
         expect(query.codState).toBe(DEFAULT_ORDER_LIST_QUERY.codState);
         expect(query.shippingState).toBe(DEFAULT_ORDER_LIST_QUERY.shippingState);
+        expect(query.syncState).toBe(DEFAULT_ORDER_LIST_QUERY.syncState);
         expect(query.sort).toBe(DEFAULT_ORDER_LIST_QUERY.sort);
         expect(query.page).toBe(1);
         expect(query.statuses).toEqual([ORDER_STATUS.SHIPPED, ORDER_STATUS.RETURNED]);
