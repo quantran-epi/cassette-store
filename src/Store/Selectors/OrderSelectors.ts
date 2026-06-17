@@ -1,24 +1,13 @@
 import {createSelector} from "@reduxjs/toolkit";
 import {ORDER_PAYMENT_METHOD} from "@common/Constants/AppConstants";
+import {mergeOrderListQuery} from "@common/Helpers/OrderListQueryHelper";
+import type {OrderListQuery} from "@common/Helpers/OrderListQueryHelper";
 import type {Customer} from "@store/Models/Customer";
 import type {Order} from "@store/Models/Order";
 import type {RootState} from "@store/Store";
 
-export type OrderListSort = "newest" | "oldest" | "priority" | "amount" | "cod";
-export type OrderListCodState = "all" | "paid" | "unpaid" | "non-cod";
-export type OrderListShippingState = "all" | "has-code" | "missing-code" | "done-order";
-
-export type OrderListQuery = {
-    text: string;
-    statuses: string[];
-    codState: OrderListCodState;
-    shippingState: OrderListShippingState;
-    dateFrom?: string;
-    dateTo?: string;
-    sort: OrderListSort;
-    page: number;
-    pageSize: number;
-}
+export type {OrderListCodState, OrderListQuery, OrderListShippingState, OrderListSort} from "@common/Helpers/OrderListQueryHelper";
+export {DEFAULT_ORDER_LIST_QUERY, mergeOrderListQuery} from "@common/Helpers/OrderListQueryHelper";
 
 export type OrderListSummary = {
     orderCount: number;
@@ -44,16 +33,6 @@ export type OrderListReadModel = {
     page: number;
     pageSize: number;
     totalPages: number;
-}
-
-export const DEFAULT_ORDER_LIST_QUERY: OrderListQuery = {
-    text: "",
-    statuses: [],
-    codState: "all",
-    shippingState: "all",
-    sort: "newest",
-    page: 1,
-    pageSize: 10
 }
 
 type BuildOrderListReadModelProps = {
@@ -95,14 +74,6 @@ const buildSearchCorpus = (order: JoinedOrderReadModel): string => normalizeText
     order.customer?.address,
     order.customer?.province
 ].join(" "));
-
-export const mergeOrderListQuery = (query: Partial<OrderListQuery> = {}): OrderListQuery => ({
-    ...DEFAULT_ORDER_LIST_QUERY,
-    ...query,
-    statuses: query.statuses || DEFAULT_ORDER_LIST_QUERY.statuses,
-    page: Math.max(1, Number(query.page || DEFAULT_ORDER_LIST_QUERY.page)),
-    pageSize: Math.max(1, Number(query.pageSize || DEFAULT_ORDER_LIST_QUERY.pageSize))
-});
 
 export const buildOrderListSummary = (orders: JoinedOrderReadModel[]): OrderListSummary => {
     return orders.reduce<OrderListSummary>((summary, order) => {
