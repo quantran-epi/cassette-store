@@ -7,22 +7,25 @@ import {Stack} from "@components/Layout/Stack";
 import {Space} from "@components/Layout/Space";
 import {Tag} from "@components/Tag";
 import {Typography} from "@components/Typography";
+import {useMessage} from "@components/Message";
+import {useModal} from "@components/Modal/ModalProvider";
 import {FileExcelOutlined, SettingOutlined, UploadOutlined} from "@ant-design/icons";
 import type {Order} from "@store/Models/Order";
 import {
+    buildCodImportApplyPayload,
     buildCodImportColumnMap,
     buildCodImportReview,
     detectKnownCodColumns,
     normalizeCodImportRows,
     parseCodWorkbookRows
 } from "@common/Helpers/CodPaymentImportHelper";
-import type {CodImportColumnDetection, CodImportColumnMap, CodImportRawRow, CodImportReview} from "@common/Helpers/CodPaymentImportHelper";
+import type {CodImportApplyPayload, CodImportColumnDetection, CodImportColumnMap, CodImportRawRow, CodImportReview} from "@common/Helpers/CodPaymentImportHelper";
 import {OrderCodPaymentColumnMapWidget} from "./OrderCodPaymentColumnMap.widget";
 import {OrderCodPaymentReviewWidget} from "./OrderCodPaymentReview.widget";
 
 type OrderCodPaymentImportWidgetProps = {
     orders: Order[];
-    onApply?: (review: CodImportReview) => void;
+    onApply?: (payload: CodImportApplyPayload) => void;
     applying?: boolean;
 }
 
@@ -36,6 +39,8 @@ export const OrderCodPaymentImportWidget: FunctionComponent<OrderCodPaymentImpor
     const [parseError, setParseError] = useState("");
     const [parsing, setParsing] = useState(false);
     const [showColumnMap, setShowColumnMap] = useState(false);
+    const modal = useModal();
+    const message = useMessage();
 
     const _buildReview = (rows: CodImportRawRow[], nextColumnMap: CodImportColumnMap) => {
         const settlementRows = normalizeCodImportRows(rows, nextColumnMap);
@@ -71,8 +76,28 @@ export const OrderCodPaymentImportWidget: FunctionComponent<OrderCodPaymentImpor
         return false;
     }
 
+    const _clearReview = () => {
+        setRawRows([]);
+        setColumnMap({});
+        setDetection(null);
+        setReview(null);
+        setShowColumnMap(false);
+    }
+
     const _onApply = () => {
-        if (review && props.onApply) props.onApply(review);
+        if (!review || !props.onApply) return;
+        modal.confirm({
+            title: "Apply COD payments: confirmed rows will mark matched orders as paid COD.",
+            onOk: () => {
+                try {
+                    props.onApply(buildCodImportApplyPayload(review));
+                    message.success("COD payments applied");
+                    _clearReview();
+                } catch (e) {
+                    message.error(e?.message || "Could not apply COD payments");
+                }
+            }
+        });
     }
 
     return <Stack direction="column" align="stretch" fullwidth gap={16} style={{marginTop: 16}}>

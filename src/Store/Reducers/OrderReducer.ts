@@ -87,6 +87,11 @@ export const orderSlice = createSlice({
         addCodPayment: (state, action: PayloadAction<CodPaymentCycle>) => {
             state.codPayments = [...state.codPayments||[], action.payload];
         },
+        upsertCodPayment: (state, action: PayloadAction<CodPaymentCycle>) => {
+            const index = (state.codPayments || []).findIndex(payment => payment.id === action.payload.id);
+            if (index >= 0) state.codPayments[index] = action.payload;
+            else state.codPayments = [...state.codPayments || [], action.payload];
+        },
         upsertSyncFailure: (state, action: PayloadAction<OrderSyncFailure>) => {
             const index = state.syncFailures.findIndex(failure => failure.id === action.payload.id);
             if (index >= 0) state.syncFailures[index] = action.payload;
@@ -147,6 +152,7 @@ export const {
     removeAllDoneOrder,
     setDoneOrders,
     addCodPayment,
+    upsertCodPayment,
     upsertSyncFailure,
     markSyncFailureRetrying,
     clearSyncFailure,

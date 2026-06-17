@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { useScreenTitle, useToggle } from "@hooks";
+import { useOrder, useScreenTitle, useToggle } from "@hooks";
 import { List } from "@components/List";
 import { useSelector } from "react-redux";
 import { RootState } from "@store/Store";
@@ -19,8 +19,9 @@ export const OrderCodPaymentListScreen = () => {
     const orders = useSelector((state: RootState) => state.order.orders);
     const payments = useSelector((state: RootState) => state.order.codPayments);
     const [searchText, setSearchText] = useState("");
-    const { } = useScreenTitle({ value: "Trả COD", deps: [] });
+    useScreenTitle({ value: "Trả COD", deps: [] });
     const toggleAddPayment = useToggle();
+    const orderUtils = useOrder();
 
     const filteredPayments = useMemo<CodPaymentCycle[]>(() => {
         return orderBy((payments || []).filter(e => e.name.trim().toLowerCase().includes(searchText.trim().toLowerCase())
@@ -36,7 +37,7 @@ export const OrderCodPaymentListScreen = () => {
             <Input allowClear placeholder="Tìm kiếm" onChange={debounce((e) => setSearchText(e.target.value), 350)} />
             <Button onClick={_onAddPayment} icon={<PlusOutlined />}>Manual cycle</Button>
         </Stack.Compact>
-        <OrderCodPaymentImportWidget orders={orders || []} />
+        <OrderCodPaymentImportWidget orders={orders || []} onApply={orderUtils.applyCodPaymentImportReview} />
         <List
             pagination={filteredPayments.length > 0 ? {
                 position: "bottom", align: "center", pageSize: 10

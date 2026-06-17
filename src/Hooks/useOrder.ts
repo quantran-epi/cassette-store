@@ -9,6 +9,7 @@ import {
     markSyncFailureRetrying,
     removeDoneOrder,
     setDoneOrders,
+    upsertCodPayment,
     upsertSyncFailure
 } from "@store/Reducers/OrderReducer";
 import {RootState, store} from "@store/Store";
@@ -32,6 +33,7 @@ import {
     createOrderWorkflowSuccess,
     OrderWorkflowResult
 } from "./OrderWorkflowResult";
+import type {CodImportApplyPayload} from "@common/Helpers/CodPaymentImportHelper";
 
 type UseOrder = {
     isShipped: (orderId: string) => boolean;
@@ -69,6 +71,7 @@ type UseOrder = {
 
     refreshDoneOrders: () => Promise<number>;
     addPaymentOrderCycle: (paymentCycle: CodPaymentCycle) => void;
+    applyCodPaymentImportReview: (payload: CodImportApplyPayload) => CodPaymentCycle;
 }
 
 type UseOrderProps = {}
@@ -240,13 +243,22 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
         }
     }
 
-    const markOrderAsPayCOD = (orderId: string): void => {
+    const _markOrderAsPayCODLocally = (orderId: string): void => {
         let order = _findOrderById(orderId);
+        if (!order || order.isPayCOD) return;
         let customer = _findCustomerById(order.customerId);
         let transition = OrderDomainHelper.markOrderAsPayCODTransition(order, customer);
         order = transition.order;
         customer = transition.customer;
         dispatch(editOrder({order, customer}));
+    }
+
+    const _markPaymentOrdersAsPayCOD = (orderIds: string[]): void => {
+        orderIds.forEach(_markOrderAsPayCODLocally);
+    }
+
+    const markOrderAsPayCOD = (orderId: string): void => {
+        _markOrderAsPayCODLocally(orderId);
     }
 
     const isRefuseToReceive = (orderId: string): boolean => {
@@ -578,14 +590,21 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
 
     const addPaymentOrderCycle = (paymentCycle: CodPaymentCycle): void => {
         dispatch(addCodPayment(paymentCycle));
-        paymentCycle.paymentOrders.forEach(orderId => {
-            let order = _findOrderById(orderId);
-            let customer = _findCustomerById(order.customerId);
-            let transition = OrderDomainHelper.markOrderAsPayCODTransition(order, customer);
-            order = transition.order;
-            customer = transition.customer;
-            dispatch(editOrder({order, customer}));
-        });
+        _markPaymentOrdersAsPayCOD(paymentCycle.paymentOrders);
+    }
+
+    const applyCodPaymentImportReview = (payload: CodImportApplyPayload): CodPaymentCycle => {
+        if (payload.blockingIssueIds.length > 0) throw new Error("Cannot apply COD import with unresolved rows");
+        const paymentCycle: CodPaymentCycle = {
+            id: payload.cycleId,
+            name: payload.cycleName,
+            cycleDate: payload.cycleDate,
+            paymentOrders: payload.paymentOrderIds,
+            debitFeeOrders: payload.debitFeeOrderIds
+        };
+        dispatch(upsertCodPayment(paymentCycle));
+        _markPaymentOrdersAsPayCOD(payload.paymentOrderIds);
+        return paymentCycle;
     }
 
 
@@ -623,6 +642,7 @@ export const useOrder = (props?: UseOrderProps): UseOrder => {
         canMarkAsPayCOD,
         markOrderAsPayCOD,
         refreshDoneOrders,
-        addPaymentOrderCycle
+        addPaymentOrderCycle,
+        applyCodPaymentImportReview
     }
 }
