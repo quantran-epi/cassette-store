@@ -35,7 +35,9 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. Operator can see backup, restore, and done-order refresh loading, success, empty, and failure states.
 
 **Plans**: 4 plans
+
 Plans:
+
 **Wave 1**
 
 - [x] 01-01: Repair test command, alias resolution, stale app smoke test, and build check.
@@ -120,12 +122,21 @@ Plans:
   4. Common order actions and operational alerts are available from consistent contextual surfaces.
 
 **Plans**: 4 plans
-
 Plans:
+**Wave 1**
 
 - [ ] 04-01: Extract derived order/customer/dashboard selectors with tests.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 04-02: Improve COD cycle selection, totals, confirmation, and review behavior.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 04-03: Upgrade order list search/filter/sort behavior around selector-backed state.
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 04-04: Add contextual quick actions and a consistent operational status area.
 
 ### Phase 5: Cohesive UI/UX Refresh
