@@ -148,7 +148,7 @@ it("uses initial URL params for visible controls and filtered rows", () => {
     renderOrderList("/order/list?q=alice&status=SHIPPED&cod=unpaid&ship=has-code&sort=cod&page=1");
 
     expect(screen.getByLabelText("Search orders")).toHaveValue("alice");
-    expect(screen.getByRole("checkbox", {name: /Đã giao thành công/i})).toBeChecked();
+    expect(screen.getByRole("checkbox", {name: /Thành công/i})).toBeChecked();
     expect(screen.getByText("COD: Unpaid")).toBeInTheDocument();
     expect(screen.getByText("Shipping: Has code")).toBeInTheDocument();
     expect(screen.getByText("Sort: COD amount")).toBeInTheDocument();
