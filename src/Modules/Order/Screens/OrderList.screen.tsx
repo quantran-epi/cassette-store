@@ -1,7 +1,7 @@
 import {
     PlusOutlined,
 } from "@ant-design/icons";
-import { COLORS, ORDER_ITEM_TYPE, ORDER_PAYMENT_METHOD, ORDER_STATUS } from "@common/Constants/AppConstants";
+import { COLORS, ORDER_STATUS } from "@common/Constants/AppConstants";
 import { Badge } from "@components/Badge";
 import { Button } from "@components/Button";
 import { Checkbox } from "@components/Form/Checkbox";
@@ -16,20 +16,18 @@ import { Tooltip } from "@components/Tootip";
 import { Typography } from "@components/Typography";
 import { useScreenTitle } from "@hooks";
 import { RootRoutes } from "@routing/RootRoutes";
-import { Order } from "@store/Models/Order";
 import { removeOrder } from "@store/Reducers/OrderReducer";
 import { RootState } from "@store/Store";
 import { Checkbox as AntCheckbox, Radio as AntRadio, RadioChangeEvent } from "antd";
-import { debounce, orderBy } from "lodash";
+import { debounce } from "lodash";
 import React, { useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { OrderItemWidget } from "./OrderItem/OrderItem.widget";
 import { Radio } from "@components/Form/Radio";
-import { Popover } from "@components/Popover";
+import {DEFAULT_ORDER_LIST_QUERY, OrderListQuery, selectOrderListReadModel} from "@store/Selectors/OrderSelectors";
 
 export const OrderListScreen = () => {
-    const orders = useSelector((state: RootState) => state.order.orders);
     const doneOrders = useSelector((state: RootState) => state.order.doneOrders);
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -37,25 +35,15 @@ export const OrderListScreen = () => {
     const [searchText, setSearchText] = useState("");
     const [searchStatuses, setSearchStatuses] = useState<string[]>([]);
     const [searchPayCODStatus, setSearchPayCODStatus] = useState<string>("0");
-
-    const filteredOrders = useMemo<Order[]>(() => {
-        return orderBy(orders.filter(e => (e.name.trim().toLowerCase().includes(searchText.trim().toLowerCase()) || e.shippingCode?.includes(searchText)) &&
-            (searchStatuses.length === 0 || searchStatuses.includes(e.status))
-            && (searchPayCODStatus === "0" ? true : (searchPayCODStatus === "1" ? e.isPayCOD == true : (searchPayCODStatus === "2" ? e.isPayCOD == false && e.paymentMethod === ORDER_PAYMENT_METHOD.CASH_COD : true)))
-        ), ["createdDate"], ["desc"]);
-    }, [orders, searchText, searchStatuses, searchPayCODStatus])
-
-    const cassetteAmount = useMemo(() => {
-        return filteredOrders.reduce((prev, cur) => prev + cur.placedItems.reduce((prev1, cur1) => prev1 + cur1.count, 0), 0);
-    }, [filteredOrders])
-
-    const cashAmount = useMemo(() => {
-        return filteredOrders.reduce((prev, cur) => prev + cur.paymentAmount - cur.shippingCost, 0);
-    }, [filteredOrders])
-
-    const codReceivedAmount = useMemo(() => {
-        return filteredOrders.reduce((prev, cur) => prev + cur.codAmount - cur.shippingCost, 0);
-    }, [filteredOrders])
+    const query = useMemo<Partial<OrderListQuery>>(() => ({
+        ...DEFAULT_ORDER_LIST_QUERY,
+        text: searchText,
+        statuses: searchStatuses,
+        codState: searchPayCODStatus === "1" ? "paid" : searchPayCODStatus === "2" ? "unpaid" : "all"
+    }), [searchText, searchStatuses, searchPayCODStatus]);
+    const readModel = useSelector((state: RootState) => selectOrderListReadModel(state, query));
+    const fullReadModel = useSelector((state: RootState) => selectOrderListReadModel(state, DEFAULT_ORDER_LIST_QUERY));
+    const filteredOrders = readModel.orders;
 
     const _onAddOrder = () => {
         navigate(RootRoutes.AuthorizedRoutes.OrderRoutes.Create());
@@ -84,20 +72,20 @@ export const OrderListScreen = () => {
             <Row>
                 <Col span={14}>
                     <Badge count={doneOrders.length} size="small" offset={[-1, 7]}>
-                        <Checkbox value={ORDER_STATUS.PLACED}>{ORDER_STATUS.PLACED} <Typography.Text style={{ fontSize: "0.6em" }}>({orders.filter(e => e.status === ORDER_STATUS.PLACED).length})</Typography.Text></Checkbox>
+                        <Checkbox value={ORDER_STATUS.PLACED}>{ORDER_STATUS.PLACED} <Typography.Text style={{ fontSize: "0.6em" }}>({fullReadModel.summary.statusCounts[ORDER_STATUS.PLACED] || 0})</Typography.Text></Checkbox>
                     </Badge>
                 </Col>
                 <Col span={10}>
-                    <Checkbox value={ORDER_STATUS.CREATE_DELIVERY}>{ORDER_STATUS.CREATE_DELIVERY} <Typography.Text style={{ fontSize: "0.6em" }}>({orders.filter(e => e.status === ORDER_STATUS.CREATE_DELIVERY).length})</Typography.Text></Checkbox>
+                    <Checkbox value={ORDER_STATUS.CREATE_DELIVERY}>{ORDER_STATUS.CREATE_DELIVERY} <Typography.Text style={{ fontSize: "0.6em" }}>({fullReadModel.summary.statusCounts[ORDER_STATUS.CREATE_DELIVERY] || 0})</Typography.Text></Checkbox>
                 </Col>
                 <Col span={14}>
-                    <Checkbox value={ORDER_STATUS.SHIPPED}>{"Thành công"} <Typography.Text style={{ fontSize: "0.6em" }}>({orders.filter(e => e.status === ORDER_STATUS.SHIPPED).length})</Typography.Text></Checkbox>
+                    <Checkbox value={ORDER_STATUS.SHIPPED}>{"Thành công"} <Typography.Text style={{ fontSize: "0.6em" }}>({fullReadModel.summary.statusCounts[ORDER_STATUS.SHIPPED] || 0})</Typography.Text></Checkbox>
                 </Col>
                 <Col span={10}>
-                    <Checkbox value={ORDER_STATUS.RETURNED}>{"Hoàn về"} <Typography.Text style={{ fontSize: "0.6em" }}>({orders.filter(e => e.status === ORDER_STATUS.RETURNED).length})</Typography.Text></Checkbox>
+                    <Checkbox value={ORDER_STATUS.RETURNED}>{"Hoàn về"} <Typography.Text style={{ fontSize: "0.6em" }}>({fullReadModel.summary.statusCounts[ORDER_STATUS.RETURNED] || 0})</Typography.Text></Checkbox>
                 </Col>
                 <Col span={14}>
-                    <Checkbox value={ORDER_STATUS.WAITING_FOR_RETURNED}>{ORDER_STATUS.WAITING_FOR_RETURNED} <Typography.Text style={{ fontSize: "0.6em" }}>({orders.filter(e => e.status === ORDER_STATUS.WAITING_FOR_RETURNED).length})</Typography.Text></Checkbox>
+                    <Checkbox value={ORDER_STATUS.WAITING_FOR_RETURNED}>{ORDER_STATUS.WAITING_FOR_RETURNED} <Typography.Text style={{ fontSize: "0.6em" }}>({fullReadModel.summary.statusCounts[ORDER_STATUS.WAITING_FOR_RETURNED] || 0})</Typography.Text></Checkbox>
                 </Col>
             </Row>
         </AntCheckbox.Group>
@@ -121,20 +109,11 @@ export const OrderListScreen = () => {
         <Divider orientation="left" style={{ marginBottom: 0 }}>Danh sách đơn hàng ({filteredOrders.length} đơn)</Divider>
         <Stack style={{ marginTop: 5 }} gap={7} direction="column" align="flex-start">
             <Stack gap={0}>
-                {/* <Popover title="Chi tiết các loại băng" content={<List
-                    size="small"
-                    dataSource={Object.keys(ORDER_ITEM_TYPE).filter(key => filteredOrders
-                        .reduce((prev, cur) => prev + cur.placedItems.filter(c => c.type === key).reduce((prev1, cur1) => prev1 + cur1.count, 0), 0) > 0)}
-                    renderItem={(key, index) => <List.Item style={{ padding: 0, paddingBottom: 2, paddingTop: 2 }}>{index + 1}. {key}: <Typography.Text strong>{filteredOrders
-                        .reduce((prev, cur) => prev + cur.placedItems.filter(c => c.type === key).reduce((prev1, cur1) => prev1 + cur1.count, 0), 0)}</Typography.Text></List.Item>}
-                />}>
-                    <Tag color={COLORS.ORDER_STATUS.SHIPPED}>{cassetteAmount} băng</Tag>
-                </Popover> */}
                 <Tooltip title={"Dự kiến số tiền thu về"}>
-                    <Tag color={COLORS.ORDER_STATUS.SHIPPED}>Thu: {cashAmount.toLocaleString()}</Tag>
+                    <Tag color={COLORS.ORDER_STATUS.SHIPPED}>Thu: {readModel.summary.cashAmount.toLocaleString()}</Tag>
                 </Tooltip>
                 <Tooltip title={"Dự kiến số tiền COD thu về"}>
-                    <Tag color={COLORS.ORDER_STATUS.SHIPPED}>COD: {codReceivedAmount.toLocaleString()}</Tag>
+                    <Tag color={COLORS.ORDER_STATUS.SHIPPED}>COD: {readModel.summary.codReceivedAmount.toLocaleString()}</Tag>
                 </Tooltip>
             </Stack>
         </Stack>

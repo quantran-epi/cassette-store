@@ -1,57 +1,27 @@
-import { RootRoutes } from "@routing/RootRoutes";
-import { Navigate } from "react-router-dom";
-import React, { useEffect } from "react";
-import { useOrder, useScreenTitle } from "@hooks";
+import React from "react";
+import { useScreenTitle } from "@hooks";
 import moment from "moment";
 import { Card } from "@components/Card";
 import { Statistic, Tabs, TabsProps } from "antd";
 import { Stack } from "@components/Layout/Stack";
 import {
     COLORS,
-    ORDER_ITEM_TYPE,
-    ORDER_PAYMENT_METHOD,
-    ORDER_RETURN_REASON,
-    ORDER_STATUS
 } from "@common/Constants/AppConstants";
-import { Divider } from "@components/Layout/Divider";
-import { ArrowUpOutlined, ArrowDownOutlined } from "@ant-design/icons";
 import { useSelector } from "react-redux";
 import { RootState } from "@store/Store";
 import { Col, Row } from "@components/Grid";
 import { List } from "@components/List";
-import { OrderItemWidget } from "@modules/Order/Screens/OrderItem/OrderItem.widget";
-import { orderBy, sortBy } from "lodash";
 import { Space } from "@components/Layout/Space";
 import { Typography } from "@components/Typography";
 import { Tag } from "@components/Tag";
-import { useMessage } from "@components/Message";
-import { Customer } from "@store/Models/Customer";
+import {selectDashboardReadModel} from "@store/Selectors/DashboardSelectors";
 
 moment.updateLocale('en', { week: { dow: 1 } });
 
 export const DashboardScreen = () => {
     const orders = useSelector((state: RootState) => state.order.orders);
-    const customers = useSelector((state: RootState) => state.customer.customers);
+    const dashboard = useSelector(selectDashboardReadModel);
     const { } = useScreenTitle({ value: "Thống kê", deps: [] });
-
-    const shippingFeeInterest = () => orders.filter(e => (e.status === ORDER_STATUS.SHIPPED && e.isPayCOD == true) || e.paymentMethod === ORDER_PAYMENT_METHOD.BANK_TRANSFER_IN_ADVANCE)
-        .reduce((prev, cur) => prev + (cur.paymentAmount - cur.placedItems.reduce((prev1, cur1) => prev1 + (cur1.count * cur1.unitPrice), 0)), 0)
-        - orders.reduce((prev, cur) => prev + cur.shippingCost, 0);
-
-    const actualInterest = () => orders.filter(e => (e.status === ORDER_STATUS.SHIPPED && e.isPayCOD == true) || e.paymentMethod === ORDER_PAYMENT_METHOD.BANK_TRANSFER_IN_ADVANCE)
-        .reduce((prev, cur) => prev + cur.placedItems.reduce((prev1, cur1) => prev1 + (cur1.count * (cur1.unitPrice * 0.6)), 0), 0)
-        + shippingFeeInterest();
-
-    const _getBuyAmount = (customerId: string) => {
-        return orders.filter(e => e.status === ORDER_STATUS.SHIPPED && e.customerId === customerId).reduce((prev, cur) => prev + cur.paymentAmount, 0);
-    }
-
-    const _getColor = (orderCustomer: Customer) => {
-        if (orderCustomer.isVIP) return COLORS.CUSTOMER.VIP;
-        else if (orderCustomer.buyCount > 3) return COLORS.CUSTOMER.BUY_MUTIPLE_TIMES;
-        else if (orderCustomer.buyCount > 0) return COLORS.CUSTOMER.CONFIRMED;
-        else return undefined;
-    }
 
     const items: TabsProps['items'] = [
         {
@@ -62,19 +32,19 @@ export const DashboardScreen = () => {
                     <Stack fullwidth direction={"column"} align={"flex-start"}>
                         <Statistic
                             title="Tổng tiền chuyển khoản"
-                            value={orders.filter(e => e.paymentMethod === ORDER_PAYMENT_METHOD.BANK_TRANSFER_IN_ADVANCE).reduce((prev, cur) => prev + cur.paymentAmount, 0)}
+                            value={dashboard.totals.bankTransferAmount}
                             suffix="đ"
                             valueStyle={{ color: COLORS.ORDER_STATUS.SHIPPED }}
                         />
                         <Statistic
                             title="Tổng tiền COD"
-                            value={orders.reduce((prev, cur) => prev + cur.codAmount, 0)}
+                            value={dashboard.totals.totalCodAmount}
                             suffix="đ"
                             valueStyle={{ color: COLORS.ORDER_STATUS.SHIPPED }}
                         />
                         <Statistic
                             title="Tổng phí ship"
-                            value={orders.reduce((prev, cur) => prev + cur.shippingCost, 0)}
+                            value={dashboard.totals.totalShippingCost}
                             suffix="đ"
                             valueStyle={{ color: COLORS.ORDER_STATUS.RETURNED }}
                         />
@@ -89,41 +59,41 @@ export const DashboardScreen = () => {
                 <Stack fullwidth direction={"column"} align={"flex-start"}>
                     <Statistic
                         title="Số đơn COD"
-                        value={orders.filter(e => e.codAmount !== 0).length.toLocaleString().concat("/").concat(orders.length.toLocaleString())}
+                        value={dashboard.totals.codOrderCount.toLocaleString().concat("/").concat(orders.length.toLocaleString())}
                         valueStyle={{ color: COLORS.ORDER_STATUS.SHIPPED }}
                     />
                     <Statistic
                         title="Tổng tiền COD trên đơn"
-                        value={orders.reduce((prev, cur) => prev + cur.codAmount, 0)}
+                        value={dashboard.totals.totalCodAmount}
                         suffix="đ"
                         valueStyle={{ color: COLORS.ORDER_STATUS.SHIPPED }}
                     />
                     <Statistic
                         title="Tổng tiền COD nhận về (trừ ship)"
-                        value={orders.reduce((prev, cur) => prev + (cur.codAmount - cur.shippingCost), 0)}
+                        value={dashboard.totals.totalCodNetAmount}
                         suffix="đ"
                         valueStyle={{ color: COLORS.ORDER_STATUS.SHIPPED }}
                     />
                     <Statistic
                         title="COD đã trả"
-                        value={orders.filter(e => e.isPayCOD === true).reduce((prev, cur) => prev + (cur.codAmount - cur.shippingCost), 0)}
+                        value={dashboard.totals.codPaidAmount}
                         suffix="đ"
                         valueStyle={{ color: COLORS.ORDER_STATUS.SHIPPED }}
                     />
                     <Statistic
                         title="COD chưa trả (đã giao thành công)"
-                        value={orders.filter(e => e.paymentMethod === ORDER_PAYMENT_METHOD.CASH_COD && e.status === ORDER_STATUS.SHIPPED && e.isPayCOD === false).reduce((prev, cur) => prev + (cur.codAmount - cur.shippingCost), 0)}
+                        value={dashboard.totals.codUnpaidShippedAmount}
                         suffix="đ"
                         valueStyle={{ color: COLORS.ORDER_STATUS.WAITING_FOR_RETURNED }}
                     />
                     <Statistic
                         title="COD chưa giao thành công"
-                        value={orders.filter(e => e.paymentMethod === ORDER_PAYMENT_METHOD.CASH_COD && e.status !== ORDER_STATUS.SHIPPED).reduce((prev, cur) => prev + (cur.codAmount - cur.shippingCost), 0)}
+                        value={dashboard.totals.codNotShippedAmount}
                         suffix="đ"
                     />
                     <Statistic
                         title="Tổng phí ship"
-                        value={orders.reduce((prev, cur) => prev + cur.shippingCost, 0)}
+                        value={dashboard.totals.totalShippingCost}
                         suffix="đ"
                         valueStyle={{ color: COLORS.ORDER_STATUS.RETURNED }}
                     />
@@ -137,39 +107,18 @@ export const DashboardScreen = () => {
                 <Stack fullwidth direction={"column"} align={"flex-start"}>
                     <Statistic
                         title="Tổng tiền đã chuyển khoản"
-                        value={orders.filter(e => e.paymentMethod === ORDER_PAYMENT_METHOD.BANK_TRANSFER_IN_ADVANCE).reduce((prev, cur) => prev + cur.paymentAmount, 0)}
+                        value={dashboard.totals.bankTransferAmount}
                         suffix="đ"
                         valueStyle={{ color: COLORS.ORDER_STATUS.SHIPPED }}
                     />
                     <Statistic
                         title="Số đơn chuyển khoản"
-                        value={orders.filter(e => e.paymentMethod === ORDER_PAYMENT_METHOD.BANK_TRANSFER_IN_ADVANCE).length.toLocaleString().concat("/").concat(orders.length.toLocaleString())}
+                        value={dashboard.totals.bankTransferOrderCount.toLocaleString().concat("/").concat(orders.length.toLocaleString())}
                         valueStyle={{ color: COLORS.ORDER_STATUS.SHIPPED }}
                     />
                 </Stack>
             </Card>
         },
-        // {
-        //     key: '4',
-        //     label: 'Loại băng',
-        //     children: <Card>
-        //         <Stack fullwidth direction={"column"} align={"flex-start"}>
-        //             <Statistic
-        //                 title="Tổng số băng"
-        //                 value={orders.reduce((prev, cur) => prev + cur.placedItems.reduce((prev1, cur1) => prev1 + cur1.count, 0), 0)}
-        //                 suffix=""
-        //                 valueStyle={{ color: COLORS.ORDER_STATUS.PAY_COD }}
-        //             />
-        //             {Object.keys(ORDER_ITEM_TYPE).map(key => <Statistic
-        //                 title={key}
-        //                 value={orders
-        //                     .reduce((prev, cur) => prev + cur.placedItems.filter(c => c.type === key).reduce((prev1, cur1) => prev1 + cur1.count, 0), 0)}
-        //                 suffix=""
-        //                 valueStyle={{ color: COLORS.ORDER_STATUS.SHIPPED }}
-        //             />)}
-        //         </Stack>
-        //     </Card>
-        // },
         {
             key: '5',
             label: "Khách hàng",
@@ -179,7 +128,7 @@ export const DashboardScreen = () => {
                         <Col span={18}>
                             <Statistic
                                 title="Mua lại lần 2"
-                                value={customers.filter(c => c.buyCount == 2).length}
+                                value={dashboard.customers.repeatSecondPurchaseCount}
                                 suffix=""
                                 valueStyle={{ color: COLORS.CUSTOMER.CONFIRMED }}
                             />
@@ -187,7 +136,7 @@ export const DashboardScreen = () => {
                         <Col span={6}>
                             <Statistic
                                 title="VIP"
-                                value={customers.filter(c => c.isVIP).length}
+                                value={dashboard.customers.vipCount}
                                 suffix=""
                                 valueStyle={{ color: COLORS.CUSTOMER.VIP }}
                             />
@@ -195,7 +144,7 @@ export const DashboardScreen = () => {
                         <Col span={18}>
                             <Statistic
                                 title="Mua lại 3 lần trở lên"
-                                value={customers.filter(c => c.buyCount > 2).length}
+                                value={dashboard.customers.repeatThreePlusPurchaseCount}
                                 suffix=""
                                 valueStyle={{ color: COLORS.CUSTOMER.CONFIRMED }}
                             />
@@ -203,7 +152,7 @@ export const DashboardScreen = () => {
                         <Col span={6}>
                             <Statistic
                                 title="Bom"
-                                value={customers.filter(c => c.isInBlacklist).length}
+                                value={dashboard.customers.blacklistCount}
                                 suffix=""
                                 valueStyle={{ color: COLORS.CUSTOMER.BLACK_LIST }}
                             />
@@ -216,17 +165,17 @@ export const DashboardScreen = () => {
                         size="small"
                         pagination={false}
                         itemLayout="horizontal"
-                        dataSource={orderBy(customers, (item) => _getBuyAmount(item.id), ['desc']).slice(0, 10)}
+                        dataSource={dashboard.customers.topByAmount}
                         renderItem={(item, index) => <List.Item style={{ padding: 0, paddingBottom: 5, paddingTop: 5 }}>
                             <Stack fullwidth style={{ marginBottom: 3 }} justify="space-between" gap={5}>
                                 <Space size={3}>
                                     <Typography.Paragraph ellipsis style={{
                                         width: 220,
                                         marginBottom: 0,
-                                        color: _getColor(item)
-                                    }}>{index + 1}. {item.name.concat("-").concat(item.province)}</Typography.Paragraph>
+                                        color: item.color
+                                    }}>{index + 1}. {item.customer.name.concat("-").concat(item.customer.province)}</Typography.Paragraph>
                                 </Space>
-                                <Tag>{_getBuyAmount(item.id).toLocaleString()} đ</Tag>
+                                <Tag>{item.buyAmount.toLocaleString()} đ</Tag>
                             </Stack>
                         </List.Item>}
                     />
@@ -237,17 +186,17 @@ export const DashboardScreen = () => {
                         size="small"
                         pagination={false}
                         itemLayout="horizontal"
-                        dataSource={orderBy(customers, ['buyCount'], ['desc']).slice(0, 10)}
+                        dataSource={dashboard.customers.topByBuyCount}
                         renderItem={(item, index) => <List.Item style={{ padding: 0, paddingBottom: 5, paddingTop: 5 }}>
                             <Stack fullwidth style={{ marginBottom: 3 }} justify="space-between" gap={5}>
                                 <Space size={3}>
                                     <Typography.Paragraph ellipsis style={{
                                         width: 280,
                                         marginBottom: 0,
-                                        color: _getColor(item)
-                                    }}>{index + 1}. {item.name.concat("-").concat(item.province)}</Typography.Paragraph>
+                                        color: item.color
+                                    }}>{index + 1}. {item.customer.name.concat("-").concat(item.customer.province)}</Typography.Paragraph>
                                 </Space>
-                                <Tag>{item.buyCount}</Tag>
+                                <Tag>{item.customer.buyCount}</Tag>
                             </Stack>
                         </List.Item>}
                     />
@@ -261,21 +210,19 @@ export const DashboardScreen = () => {
                 <Stack fullwidth align="flex-start" direction="column">
                     <Statistic
                         title="Số đơn"
-                        value={orders.filter(e => (e.status === ORDER_STATUS.RETURNED || e.status === ORDER_STATUS.WAITING_FOR_RETURNED) && e.returnReason === ORDER_RETURN_REASON.REFUSE_TO_RECEIVE).length}
+                        value={dashboard.totals.refuseToReceiveOrderCount}
                         suffix=""
                         valueStyle={{ color: COLORS.ORDER_STATUS.RETURNED }}
                     />
                     <Statistic
                         title="Số băng"
-                        value={orders.filter(e => (e.status === ORDER_STATUS.RETURNED || e.status === ORDER_STATUS.WAITING_FOR_RETURNED) && e.returnReason === ORDER_RETURN_REASON.REFUSE_TO_RECEIVE)
-                            .reduce((prev, cur) => prev + cur.placedItems.reduce((prev1, cur1) => prev1 + cur1.count, 0), 0)}
+                        value={dashboard.totals.refuseToReceiveCassetteCount}
                         suffix=""
                         valueStyle={{ color: COLORS.ORDER_STATUS.RETURNED }}
                     />
                     <Statistic
                         title="Tiền ship"
-                        value={orders.filter(e => (e.status === ORDER_STATUS.RETURNED || e.status === ORDER_STATUS.WAITING_FOR_RETURNED) && e.returnReason === ORDER_RETURN_REASON.REFUSE_TO_RECEIVE)
-                            .reduce((prev, cur) => prev + cur.shippingCost, 0)}
+                        value={dashboard.totals.refuseToReceiveShippingCost}
                         suffix="đ"
                         valueStyle={{ color: COLORS.ORDER_STATUS.RETURNED }}
                     />
