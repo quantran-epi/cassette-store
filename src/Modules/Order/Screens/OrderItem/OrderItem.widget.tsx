@@ -12,7 +12,8 @@ import { List } from "@components/List";
 import { useMessage } from "@components/Message";
 import { useModal } from "@components/Modal/ModalProvider";
 import { Tag } from "@components/Tag";
-import { TruncatedText, Typography } from "@components/Typography";
+import {Tooltip} from "@components/Tootip";
+import { Typography } from "@components/Typography";
 import { Order } from "@store/Models/Order";
 import {removeOrder} from "@store/Reducers/OrderReducer";
 import { RootState } from "@store/Store";
@@ -28,7 +29,6 @@ import { OrderShippinInfoWidget } from "@modules/Order/Screens/OrderItem/OrderSh
 import { OrderAttachmentsWidget } from "@modules/Order/Screens/OrderItem/OrderAttachments.widget";
 import { OrderPriorityWidget } from "./OrderPriority.widget";
 import moment from "moment";
-import { Badge } from "antd";
 import { OrderCustomerInfoWidget } from "@modules/Order/Screens/OrderItem/OrderCustomerInfo.widget";
 import { OrderSyncStatusWidget } from "@modules/Order/Screens/OrderItem/OrderSyncStatus.widget";
 import { OrderInlineShippingCodeWidget } from "@modules/Order/Screens/OrderItem/OrderInlineShippingCode.widget";
@@ -48,6 +48,8 @@ const DELIVERY_ACTION_KEYS: OrderActionKey[] = [
     "waiting-return-order",
     "returned-order"
 ];
+
+const TOOLTIP_DELAY = 0.35;
 
 export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) => {
     const customers = useSelector((state: RootState) => state.customer.customers);
@@ -81,6 +83,21 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
         else if (orderCustomer.buyCount > 3) return COLORS.CUSTOMER.BUY_MUTIPLE_TIMES;
         else if (orderCustomer.buyCount > 0) return COLORS.CUSTOMER.CONFIRMED;
         else return undefined;
+    }
+
+    const _getStatusClassName = () => {
+        switch (props.item.status) {
+            case ORDER_STATUS.SHIPPED:
+                return "order-list-item--shipped";
+            case ORDER_STATUS.RETURNED:
+                return "order-list-item--returned";
+            case ORDER_STATUS.CREATE_DELIVERY:
+                return "order-list-item--delivery";
+            case ORDER_STATUS.WAITING_FOR_RETURNED:
+                return "order-list-item--waiting-return";
+            default:
+                return "order-list-item--placed";
+        }
     }
 
     const _renderOrderStatus = () => {
@@ -278,18 +295,31 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
         return `${props.item.name} (${orderCustomer.buyCount} đơn - ${_getBuyAmount().toLocaleString()}đ)`;
     }
 
-    const _renderOrderTitle = () => {
-        return <TruncatedText
-            text={_getOrderTitleText()}
-            maxLength={38}
-            style={{fontWeight: "bold", color: _getCustomerColor(), textAlign: "left"}}
-        />
+    const _renderTooltipText = (text: string | number, className?: string, style?: React.CSSProperties) => {
+        const normalizedText = String(text || "");
+
+        if (!normalizedText) return null;
+
+        return <Tooltip title={normalizedText} mouseEnterDelay={TOOLTIP_DELAY} placement="topLeft">
+            <Typography.Text className={["order-list-item__clip", className].filter(Boolean).join(" ")} style={style}>
+                {normalizedText}
+            </Typography.Text>
+        </Tooltip>
     }
 
-    const _renderDetail = (icon: React.ReactNode, content: React.ReactNode, className?: string) => {
-        return <div className={["order-list-item__detail", className].filter(Boolean).join(" ")}>
-            <span className="order-list-item__detail-icon">{icon}</span>
-            <span className="order-list-item__detail-content">{content}</span>
+    const _renderOrderTitle = () => {
+        return _renderTooltipText(
+            _getOrderTitleText(),
+            "order-list-item__order-title",
+            {color: _getCustomerColor()}
+        )
+    }
+
+    const _renderInfoPill = (label: string, icon: React.ReactNode, content: React.ReactNode, className?: string) => {
+        return <div className={["order-list-item__info", className].filter(Boolean).join(" ")}>
+            <span className="order-list-item__info-icon">{icon}</span>
+            <span className="order-list-item__info-label">{label}</span>
+            <span className="order-list-item__info-value">{content}</span>
         </div>
     }
 
@@ -299,23 +329,40 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
         && orderUtils.isPushedTrello(props.item.id);
 
     return <React.Fragment>
-        <List.Item className="order-list-item">
+        <List.Item className={["order-list-item", _getStatusClassName()].join(" ")}>
+            <div className="order-list-item__status-rail" aria-hidden="true"/>
             <div className="order-list-item__body">
-                <div className="order-list-item__header">
-                    <div className="order-list-item__identity">
-                        <div className="order-list-item__title">
-                            {isDoneOrder ?
-                                <Badge count={"Tạo đơn"} size="small" offset={[0, 3]}>
-                                    {_renderOrderTitle()}
-                                </Badge> : _renderOrderTitle()}
+                <div className="order-list-item__main">
+                    <div className="order-list-item__summary">
+                        <div className="order-list-item__title-row">
+                            {isDoneOrder && <Tag color={COLORS.ORDER_STATUS.CREATE_DELIVERY}>Tạo đơn</Tag>}
+                            {_renderOrderTitle()}
                         </div>
-                        <div className="order-list-item__tags">
-                            {_renderOrderStatus()}
-                            {_renderIsPayCOD()}
-                            {props.item.returnReason && _renderReturnReason()}
-                            {props.item.priorityStatus !== ORDER_PRIORITY_STATUS.NONE && _renderPriority()}
+                        <div className="order-list-item__status-row">
+                            <div className="order-list-item__tags">
+                                {_renderOrderStatus()}
+                                {_renderIsPayCOD()}
+                                {props.item.returnReason && _renderReturnReason()}
+                                {props.item.priorityStatus !== ORDER_PRIORITY_STATUS.NONE && _renderPriority()}
+                            </div>
+                            <span className="order-list-item__date">
+                                <CalendarOutlined/>
+                                {moment(new Date(props.item.createdDate)).format("DD-MM-yyyy")}
+                            </span>
                         </div>
                     </div>
+
+                    <div className="order-list-item__payment">
+                        <span className="order-list-item__payment-label">Thu</span>
+                        <Typography.Text className="order-list-item__payment-value">
+                            {props.item.paymentAmount.toLocaleString()}đ
+                        </Typography.Text>
+                        <div className="order-list-item__payment-tags">
+                            {_renderCODAmount()}
+                            {props.item.isFreeShip && <Tag color={COLORS.FREE_SHIP}>Freeship</Tag>}
+                        </div>
+                    </div>
+
                     <div className="order-list-item__actions">
                         <OrderActionSurfaceWidget model={actionModel} onAction={_onActionClick}/>
                     </div>
@@ -325,49 +372,48 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                     <OrderSyncStatusWidget failures={orderSyncFailures}/>
                 </div>
 
-                <div className="order-list-item__details">
-                    {_renderDetail(
-                        <DollarOutlined/>,
-                        <React.Fragment>
-                            <Typography.Text>Thu {props.item.paymentAmount.toLocaleString()}đ</Typography.Text>
-                            {_renderCODAmount()}
-                        </React.Fragment>,
-                        "order-list-item__detail--amount"
-                    )}
-                    {props.item.isFreeShip && _renderDetail(
-                        <TruckOutlined/>,
-                        <Typography.Text style={{ color: COLORS.FREE_SHIP }}>Miễn phí vận chuyển</Typography.Text>
-                    )}
-                    {Boolean(props.item.shippingCode) && _renderDetail(
+                <div className="order-list-item__info-grid">
+                    {Boolean(props.item.shippingCode) && _renderInfoPill(
+                        "Vận đơn",
                         <BarcodeOutlined/>,
                         <CopyToClipboard text={props.item.shippingCode}
                             onCopy={() => message.success("Đã sao chép mã vận đơnn")}>
-                            <TruncatedText
-                                text={props.item.shippingCode}
-                                maxLength={22}
-                                style={{color: COLORS.ORDER_STATUS.CREATE_DELIVERY}}
-                            />
+                            <span className="order-list-item__copy-target">
+                                {_renderTooltipText(props.item.shippingCode, "order-list-item__tracking-code")}
+                            </span>
                         </CopyToClipboard>,
-                        "order-list-item__detail--shipping-code"
+                        "order-list-item__info--tracking"
                     )}
-                    {orderCustomer && _renderDetail(
+                    {orderCustomer && _renderInfoPill(
+                        "Điện thoại",
                         <PhoneOutlined/>,
                         <CopyToClipboard text={orderCustomer.mobile}
                             onCopy={() => message.success("Đã sao chép số điện thoại")}>
-                            <TruncatedText text={orderCustomer.mobile} maxLength={24}/>
+                            <span className="order-list-item__copy-target">
+                                {_renderTooltipText(orderCustomer.mobile)}
+                            </span>
                         </CopyToClipboard>
                     )}
-                    {orderCustomer && _renderDetail(
+                    {orderCustomer && _renderInfoPill(
+                        "Địa chỉ",
                         <EnvironmentOutlined/>,
                         <CopyToClipboard text={orderCustomer.address}
                             onCopy={() => message.success("Đã sao chép địa chỉ")}>
-                            <TruncatedText text={orderCustomer.address} maxLength={34}/>
+                            <span className="order-list-item__copy-target">
+                                {_renderTooltipText(orderCustomer.address)}
+                            </span>
                         </CopyToClipboard>,
-                        "order-list-item__detail--address"
+                        "order-list-item__info--address"
                     )}
-                    {_renderDetail(
-                        <CalendarOutlined/>,
-                        <Typography.Text>{moment(new Date(props.item.createdDate)).format("DD-MM-yyyy")}</Typography.Text>
+                    {props.item.isFreeShip && _renderInfoPill(
+                        "Vận chuyển",
+                        <TruckOutlined/>,
+                        <Typography.Text style={{ color: COLORS.FREE_SHIP }}>Miễn phí vận chuyển</Typography.Text>
+                    )}
+                    {_renderInfoPill(
+                        "Thanh toán",
+                        <DollarOutlined/>,
+                        <Typography.Text>{props.item.paymentMethod}</Typography.Text>
                     )}
                 </div>
 
