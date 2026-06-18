@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Order State and Trello Sync Reliability** - Order transitions and Trello side effects become structured, testable, and recoverable. (completed 2026-06-16)
 - [x] **Phase 3: Fast Order and Shipping Workflows** - Order creation and shipping-code updates become faster and clearer for operators. (completed 2026-06-16)
 - [x] **Phase 4: COD, Search, and Operational Utilities** - COD cycles, list utilities, quick actions, and operational alerts become practical daily tools. (completed 2026-06-17)
-- [ ] **Phase 5: Cohesive UI/UX Refresh** - Refactored workflows get a consistent, mobile-friendly internal-operations interface.
+- [x] **Phase 5: Cohesive UI/UX Refresh** - Refactored workflows get a consistent, mobile-friendly internal-operations interface. (completed 2026-06-18)
 
 ## Phase Details
 
@@ -165,7 +165,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 05-03: Standardize workflow states for loading, empty, error, success, and confirmation.
+- [x] 05-03: Standardize workflow states for loading, empty, error, success, and confirmation.
 
 ## Progress
 
@@ -178,7 +178,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | 2. Order State and Trello Sync Reliability | 4/4 | Complete    | 2026-06-16 |
 | 3. Fast Order and Shipping Workflows | 3/3 | Complete    | 2026-06-16 |
 | 4. COD, Search, and Operational Utilities | 4/4 | Complete    | 2026-06-17 |
-| 5. Cohesive UI/UX Refresh | 3/4 | In Progress|  |
+| 5. Cohesive UI/UX Refresh | 4/4 | Complete   | 2026-06-18 |
 
 ## Requirement Coverage
 
@@ -209,7 +209,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | OPS-06 | Phase 4 | Pending |
 | UX-01 | Phase 5 | Complete |
 | UX-02 | Phase 5 | Complete |
-| UX-03 | Phase 5 | Pending |
+| UX-03 | Phase 5 | Complete |
 | UX-04 | Phase 5 | Complete |
 | UX-05 | Phase 5 | Complete |
 
