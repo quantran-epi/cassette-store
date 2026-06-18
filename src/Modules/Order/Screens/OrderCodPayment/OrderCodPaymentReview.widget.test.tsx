@@ -20,7 +20,7 @@ const buildOrder = (overrides: Partial<Order> = {}): Order => ({
     id: "order-matched",
     sequence: 1,
     createdDate: "2026-06-15T00:00:00.000Z",
-    name: "Matched Order",
+    name: "Đơn đã khớp",
     placedItems: [],
     changeItems: [],
     status: ORDER_STATUS.SHIPPED,
@@ -75,8 +75,8 @@ it("renders Vietnamese COD review labels and guarded apply state", async () => {
     expect(screen.getByText("Dòng 2")).toBeInTheDocument();
     expect(screen.getByText("Đã xác nhận")).toBeInTheDocument();
     expect(screen.getByText("Bao gồm")).toBeInTheDocument();
-    expect(screen.getByText("Đã khớp với đơn: Matched Order")).toBeInTheDocument();
-    expect(screen.getByText("COD import: 120,000 đ")).toBeInTheDocument();
+    expect(screen.getByText("Đã khớp với đơn: Đơn đã khớp")).toBeInTheDocument();
+    expect(screen.getByText("COD từ file: 120,000 đ")).toBeInTheDocument();
     expect(screen.getByText("COD trong app: 120,000 đ")).toBeInTheDocument();
     expect(screen.getByRole("button", {name: /Áp dụng các dòng COD đã xác nhận/i})).toBeDisabled();
 

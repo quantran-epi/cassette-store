@@ -92,8 +92,8 @@ export const OrderCodPaymentReviewWidget: FunctionComponent<OrderCodPaymentRevie
             </Stack>
 
             <Stack direction="row" wrap="wrap" gap={appTokens.space.sm} fullwidth>
-                <Tag>COD import: {formatCurrency(row.importedCodAmount)}</Tag>
-                <Tag>Phí ship import: {formatCurrency(row.importedShippingFee)}</Tag>
+                <Tag>COD từ file: {formatCurrency(row.importedCodAmount)}</Tag>
+                <Tag>Phí ship từ file: {formatCurrency(row.importedShippingFee)}</Tag>
                 <Tag>COD trong app: {formatCurrency(row.currentCodAmount)}</Tag>
                 {isCodImportReviewPaymentRow(row) && <Tag color="green">Dòng thanh toán</Tag>}
                 {isCodImportReviewDebitFeeRow(row) && <Tag color="blue">Dòng phí ship</Tag>}

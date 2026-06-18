@@ -65,6 +65,9 @@ const _summaryNumber = (summary: Record<string, number>, keyParts: string[]): nu
     return summary[keyParts.join("")] || 0;
 }
 
+const DATE_FROM_QUERY_KEY = "dateFrom";
+const DATE_TO_QUERY_KEY = "dateTo";
+
 export const OrderListScreen = () => {
     const doneOrders = useSelector((state: RootState) => state.order.doneOrders);
     const dispatch = useDispatch();
@@ -163,13 +166,13 @@ export const OrderListScreen = () => {
                     type="date"
                     style={{width: 150}}
                     value={query.dateFrom || ""}
-                    onChange={(e) => _updateQuery({["date" + "From"]: e.target.value || undefined} as OrderListQueryPatch)}/>
+                    onChange={(e) => _updateQuery({[DATE_FROM_QUERY_KEY]: e.target.value || undefined} as OrderListQueryPatch)}/>
                 <Input
                     aria-label="Đến ngày"
                     type="date"
                     style={{width: 150}}
                     value={query.dateTo || ""}
-                    onChange={(e) => _updateQuery({["date" + "To"]: e.target.value || undefined} as OrderListQueryPatch)}/>
+                    onChange={(e) => _updateQuery({[DATE_TO_QUERY_KEY]: e.target.value || undefined} as OrderListQueryPatch)}/>
                 <Select
                     aria-label="Sắp xếp đơn hàng"
                     style={{minWidth: 140}}

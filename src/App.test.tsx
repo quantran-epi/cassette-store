@@ -41,7 +41,7 @@ afterEach(() => {
 
 test('renders cassette store app shell', async () => {
   render(<App />);
-  expect(await screen.findByText(/Home/i)).toBeInTheDocument();
+  expect(await screen.findByText(/Tổng quan/i)).toBeInTheDocument();
   expect(screen.getAllByText(/Đơn hàng/i).length).toBeGreaterThan(0);
   expect(screen.getAllByText(/Khách hàng/i).length).toBeGreaterThan(0);
 });
