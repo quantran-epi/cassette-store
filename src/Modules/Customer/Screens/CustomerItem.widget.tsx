@@ -16,13 +16,12 @@ import {List} from "@components/List";
 import {Button} from "@components/Button";
 import {Popconfirm} from "@components/Popconfirm";
 import {Stack} from "@components/Layout/Stack";
-import {Tooltip} from "@components/Tootip";
 import {Space} from "@components/Layout/Space";
-import {Typography} from "@components/Typography";
+import {TruncatedText} from "@components/Typography";
 import {Modal} from "@components/Modal";
-import {Image} from "@components/Image";
 import {CustomerEditWidget} from "@modules/Customer/Screens/CustomerEdit.widget";
 import {CopyToClipboard} from 'react-copy-to-clipboard';
+import {appTokens} from "../../../theme/tokens";
 
 type CustomerItemProps = {
     item: Customer;
@@ -52,57 +51,40 @@ export const CustomerItemWidget: React.FunctionComponent<CustomerItemProps> = (p
 
     return <React.Fragment>
         <List.Item
+            data-testid={`customer-row-${props.item.id}`}
             actions={
                 props.readonly ? [
-                    <Button onClick={_onCreateOrder} icon={<EditOutlined/>}>Tạo đơn</Button>,
+                    <Button key="create-order" onClick={_onCreateOrder} icon={<EditOutlined/>}>Tạo đơn</Button>,
                 ] : [
-                    <Button size="small" onClick={_onEdit} icon={<EditOutlined/>}/>,
-                    <Popconfirm title="Xóa?" onConfirm={() => props.onDelete(props.item)}>
-                        <Button size="small" danger icon={<DeleteOutlined/>}/>
+                    <Button key="edit" aria-label="Chỉnh sửa khách hàng" size="small" onClick={_onEdit} icon={<EditOutlined/>}/>,
+                    <Popconfirm key="delete" title="Xóa?" onConfirm={() => props.onDelete(props.item)}>
+                        <Button aria-label="Xóa khách hàng" size="small" danger icon={<DeleteOutlined/>}/>
                     </Popconfirm>
                 ]
             }>
             <List.Item.Meta
-                title={<Stack>
-                    <Tooltip title={props.item.name}>
-                        <Button onClick={() => null}
-                                danger={props.item.isInBlacklist}
-                                type="text"
-                                style={{paddingLeft: 0, fontWeight: "bold"}}>
-                            <Space>
-                                <Typography.Text>{props.item.name}</Typography.Text>
-                                {_renderCustomerIcon()}
-                            </Space>
-                        </Button>
-                    </Tooltip>
+                title={<Stack style={{minWidth: 0}} gap={appTokens.space.xs}>
+                    <TruncatedText
+                        text={props.item.name}
+                        maxLength={28}
+                        style={{
+                            color: props.item.isInBlacklist ? appTokens.color.destructive : undefined,
+                            fontWeight: appTokens.font.semibold,
+                        }}/>
+                    {_renderCustomerIcon()}
                 </Stack>}
-                description={<Stack direction={"column"} align={"flex-start"} gap={0}>
+                description={<Stack direction={"column"} align={"flex-start"} gap={appTokens.space.xs} style={{minWidth: 0}}>
                     <CopyToClipboard text={props.item.mobile}
                                      onCopy={() => message.success("Đã sao chép số điện thoại")}>
-                        <Space>
-                            <PhoneOutlined/>
-                            <Typography.Paragraph ellipsis style={{
-                                width: 300,
-                                marginBottom: 0
-                            }}>{props.item.mobile}</Typography.Paragraph>
-                        </Space>
+                        <span>
+                            <TruncatedText icon={<PhoneOutlined/>} text={props.item.mobile} maxLength={24}/>
+                        </span>
                     </CopyToClipboard>
-                    {props.item.buyCount > 0 && <Space>
-                        <DropboxOutlined/>
-                        <Typography.Paragraph ellipsis style={{
-                            width: 300,
-                            marginBottom: 0
-                        }}>Đã mua {props.item.buyCount} đơn hàng</Typography.Paragraph>
-                    </Space>}
-                    <Tooltip title={props.item.address}>
-                        <Space>
-                            <EnvironmentOutlined/>
-                            <Typography.Paragraph ellipsis style={{
-                                width: 300,
-                                marginBottom: 0
-                            }}>{props.item.address}</Typography.Paragraph>
-                        </Space>
-                    </Tooltip>
+                    {props.item.buyCount > 0 && <TruncatedText
+                        icon={<DropboxOutlined/>}
+                        text={`Đã mua ${props.item.buyCount} đơn hàng`}
+                        maxLength={30}/>}
+                    <TruncatedText icon={<EnvironmentOutlined/>} text={props.item.address} maxLength={34}/>
                 </Stack>}/>
         </List.Item>
         <Modal open={toggleEdit.value} title={

@@ -1,24 +1,13 @@
 import {
     UserOutlined,
-    DeleteOutlined,
-    EditOutlined,
     PlusOutlined,
-    PhoneOutlined,
-    CheckCircleTwoTone,
-    CloseCircleTwoTone,
-    EnvironmentOutlined,
-    DropboxOutlined
 } from "@ant-design/icons";
 import {Button} from "@components/Button";
 import {Input} from "@components/Form/Input";
-import {Image} from "@components/Image";
 import {Space} from "@components/Layout/Space";
 import {Stack} from "@components/Layout/Stack";
 import {List} from "@components/List";
 import {Modal} from "@components/Modal";
-import {Popconfirm} from "@components/Popconfirm";
-import {Tooltip} from "@components/Tootip";
-import {Typography} from "@components/Typography";
 import {useScreenTitle, useToggle} from "@hooks";
 import {Customer} from "@store/Models/Customer";
 import {removeCustomer} from "@store/Reducers/CustomerReducer";
@@ -27,17 +16,14 @@ import {debounce, sortBy} from "lodash";
 import React, {useMemo, useState} from "react";
 import {useDispatch, useSelector} from "react-redux";
 import {CustomerAddWidget} from "./CustomerAdd.widget";
-import {CustomerEditWidget} from "./CustomerEdit.widget";
-import {COLORS} from "@common/Constants/AppConstants";
-import {Tag} from "@components/Tag";
-import {useMessage} from "@components/Message";
 import {CustomerItemWidget} from "@modules/Customer/Screens/CustomerItem.widget";
+import {appTokens} from "../../../theme/tokens";
 
 export const CustomerListScreen = () => {
     const customers = useSelector((state: RootState) => state.customer.customers);
     const toggleAddModal = useToggle({defaultValue: false});
     const dispatch = useDispatch();
-    const {} = useScreenTitle({value: "Khách hàng", deps: []});
+    useScreenTitle({value: "Khách hàng", deps: []});
     const [searchText, setSearchText] = useState("");
 
     const filteredCustomers = useMemo(() => {
@@ -50,14 +36,18 @@ export const CustomerListScreen = () => {
         toggleAddModal.show();
     }
 
-    const _onDelete = (item) => {
+    const _onDelete = (item: Customer) => {
         dispatch(removeCustomer([item.id]));
     }
 
     return <React.Fragment>
-        <Stack.Compact>
-            <Input allowClear placeholder="Tìm kiếm" onChange={debounce((e) => setSearchText(e.target.value), 350)}/>
-            <Button onClick={_onAdd} icon={<PlusOutlined/>}/>
+        <Stack.Compact style={{width: "100%", marginBottom: appTokens.space.sm}}>
+            <Input
+                allowClear
+                aria-label="Tìm kiếm khách hàng"
+                placeholder="Tìm kiếm"
+                onChange={debounce((e) => setSearchText(e.target.value), 350)}/>
+            <Button aria-label="Thêm khách hàng" onClick={_onAdd} icon={<PlusOutlined/>}>Thêm</Button>
         </Stack.Compact>
         <List
             pagination={filteredCustomers.length > 0 ? {
@@ -78,4 +68,3 @@ export const CustomerListScreen = () => {
         </Modal>
     </React.Fragment>
 }
-
