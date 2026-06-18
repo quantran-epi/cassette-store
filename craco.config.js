@@ -33,6 +33,7 @@ module.exports = {
                 lessLoaderOptions: {
                     lessOptions: {
                         modifyVars: {
+                            // JS tokens in src/theme/tokens.ts are authoritative; keep legacy Less values in parity.
                             '@primary-color': '#f58220',
                             '@primary-fade': '#ffefe0',
                             '@text-color': "rgba(0, 0, 0, 0.65)",
