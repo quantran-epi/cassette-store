@@ -47,11 +47,11 @@ Requirements for the first GSD-managed refactor milestone. Each maps to roadmap 
 
 ### UI/UX Refresh
 
-- [ ] **UX-01**: Refactored screens use a cohesive internal-operations visual system with consistent spacing, typography, colors, and action hierarchy.
-- [ ] **UX-02**: Mobile layouts for dashboard, customer list, order list, order detail/actions, order creation, and COD payment remain dense but tappable and readable.
-- [ ] **UX-03**: Primary operator workflows expose expected loading, empty, error, success, and confirmation states.
+- [x] **UX-01**: Refactored screens use a cohesive internal-operations visual system with consistent spacing, typography, colors, and action hierarchy.
+- [x] **UX-02**: Mobile layouts for dashboard, customer list, order list, order detail/actions, order creation, and COD payment remain dense but tappable and readable.
+- [x] **UX-03**: Primary operator workflows expose expected loading, empty, error, success, and confirmation states.
 - [ ] **UX-04**: Dashboard metrics are organized around operational decisions, not just raw totals.
-- [ ] **UX-05**: Existing business behavior remains available after UI refresh unless explicitly replaced by a better verified workflow.
+- [x] **UX-05**: Existing business behavior remains available after UI refresh unless explicitly replaced by a better verified workflow.
 
 ## v2 Requirements
 
@@ -116,11 +116,11 @@ Which phases or deferred release buckets cover which requirements. Updated durin
 | OPS-04 | Phase 4 | Complete |
 | OPS-05 | Phase 4 | Complete |
 | OPS-06 | Phase 4 | Complete |
-| UX-01 | Phase 5 | Pending |
-| UX-02 | Phase 5 | Pending |
-| UX-03 | Phase 5 | Pending |
+| UX-01 | Phase 5 | Complete |
+| UX-02 | Phase 5 | Complete |
+| UX-03 | Phase 5 | Complete |
 | UX-04 | Phase 5 | Pending |
-| UX-05 | Phase 5 | Pending |
+| UX-05 | Phase 5 | Complete |
 | BACK-01 | v2 | Deferred |
 | BACK-02 | v2 | Deferred |
 | BACK-03 | v2 | Deferred |
