@@ -46,6 +46,7 @@ import {CustomerAddWidget} from "@modules/Customer/Screens/CustomerAdd.widget";
 import {OrderSelectedCustomerSummaryWidget} from "./OrderSelectedCustomerSummary.widget";
 import {Collapse} from "@components/Collapse/Collapse";
 import {OrderCreateDetailsSummaryWidget} from "./OrderCreateDetailsSummary.widget";
+import {appTokens} from "../../../../theme/tokens";
 
 type CreateFlowMode = "lookup" | "add" | "form";
 
@@ -56,7 +57,7 @@ export const OrderCreateScreen = () => {
     const lastSequence = useSelector((state: RootState) => state.order.lastSequence);
     const message = useMessage();
     const navigate = useNavigate();
-    const {} = useScreenTitle({value: "Tạo đơn hàng", deps: []});
+    useScreenTitle({value: "Tạo đơn hàng", deps: []});
     const orderUtils = useOrder();
     const [files, setFiles] = useState<RcFile[]>([]);
     const [selectedCustomer, setSelectedCustomer] = useState<Customer>();
@@ -287,9 +288,13 @@ export const OrderCreateScreen = () => {
         return false;
     }
 
+    const _sectionDividerStyle = (): React.CSSProperties => ({
+        margin: `${appTokens.space.sm}px 0 ${appTokens.space.xs}px`
+    });
+
     const _renderPreviewUploadFiles = () => {
-        return filePreviewUrls.length > 0 ? <Stack fullwidth={true} gap={5} wrap="wrap">
-            {filePreviewUrls.map(e => <Image width={100} height={100} preview src={e}/>)}
+        return filePreviewUrls.length > 0 ? <Stack fullwidth={true} gap={appTokens.space.sm} wrap="wrap">
+            {filePreviewUrls.map(e => <Image key={e} width={72} height={72} preview src={e}/>)}
         </Stack> : <Typography.Text type={"secondary"}>Chưa có ảnh đính kèm</Typography.Text>
     }
 
@@ -303,15 +308,15 @@ export const OrderCreateScreen = () => {
             onAddSucceed={_onAddCustomerSucceed}/>
         }
         {Boolean(orderCustomer) && <SmartForm {...addOrderForm.defaultProps}>
-            <React.Fragment>
+            <Stack direction="column" align="stretch" gap={appTokens.space.sm} fullwidth>
                 <OrderSelectedCustomerSummaryWidget customer={orderCustomer} onChangeCustomer={_onChangeCustomer}/>
-                <Divider orientation="left">Tên đơn hàng</Divider>
+                <Divider orientation="left" style={_sectionDividerStyle()}>Tên đơn hàng</Divider>
                 <SmartForm.Item {...addOrderForm.itemDefinitions.name}>
                     <Input/>
                 </SmartForm.Item>
-                <Divider orientation="left"><Space>
+                <Divider orientation="left" style={_sectionDividerStyle()}><Space>
                     <Typography.Text>Danh sách hàng hoá</Typography.Text>
-                    <Button icon={<PlusOutlined/>} size="small" onClick={_onAddPlaceItems}/>
+                    <Button aria-label="Thêm hàng hoá" icon={<PlusOutlined/>} size="small" onClick={_onAddPlaceItems}/>
                 </Space></Divider>
                 <List
                     pagination={false}
@@ -329,11 +334,11 @@ export const OrderCreateScreen = () => {
                 <SmartForm.Item {...addOrderForm.itemDefinitions.note}>
                     <TextArea rows={3} placeholder="Nhập ghi chú"/>
                 </SmartForm.Item>
-                <Divider orientation="left"><Space>
+                <Divider orientation="left" style={_sectionDividerStyle()}><Space>
                     <Typography.Text>Ảnh đính kèm</Typography.Text>
                     <Upload showUploadList={false} beforeUpload={_onBeforeUpload} multiple={true}
-                            style={{marginBottom: 5}}>
-                        <Button icon={<UploadOutlined/>} size="small"/>
+                            style={{marginBottom: appTokens.space.xs}}>
+                        <Button aria-label="Thêm ảnh" icon={<UploadOutlined/>} size="small">Thêm ảnh</Button>
                     </Upload>
                 </Space></Divider>
                 <SmartForm.Item>
@@ -346,7 +351,7 @@ export const OrderCreateScreen = () => {
                         <Typography.Text>Thông tin thêm</Typography.Text>
                         <OrderCreateDetailsSummaryWidget values={detailsSummaryValues}/>
                     </Space>,
-                    children: <React.Fragment>
+                    children: <Stack direction="column" align="stretch" gap={appTokens.space.xs} fullwidth>
                         <SmartForm.Item {...addOrderForm.itemDefinitions.priorityStatus}>
                             <Radio.Group
                                 options={[
@@ -393,13 +398,13 @@ export const OrderCreateScreen = () => {
                         <SmartForm.Item {...addOrderForm.itemDefinitions.important}>
                             <Input placeholder="Nhập note quan trọng"/>
                         </SmartForm.Item>
-                    </React.Fragment>
+                    </Stack>
                 }]}/>
                 <SmartForm.Item>
-                    <Button type="primary" fullwidth onClick={_onSaveOrder} loading={toggleSaveLoading.value}>Lưu đơn
+                    <Button type="primary" fullwidth onClick={_onSaveOrder} loading={toggleSaveLoading.value} style={{minHeight: appTokens.control.height}}>Lưu đơn
                         hàng</Button>
                 </SmartForm.Item>
-            </React.Fragment>
+            </Stack>
         </SmartForm>}
     </React.Fragment>
 }
