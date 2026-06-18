@@ -8,8 +8,6 @@ import {
 } from "@ant-design/icons";
 import { COLORS, ORDER_PAYMENT_METHOD, ORDER_PRIORITY_STATUS, ORDER_STATUS } from "@common/Constants/AppConstants";
 import {buildOrderActionModel, OrderActionKey} from "@common/Helpers/OrderActionHelper";
-import { Space } from "@components/Layout/Space";
-import { Stack } from "@components/Layout/Stack";
 import { List } from "@components/List";
 import { useMessage } from "@components/Message";
 import { useModal } from "@components/Modal/ModalProvider";
@@ -35,6 +33,7 @@ import { OrderCustomerInfoWidget } from "@modules/Order/Screens/OrderItem/OrderC
 import { OrderSyncStatusWidget } from "@modules/Order/Screens/OrderItem/OrderSyncStatus.widget";
 import { OrderInlineShippingCodeWidget } from "@modules/Order/Screens/OrderItem/OrderInlineShippingCode.widget";
 import {OrderActionSurfaceWidget} from "@modules/Order/Screens/OrderItem/OrderActionSurface.widget";
+import "./OrderItem.widget.css";
 
 type OrderItemProps = {
     item: Order;
@@ -68,14 +67,16 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
     const toggleOrderAttachment = useToggle();
     const toggleOrderPriority = useToggle();
     const orderCustomer = useMemo(() => {
-        return customers.find(e => e.id == props.item.customerId);
-    }, [props.item.customerId])
+        return customers.find(e => e.id === props.item.customerId);
+    }, [customers, props.item.customerId])
     const orderSyncFailures = useMemo(() => {
         return (syncFailures || []).filter(failure => failure.orderId === props.item.id);
     }, [syncFailures, props.item.id])
     const orderUtils = useOrder();
 
     const _getCustomerColor = () => {
+        if (!orderCustomer) return undefined;
+
         if (orderCustomer.isVIP) return COLORS.CUSTOMER.VIP;
         else if (orderCustomer.buyCount > 3) return COLORS.CUSTOMER.BUY_MUTIPLE_TIMES;
         else if (orderCustomer.buyCount > 0) return COLORS.CUSTOMER.CONFIRMED;
@@ -272,6 +273,8 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
     }
 
     const _getOrderTitleText = () => {
+        if (!orderCustomer) return props.item.name;
+
         return `${props.item.name} (${orderCustomer.buyCount} đơn - ${_getBuyAmount().toLocaleString()}đ)`;
     }
 
@@ -283,72 +286,99 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
         />
     }
 
+    const _renderDetail = (icon: React.ReactNode, content: React.ReactNode, className?: string) => {
+        return <div className={["order-list-item__detail", className].filter(Boolean).join(" ")}>
+            <span className="order-list-item__detail-icon">{icon}</span>
+            <span className="order-list-item__detail-content">{content}</span>
+        </div>
+    }
+
+    const isDoneOrder = doneOrders?.includes(props.item.trelloCardId);
+    const shouldShowInlineShippingCode = !props.item.shippingCode
+        && props.item.status === ORDER_STATUS.PLACED
+        && orderUtils.isPushedTrello(props.item.id);
+
     return <React.Fragment>
-        <List.Item
-            actions={
-                [
-                    <OrderActionSurfaceWidget model={actionModel} onAction={_onActionClick}/>
-                ]
-            }>
-            <List.Item.Meta
-                title={<Stack gap={5}>
-                    {doneOrders?.includes(props.item.trelloCardId) ?
-                        <Badge count={"Tạo đơn"} size="small" offset={[0, 3]}>
-                            {_renderOrderTitle()}
-                        </Badge> : _renderOrderTitle()}
-                </Stack>}
-                description={<Stack direction={"column"} align={"flex-start"} gap={4}>
-                    <Space size={0}>
-                        {_renderOrderStatus()}
-                        {_renderIsPayCOD()}
-                        {props.item.returnReason && _renderReturnReason()}
-                        {props.item.priorityStatus !== ORDER_PRIORITY_STATUS.NONE && _renderPriority()}
-                    </Space>
+        <List.Item className="order-list-item">
+            <div className="order-list-item__body">
+                <div className="order-list-item__header">
+                    <div className="order-list-item__identity">
+                        <div className="order-list-item__title">
+                            {isDoneOrder ?
+                                <Badge count={"Tạo đơn"} size="small" offset={[0, 3]}>
+                                    {_renderOrderTitle()}
+                                </Badge> : _renderOrderTitle()}
+                        </div>
+                        <div className="order-list-item__tags">
+                            {_renderOrderStatus()}
+                            {_renderIsPayCOD()}
+                            {props.item.returnReason && _renderReturnReason()}
+                            {props.item.priorityStatus !== ORDER_PRIORITY_STATUS.NONE && _renderPriority()}
+                        </div>
+                    </div>
+                    <div className="order-list-item__actions">
+                        <OrderActionSurfaceWidget model={actionModel} onAction={_onActionClick}/>
+                    </div>
+                </div>
+
+                <div className="order-list-item__sync">
                     <OrderSyncStatusWidget failures={orderSyncFailures}/>
-                    <Stack gap={2} direction="column" align={"flex-start"}>
-                        <Space>
-                            <DollarOutlined />
-                            <Space>
-                                <Typography.Text>Thu {props.item.paymentAmount.toLocaleString()}đ</Typography.Text>
-                                {_renderCODAmount()}
-                            </Space>
-                        </Space>
-                        {props.item.isFreeShip && <Space>
-                            <TruckOutlined />
-                            <Typography.Text style={{ color: COLORS.FREE_SHIP }}>Miễn phí vận chuyển</Typography.Text>
-                        </Space>}
-                        {Boolean(props.item.shippingCode) && <CopyToClipboard text={props.item.shippingCode}
+                </div>
+
+                <div className="order-list-item__details">
+                    {_renderDetail(
+                        <DollarOutlined/>,
+                        <React.Fragment>
+                            <Typography.Text>Thu {props.item.paymentAmount.toLocaleString()}đ</Typography.Text>
+                            {_renderCODAmount()}
+                        </React.Fragment>,
+                        "order-list-item__detail--amount"
+                    )}
+                    {props.item.isFreeShip && _renderDetail(
+                        <TruckOutlined/>,
+                        <Typography.Text style={{ color: COLORS.FREE_SHIP }}>Miễn phí vận chuyển</Typography.Text>
+                    )}
+                    {Boolean(props.item.shippingCode) && _renderDetail(
+                        <BarcodeOutlined/>,
+                        <CopyToClipboard text={props.item.shippingCode}
                             onCopy={() => message.success("Đã sao chép mã vận đơnn")}>
                             <TruncatedText
-                                icon={<BarcodeOutlined />}
                                 text={props.item.shippingCode}
                                 maxLength={22}
                                 style={{color: COLORS.ORDER_STATUS.CREATE_DELIVERY}}
                             />
-                        </CopyToClipboard>}
-                        {!props.item.shippingCode && props.item.status === ORDER_STATUS.PLACED && orderUtils.isPushedTrello(props.item.id) &&
-                            <OrderInlineShippingCodeWidget
-                                loading={toggleLoadingChangeShippingCode.value}
-                                value={props.item.shippingCode}
-                                disabled={!orderUtils.isPushedTrello(props.item.id)}
-                                onSave={_onChangeShippingCode}/>
-                        }
-                        {orderCustomer && <React.Fragment>
-                            <CopyToClipboard text={orderCustomer.mobile}
-                                onCopy={() => message.success("Đã sao chép số điện thoại")}>
-                                <TruncatedText icon={<PhoneOutlined />} text={orderCustomer.mobile} maxLength={24}/>
-                            </CopyToClipboard>
-                            <CopyToClipboard text={orderCustomer.address}
-                                onCopy={() => message.success("Đã sao chép địa chỉ")}>
-                                <TruncatedText icon={<EnvironmentOutlined />} text={orderCustomer.address} maxLength={34}/>
-                            </CopyToClipboard>
-                        </React.Fragment>}
-                        <Space>
-                            <CalendarOutlined />
-                            <Typography.Text>{moment(new Date(props.item.createdDate)).format("DD-MM-yyyy")}</Typography.Text>
-                        </Space>
-                    </Stack>
-                </Stack>} />
+                        </CopyToClipboard>,
+                        "order-list-item__detail--shipping-code"
+                    )}
+                    {orderCustomer && _renderDetail(
+                        <PhoneOutlined/>,
+                        <CopyToClipboard text={orderCustomer.mobile}
+                            onCopy={() => message.success("Đã sao chép số điện thoại")}>
+                            <TruncatedText text={orderCustomer.mobile} maxLength={24}/>
+                        </CopyToClipboard>
+                    )}
+                    {orderCustomer && _renderDetail(
+                        <EnvironmentOutlined/>,
+                        <CopyToClipboard text={orderCustomer.address}
+                            onCopy={() => message.success("Đã sao chép địa chỉ")}>
+                            <TruncatedText text={orderCustomer.address} maxLength={34}/>
+                        </CopyToClipboard>,
+                        "order-list-item__detail--address"
+                    )}
+                    {_renderDetail(
+                        <CalendarOutlined/>,
+                        <Typography.Text>{moment(new Date(props.item.createdDate)).format("DD-MM-yyyy")}</Typography.Text>
+                    )}
+                </div>
+
+                {shouldShowInlineShippingCode && <div className="order-list-item__inline-shipping">
+                    <OrderInlineShippingCodeWidget
+                        loading={toggleLoadingChangeShippingCode.value}
+                        value={props.item.shippingCode}
+                        disabled={!orderUtils.isPushedTrello(props.item.id)}
+                        onSave={_onChangeShippingCode}/>
+                </div>}
+            </div>
         </List.Item>
 
         <OrderChangeShippingCodeWidget
