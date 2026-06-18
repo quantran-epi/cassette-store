@@ -47,12 +47,6 @@ jest.mock("@components/Message", () => ({
     useMessage: () => mockMessage
 }));
 
-jest.mock("@components/Modal/ModalProvider", () => ({
-    useModal: () => ({
-        confirm: mockConfirm
-    })
-}));
-
 const mockParseCodWorkbookRows = parseCodWorkbookRows as jest.MockedFunction<typeof parseCodWorkbookRows>;
 
 const buildOrder = (overrides: Partial<Order> = {}): Order => ({
@@ -118,7 +112,7 @@ beforeEach(() => {
     (set as jest.Mock).mockImplementation(() => Promise.resolve());
     (del as jest.Mock).mockImplementation(() => Promise.resolve());
     mockParseCodWorkbookRows.mockReset();
-    mockConfirm.mockImplementation(({onOk}) => onOk?.());
+    mockConfirm.mockReset();
     Object.values(mockMessage).forEach(mock => mock.mockClear());
     store.dispatch(setAppContextState({currentFeatureName: ""}));
 });
@@ -130,10 +124,10 @@ afterEach(() => {
 it("renders empty state and import controls before a file is selected", () => {
     renderImportWidget({orders});
 
-    expect(screen.getByText("No COD file imported")).toBeInTheDocument();
-    expect(screen.getAllByText("Import a COD Excel file to review matched orders before applying payment.").length).toBeGreaterThan(0);
-    expect(screen.getByRole("button", {name: /Import COD Excel/i})).toBeInTheDocument();
-    expect(screen.getByRole("button", {name: /Map columns manually/i})).toBeDisabled();
+    expect(screen.getByText("Chưa nhập file COD")).toBeInTheDocument();
+    expect(screen.getAllByText("Nhập file Excel COD để kiểm tra đơn đã khớp trước khi áp dụng thanh toán.").length).toBeGreaterThan(0);
+    expect(screen.getByRole("button", {name: /Nhập Excel COD/i})).toBeInTheDocument();
+    expect(screen.getByRole("button", {name: /Gán cột thủ công/i})).toBeDisabled();
 });
 
 it("renders all review bucket labels after parsing a COD file", async () => {
@@ -142,16 +136,16 @@ it("renders all review bucket labels after parsing a COD file", async () => {
 
     await uploadCodFile(container);
 
-    expect(await screen.findByText(/^Matched: 1$/i)).toBeInTheDocument();
-    expect(screen.getByText(/^Unmatched: 1$/i)).toBeInTheDocument();
-    expect(screen.getByText(/^Duplicate: 0$/i)).toBeInTheDocument();
-    expect(screen.getByText(/^Amount mismatch: 0$/i)).toBeInTheDocument();
-    expect(screen.getByText(/^Already paid: 0$/i)).toBeInTheDocument();
-    expect(screen.getByText("Row 2")).toBeInTheDocument();
+    expect(await screen.findByText(/^Đã khớp: 1$/i)).toBeInTheDocument();
+    expect(screen.getByText(/^Chưa khớp: 1$/i)).toBeInTheDocument();
+    expect(screen.getByText(/^Trùng: 0$/i)).toBeInTheDocument();
+    expect(screen.getByText(/^Lệch số tiền: 0$/i)).toBeInTheDocument();
+    expect(screen.getByText(/^Đã thanh toán: 0$/i)).toBeInTheDocument();
+    expect(screen.getByText("Dòng 2")).toBeInTheDocument();
     expect(screen.getByText("VN001")).toBeInTheDocument();
-    expect(screen.getByText(/Imported COD: 120,000 đ/i)).toBeInTheDocument();
-    expect(screen.getByText(/Current app COD: 120,000 đ/i)).toBeInTheDocument();
-    expect(screen.getByText(/Matched order: Matched Order/i)).toBeInTheDocument();
+    expect(screen.getByText(/COD import: 120,000 đ/i)).toBeInTheDocument();
+    expect(screen.getByText(/COD trong app: 120,000 đ/i)).toBeInTheDocument();
+    expect(screen.getByText(/Đã khớp với đơn: Matched Order/i)).toBeInTheDocument();
 });
 
 it("keeps apply disabled while included unresolved rows remain", async () => {
@@ -160,10 +154,10 @@ it("keeps apply disabled while included unresolved rows remain", async () => {
 
     await uploadCodFile(container);
 
-    expect(await screen.findByText("Some rows need review. Resolve or exclude them before applying.")).toBeInTheDocument();
-    expect(screen.getByRole("button", {name: /Apply confirmed COD rows/i})).toBeDisabled();
+    expect(await screen.findByText("Có dòng cần kiểm tra. Xử lý hoặc bỏ chọn trước khi áp dụng.")).toBeInTheDocument();
+    expect(screen.getByRole("button", {name: /Áp dụng các dòng COD đã xác nhận/i})).toBeDisabled();
     expect(store.getState().appContext.codImportIssueCount).toBe(1);
-    expect(store.getState().appContext.lastCodImportIssueText).toBe("Some rows need review. Resolve or exclude them before applying.");
+    expect(store.getState().appContext.lastCodImportIssueText).toBe("Có dòng cần kiểm tra. Xử lý hoặc bỏ chọn trước khi áp dụng.");
 });
 
 it("shows manual column mapping when detection confidence is low", async () => {
@@ -172,10 +166,10 @@ it("shows manual column mapping when detection confidence is low", async () => {
 
     await uploadCodFile(container);
 
-    expect(await screen.findByText("Detected columns:")).toBeInTheDocument();
-    expect(screen.getByText("Shipping code")).toBeInTheDocument();
-    expect(screen.getByText("COD amount")).toBeInTheDocument();
-    expect(screen.getByText("Shipping fee")).toBeInTheDocument();
+    expect(await screen.findByText("Cột nhận diện:")).toBeInTheDocument();
+    expect(screen.getByText("Mã vận đơn")).toBeInTheDocument();
+    expect(screen.getByText("Tiền COD")).toBeInTheDocument();
+    expect(screen.getByText("Phí vận chuyển")).toBeInTheDocument();
 });
 
 it("confirms and sends the helper-built payload for confirmed matched rows", async () => {
@@ -185,22 +179,24 @@ it("confirms and sends the helper-built payload for confirmed matched rows", asy
 
     await uploadCodFile(container);
 
-    const applyButton = await screen.findByRole("button", {name: /Apply confirmed COD rows/i});
+    const applyButton = await screen.findByRole("button", {name: /Áp dụng các dòng COD đã xác nhận/i});
     await waitFor(() => expect(applyButton).toBeEnabled());
     expect(onApply).not.toHaveBeenCalled();
 
     await userEvent.click(applyButton);
+    expect(await screen.findByText("Áp dụng các dòng COD đã xác nhận?")).toBeInTheDocument();
+    expect(onApply).not.toHaveBeenCalled();
 
-    expect(mockConfirm).toHaveBeenCalledWith(expect.objectContaining({
-        title: "Apply COD payments: confirmed rows will mark matched orders as paid COD."
-    }));
+    await userEvent.click(screen.getByRole("button", {name: "Đồng ý"}));
+
+    expect(mockConfirm).not.toHaveBeenCalled();
     await waitFor(() => expect(onApply).toHaveBeenCalledWith(expect.objectContaining({
         paymentOrderIds: ["order-matched"],
         debitFeeOrderIds: [],
         includedRowIds: ["cod-row-2"],
         blockingIssueIds: []
     })));
-    expect(screen.getByText("No COD file imported")).toBeInTheDocument();
+    expect(screen.getByText("Chưa nhập file COD")).toBeInTheDocument();
     expect(store.getState().appContext.codImportIssueCount).toBe(0);
     expect(store.getState().appContext.lastCodImportIssueText).toBe("");
 });

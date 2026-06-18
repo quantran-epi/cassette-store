@@ -8,7 +8,6 @@ import {Space} from "@components/Layout/Space";
 import {Tag} from "@components/Tag";
 import {Typography} from "@components/Typography";
 import {useMessage} from "@components/Message";
-import {useModal} from "@components/Modal/ModalProvider";
 import {FileExcelOutlined, SettingOutlined, UploadOutlined} from "@ant-design/icons";
 import type {Order} from "@store/Models/Order";
 import {
@@ -24,6 +23,7 @@ import {OrderCodPaymentColumnMapWidget} from "./OrderCodPaymentColumnMap.widget"
 import {OrderCodPaymentReviewWidget} from "./OrderCodPaymentReview.widget";
 import {useDispatch} from "react-redux";
 import {clearCodImportIssueStatus, setCodImportIssueStatus} from "@store/Reducers/AppContextReducer";
+import {appTokens} from "../../../../theme/tokens";
 
 type OrderCodPaymentImportWidgetProps = {
     orders: Order[];
@@ -32,7 +32,15 @@ type OrderCodPaymentImportWidgetProps = {
 }
 
 const LOW_CONFIDENCE_THRESHOLD = 0.8;
-const COD_REVIEW_ISSUE_TEXT = "Some rows need review. Resolve or exclude them before applying.";
+const COD_REVIEW_ISSUE_TEXT = "Có dòng cần kiểm tra. Xử lý hoặc bỏ chọn trước khi áp dụng.";
+
+const COLUMN_LABELS: Record<string, string> = {
+    shippingCode: "Mã vận đơn",
+    codAmount: "Tiền COD",
+    shippingFee: "Phí vận chuyển",
+    status: "Trạng thái",
+    paidDate: "Ngày trả COD"
+}
 
 const _countUnresolvedIncludedRows = (review: CodImportReview): number => {
     return review.rows.filter(row => row.included && (!row.confirmed || row.issueIds.length > 0 || row.bucket !== "matched")).length;
@@ -47,7 +55,6 @@ export const OrderCodPaymentImportWidget: FunctionComponent<OrderCodPaymentImpor
     const [parsing, setParsing] = useState(false);
     const [showColumnMap, setShowColumnMap] = useState(false);
     const dispatch = useDispatch();
-    const modal = useModal();
     const message = useMessage();
 
     const _syncCodImportIssueStatus = (nextReview: CodImportReview) => {
@@ -83,7 +90,7 @@ export const OrderCodPaymentImportWidget: FunctionComponent<OrderCodPaymentImpor
             setShowColumnMap(nextDetection.confidence < LOW_CONFIDENCE_THRESHOLD || nextDetection.missingRequiredColumns.length > 0);
             _buildReview(rows, nextColumnMap);
         } catch (e) {
-            setParseError("Could not read this COD file. Map columns manually or choose another file.");
+            setParseError("Không đọc được file COD này. Gán cột thủ công hoặc chọn file khác.");
         } finally {
             setParsing(false);
         }
@@ -110,29 +117,25 @@ export const OrderCodPaymentImportWidget: FunctionComponent<OrderCodPaymentImpor
 
     const _onApply = () => {
         if (!review || !props.onApply) return;
-        modal.confirm({
-            title: "Apply COD payments: confirmed rows will mark matched orders as paid COD.",
-            onOk: () => {
-                try {
-                    props.onApply(buildCodImportApplyPayload(review));
-                    message.success("COD payments applied");
-                    _clearReview();
-                } catch (e) {
-                    dispatch(setCodImportIssueStatus({
-                        count: Math.max(_countUnresolvedIncludedRows(review), 1),
-                        text: e?.message || "Could not apply COD payments"
-                    }));
-                    message.error(e?.message || "Could not apply COD payments");
-                }
-            }
-        });
+        try {
+            props.onApply(buildCodImportApplyPayload(review));
+            message.success("Đã áp dụng COD");
+            _clearReview();
+        } catch (e) {
+            const errorText = e?.message || "Không áp dụng được COD";
+            dispatch(setCodImportIssueStatus({
+                count: Math.max(_countUnresolvedIncludedRows(review), 1),
+                text: errorText
+            }));
+            message.error(errorText);
+        }
     }
 
-    return <Stack direction="column" align="stretch" fullwidth gap={16} style={{marginTop: 16}}>
-        <Stack direction="row" justify="space-between" align="center" wrap="wrap" fullwidth gap={8}>
-            <Stack direction="column" gap={4} align="flex-start">
-                <Typography.Text strong>COD import</Typography.Text>
-                <Typography.Text type="secondary">Import a COD Excel file to review matched orders before applying payment.</Typography.Text>
+    return <Stack direction="column" align="stretch" fullwidth gap={appTokens.space.md} style={{marginTop: appTokens.space.md}}>
+        <Stack direction="row" justify="space-between" align="center" wrap="wrap" fullwidth gap={appTokens.space.sm}>
+            <Stack direction="column" gap={appTokens.space.xs} align="flex-start">
+                <Typography.Text strong>Nhập COD</Typography.Text>
+                <Typography.Text type="secondary">Nhập file Excel COD để kiểm tra đơn đã khớp trước khi áp dụng thanh toán.</Typography.Text>
             </Stack>
             <Space wrap>
                 <Upload
@@ -141,10 +144,10 @@ export const OrderCodPaymentImportWidget: FunctionComponent<OrderCodPaymentImpor
                     showUploadList={false}
                     multiple={false}
                 >
-                    <Button type="primary" icon={<UploadOutlined/>} loading={parsing}>Import COD Excel</Button>
+                    <Button type="primary" icon={<UploadOutlined/>} loading={parsing}>Nhập Excel COD</Button>
                 </Upload>
                 <Button icon={<SettingOutlined/>} disabled={rawRows.length === 0} onClick={() => setShowColumnMap(!showColumnMap)}>
-                    Map columns manually
+                    Gán cột thủ công
                 </Button>
             </Space>
         </Stack>
@@ -152,9 +155,9 @@ export const OrderCodPaymentImportWidget: FunctionComponent<OrderCodPaymentImpor
         {parseError && <Alert type="error" showIcon message={parseError} />}
 
         {detection && <Space wrap>
-            <Tag icon={<FileExcelOutlined/>}>Rows: {rawRows.length}</Tag>
-            <Tag color={detection.confidence >= LOW_CONFIDENCE_THRESHOLD ? "success" : "warning"}>Detection: {Math.round(detection.confidence * 100)}%</Tag>
-            {detection.missingRequiredColumns.map(column => <Tag key={column} color="error">Missing {column}</Tag>)}
+            <Tag icon={<FileExcelOutlined/>}>Dòng: {rawRows.length}</Tag>
+            <Tag color={detection.confidence >= LOW_CONFIDENCE_THRESHOLD ? "success" : "warning"}>Tự nhận diện: {Math.round(detection.confidence * 100)}%</Tag>
+            {detection.missingRequiredColumns.map(column => <Tag key={column} color="error">Thiếu {COLUMN_LABELS[column]}</Tag>)}
         </Space>}
 
         {showColumnMap && rawRows.length > 0 && <OrderCodPaymentColumnMapWidget
@@ -163,12 +166,12 @@ export const OrderCodPaymentImportWidget: FunctionComponent<OrderCodPaymentImpor
             onChange={_onColumnMapChange}
         />}
 
-        {!review && <div style={{border: "1px solid #d9d9d9", borderRadius: 6, padding: 16}}>
+        {!review && <div style={{border: `1px solid ${appTokens.color.border}`, borderRadius: appTokens.radius.base, padding: appTokens.space.md}}>
             <Empty
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
-                description={<Stack direction="column" gap={4} align="center">
-                    <Typography.Text strong>No COD file imported</Typography.Text>
-                    <Typography.Text type="secondary">Import a COD Excel file to review matched orders before applying payment.</Typography.Text>
+                description={<Stack direction="column" gap={appTokens.space.xs} align="center">
+                    <Typography.Text strong>Chưa nhập file COD</Typography.Text>
+                    <Typography.Text type="secondary">Nhập file Excel COD để kiểm tra đơn đã khớp trước khi áp dụng thanh toán.</Typography.Text>
                 </Stack>}
             />
         </div>}

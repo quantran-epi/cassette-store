@@ -8,6 +8,7 @@ import {Space} from "@components/Layout/Space";
 import {Tag} from "@components/Tag";
 import {Typography} from "@components/Typography";
 import {Tabs} from "@components/Tabs";
+import {Popconfirm} from "@components/Popconfirm";
 import {CheckCircleOutlined, ExclamationCircleOutlined} from "@ant-design/icons";
 import type {TabsProps} from "antd";
 import type {Order} from "@store/Models/Order";
@@ -18,6 +19,7 @@ import {
     updateCodImportReviewRow
 } from "@common/Helpers/CodPaymentImportHelper";
 import type {CodImportReview, CodImportReviewBucket, CodImportReviewRow} from "@common/Helpers/CodPaymentImportHelper";
+import {appTokens} from "../../../../theme/tokens";
 
 type OrderCodPaymentReviewWidgetProps = {
     review: CodImportReview;
@@ -28,11 +30,11 @@ type OrderCodPaymentReviewWidgetProps = {
 }
 
 const BUCKET_LABELS: Record<CodImportReviewBucket, string> = {
-    matched: "Matched",
-    unmatched: "Unmatched",
-    duplicate: "Duplicate",
-    "amount-mismatch": "Amount mismatch",
-    "already-paid": "Already paid"
+    matched: "Đã khớp",
+    unmatched: "Chưa khớp",
+    duplicate: "Trùng",
+    "amount-mismatch": "Lệch số tiền",
+    "already-paid": "Đã thanh toán"
 }
 
 const BUCKET_ORDER: CodImportReviewBucket[] = ["matched", "unmatched", "duplicate", "amount-mismatch", "already-paid"];
@@ -44,18 +46,18 @@ const formatCurrency = (value?: number | null): string => {
 
 export const OrderCodPaymentReviewWidget: FunctionComponent<OrderCodPaymentReviewWidgetProps> = (props) => {
     const applyReady = canApplyCodImportReview(props.review);
-    const includedConfirmedCount = props.review.rows.filter(row => row.included && row.confirmed && row.bucket === "matched").length;
-    const unresolvedIncludedCount = props.review.rows.filter(row => row.included && (!row.confirmed || row.issueIds.length > 0 || row.bucket !== "matched")).length;
+    const confirmedCount = props.review.rows.filter(row => row.included && row.confirmed && row.bucket === "matched").length;
+    const unresolvedCount = props.review.rows.filter(row => row.included && (!row.confirmed || row.issueIds.length > 0 || row.bucket !== "matched")).length;
 
     const selectableOrders = useMemo(() => {
         return props.orders.map(order => ({
             id: order.id,
-            label: `${order.name} (${order.shippingCode || "no code"})`,
+            label: `${order.name} (${order.shippingCode || "chưa có mã"})`,
             order
         }));
     }, [props.orders]);
 
-    const _onIncludeChange = (row: CodImportReviewRow, included: boolean) => {
+    const _onRowToggle = (row: CodImportReviewRow, included: boolean) => {
         props.onChange(updateCodImportReviewRow(props.review, row.id, {included}));
     }
 
@@ -74,45 +76,45 @@ export const OrderCodPaymentReviewWidget: FunctionComponent<OrderCodPaymentRevie
     }
 
     const _renderRow = (row: CodImportReviewRow) => {
-        return <Stack key={row.id} direction="column" align="stretch" fullwidth gap={8} style={{padding: 12, borderBottom: "1px solid #d9d9d9"}}>
-            <Stack direction="row" justify="space-between" align="flex-start" wrap="wrap" fullwidth gap={8}>
-                <Stack direction="column" align="flex-start" gap={4}>
+        return <Stack key={row.id} direction="column" align="stretch" fullwidth gap={appTokens.space.sm} style={{padding: appTokens.space.sm, borderBottom: `1px solid ${appTokens.color.border}`}}>
+            <Stack direction="row" justify="space-between" align="flex-start" wrap="wrap" fullwidth gap={appTokens.space.sm}>
+                <Stack direction="column" align="flex-start" gap={appTokens.space.xs}>
                     <Space wrap>
-                        <Tag>Row {row.rowNumber}</Tag>
-                        <Typography.Text strong>{row.shippingCode || "No shipping code"}</Typography.Text>
-                        {row.confirmed && row.bucket === "matched" ? <Tag color="success" icon={<CheckCircleOutlined/>}>Confirmed</Tag> : <Tag color="warning" icon={<ExclamationCircleOutlined/>}>Needs review</Tag>}
+                        <Tag>Dòng {row.rowNumber}</Tag>
+                        <Typography.Text strong>{row.shippingCode || "Chưa có mã vận đơn"}</Typography.Text>
+                        {row.confirmed && row.bucket === "matched" ? <Tag color="success" icon={<CheckCircleOutlined/>}>Đã xác nhận</Tag> : <Tag color="warning" icon={<ExclamationCircleOutlined/>}>Cần kiểm tra</Tag>}
                     </Space>
-                    <Typography.Text type="secondary">Matched order: {row.matchedOrderName || row.matchedOrderId || "-"}</Typography.Text>
+                    <Typography.Text type="secondary">Đã khớp với đơn: {row.matchedOrderName || row.matchedOrderId || "-"}</Typography.Text>
                 </Stack>
-                <Checkbox checked={row.included} onChange={event => _onIncludeChange(row, event.target.checked)}>
-                    Include
+                <Checkbox checked={row.included} onChange={event => _onRowToggle(row, event.target.checked)}>
+                    Bao gồm
                 </Checkbox>
             </Stack>
 
-            <Stack direction="row" wrap="wrap" gap={8} fullwidth>
-                <Tag>Imported COD: {formatCurrency(row.importedCodAmount)}</Tag>
-                <Tag>Imported shipping fee: {formatCurrency(row.importedShippingFee)}</Tag>
-                <Tag>Current app COD: {formatCurrency(row.currentCodAmount)}</Tag>
-                {isCodImportReviewPaymentRow(row) && <Tag color="green">Payment row</Tag>}
-                {isCodImportReviewDebitFeeRow(row) && <Tag color="blue">Debit shipping fee</Tag>}
+            <Stack direction="row" wrap="wrap" gap={appTokens.space.sm} fullwidth>
+                <Tag>COD import: {formatCurrency(row.importedCodAmount)}</Tag>
+                <Tag>Phí ship import: {formatCurrency(row.importedShippingFee)}</Tag>
+                <Tag>COD trong app: {formatCurrency(row.currentCodAmount)}</Tag>
+                {isCodImportReviewPaymentRow(row) && <Tag color="green">Dòng thanh toán</Tag>}
+                {isCodImportReviewDebitFeeRow(row) && <Tag color="blue">Dòng phí ship</Tag>}
             </Stack>
 
-            <Stack direction="row" align="center" wrap="wrap" fullwidth gap={8}>
+            <Stack direction="row" align="center" wrap="wrap" fullwidth gap={appTokens.space.sm}>
                 <Select
                     showSearch
                     allowClear
-                    placeholder="Manual resolve"
+                    placeholder="Chọn đơn để xử lý thủ công"
                     value={row.matchedOrderId}
                     onChange={(orderId) => _onManualResolve(row, orderId)}
                     filterOption={(inputValue, option) => {
                         if (!option?.children) return false;
                         return option.children.toString().toLowerCase().includes(inputValue.toLowerCase());
                     }}
-                    style={{minWidth: 260, flex: 1}}
+                    style={{flex: "1 1 220px", minWidth: 0}}
                 >
                     {selectableOrders.map(option => <Option key={option.id} value={option.id}>{option.label}</Option>)}
                 </Select>
-                <Typography.Text type="secondary">Include/exclude or resolve before applying.</Typography.Text>
+                <Typography.Text type="secondary">Bỏ chọn hoặc khớp đơn trước khi áp dụng.</Typography.Text>
             </Stack>
         </Stack>
     }
@@ -122,25 +124,31 @@ export const OrderCodPaymentReviewWidget: FunctionComponent<OrderCodPaymentRevie
         label: `${BUCKET_LABELS[bucket]} (${props.review.buckets[bucket].length})`,
         children: props.review.buckets[bucket].length > 0
             ? <Stack direction="column" align="stretch" fullwidth gap={0}>{props.review.buckets[bucket].map(_renderRow)}</Stack>
-            : <Typography.Text type="secondary">No rows in this bucket.</Typography.Text>
+            : <Typography.Text type="secondary">Không có dòng nào trong nhóm này</Typography.Text>
     }));
 
-    return <Stack direction="column" align="stretch" fullwidth gap={12}>
-        {unresolvedIncludedCount > 0 && <Alert type="warning" showIcon message="Some rows need review. Resolve or exclude them before applying." />}
+    return <Stack direction="column" align="stretch" fullwidth gap={appTokens.space.sm}>
+        {unresolvedCount > 0 && <Alert type="warning" showIcon message="Có dòng cần kiểm tra. Xử lý hoặc bỏ chọn trước khi áp dụng." />}
 
-        <Stack direction="row" justify="space-between" align="center" wrap="wrap" fullwidth gap={8}>
+        <Stack direction="row" justify="space-between" align="center" wrap="wrap" fullwidth gap={appTokens.space.sm}>
             <Space wrap>
-                <Tag color="success">Confirmed included: {includedConfirmedCount}</Tag>
-                <Tag color={unresolvedIncludedCount > 0 ? "warning" : "default"}>Unresolved included: {unresolvedIncludedCount}</Tag>
+                <Tag color="success">Đã xác nhận: {confirmedCount}</Tag>
+                <Tag color={unresolvedCount > 0 ? "warning" : "default"}>Cần xử lý: {unresolvedCount}</Tag>
             </Space>
-            <Button
-                type="primary"
+            <Popconfirm
+                title="Áp dụng các dòng COD đã xác nhận?"
+                description="Các đơn đã khớp sẽ được đánh dấu đã trả COD."
                 disabled={!applyReady || !props.onApply}
-                loading={props.applying}
-                onClick={props.onApply}
+                onConfirm={props.onApply}
             >
-                Apply confirmed COD rows
-            </Button>
+                <Button
+                    type="primary"
+                    disabled={!applyReady || !props.onApply}
+                    loading={props.applying}
+                >
+                    Áp dụng các dòng COD đã xác nhận
+                </Button>
+            </Popconfirm>
         </Stack>
 
         <Space wrap>

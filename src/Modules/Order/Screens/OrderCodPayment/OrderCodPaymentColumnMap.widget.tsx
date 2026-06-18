@@ -12,11 +12,11 @@ type OrderCodPaymentColumnMapWidgetProps = {
 }
 
 const COLUMN_LABELS: Record<CodImportColumnKey, string> = {
-    shippingCode: "Shipping code",
-    codAmount: "COD amount",
-    shippingFee: "Shipping fee",
-    status: "Status",
-    paidDate: "Paid date"
+    shippingCode: "Mã vận đơn",
+    codAmount: "Tiền COD",
+    shippingFee: "Phí vận chuyển",
+    status: "Trạng thái",
+    paidDate: "Ngày trả COD"
 }
 
 const COLUMN_KEYS: CodImportColumnKey[] = ["shippingCode", "codAmount", "shippingFee", "status", "paidDate"];
@@ -37,8 +37,8 @@ export const OrderCodPaymentColumnMapWidget: FunctionComponent<OrderCodPaymentCo
 
     return <Stack direction="column" align="stretch" fullwidth gap={12} style={{padding: 12, border: "1px solid #d9d9d9", borderRadius: 6}}>
         <Stack direction="column" gap={4} align="flex-start">
-            <Typography.Text strong>Map columns manually</Typography.Text>
-            <Typography.Text type="secondary">Detected columns: {sourceColumns.length > 0 ? sourceColumns.map(column => <Tag key={column}>{column}</Tag>) : "None"}</Typography.Text>
+            <Typography.Text strong>Gán cột thủ công</Typography.Text>
+            <Typography.Text type="secondary">Cột nhận diện: {sourceColumns.length > 0 ? sourceColumns.map(column => <Tag key={column}>{column}</Tag>) : "Không có"}</Typography.Text>
         </Stack>
 
         <Stack direction="column" align="stretch" fullwidth gap={8}>
@@ -46,7 +46,7 @@ export const OrderCodPaymentColumnMapWidget: FunctionComponent<OrderCodPaymentCo
                 <Typography.Text>{COLUMN_LABELS[key]}</Typography.Text>
                 <Select
                     allowClear
-                    placeholder={`Select ${COLUMN_LABELS[key]}`}
+                    placeholder={`Chọn ${COLUMN_LABELS[key]}`}
                     value={props.columnMap[key]}
                     onChange={(value) => _onChange(key, value)}
                     style={{width: "100%"}}
