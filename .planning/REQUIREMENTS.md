@@ -50,7 +50,7 @@ Requirements for the first GSD-managed refactor milestone. Each maps to roadmap 
 - [x] **UX-01**: Refactored screens use a cohesive internal-operations visual system with consistent spacing, typography, colors, and action hierarchy.
 - [x] **UX-02**: Mobile layouts for dashboard, customer list, order list, order detail/actions, order creation, and COD payment remain dense but tappable and readable.
 - [x] **UX-03**: Primary operator workflows expose expected loading, empty, error, success, and confirmation states.
-- [ ] **UX-04**: Dashboard metrics are organized around operational decisions, not just raw totals.
+- [x] **UX-04**: Dashboard metrics are organized around operational decisions, not just raw totals.
 - [x] **UX-05**: Existing business behavior remains available after UI refresh unless explicitly replaced by a better verified workflow.
 
 ## v2 Requirements
@@ -119,7 +119,7 @@ Which phases or deferred release buckets cover which requirements. Updated durin
 | UX-01 | Phase 5 | Complete |
 | UX-02 | Phase 5 | Complete |
 | UX-03 | Phase 5 | Complete |
-| UX-04 | Phase 5 | Pending |
+| UX-04 | Phase 5 | Complete |
 | UX-05 | Phase 5 | Complete |
 | BACK-01 | v2 | Deferred |
 | BACK-02 | v2 | Deferred |

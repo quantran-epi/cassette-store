@@ -161,7 +161,7 @@ Plans:
 **Wave 2** *(blocked on Wave 1 completion)*
 
 - [x] 05-02: Refresh mobile layouts for dashboard, customer, order, and COD surfaces.
-- [ ] 05-04: Rework dashboard presentation around operational decisions and verify behavior preservation.
+- [x] 05-04: Rework dashboard presentation around operational decisions and verify behavior preservation.
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -178,7 +178,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | 2. Order State and Trello Sync Reliability | 4/4 | Complete    | 2026-06-16 |
 | 3. Fast Order and Shipping Workflows | 3/3 | Complete    | 2026-06-16 |
 | 4. COD, Search, and Operational Utilities | 4/4 | Complete    | 2026-06-17 |
-| 5. Cohesive UI/UX Refresh | 2/4 | In Progress|  |
+| 5. Cohesive UI/UX Refresh | 3/4 | In Progress|  |
 
 ## Requirement Coverage
 
@@ -207,11 +207,11 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | OPS-04 | Phase 4 | Complete |
 | OPS-05 | Phase 4 | Pending |
 | OPS-06 | Phase 4 | Pending |
-| UX-01 | Phase 5 | Pending |
-| UX-02 | Phase 5 | Pending |
+| UX-01 | Phase 5 | Complete |
+| UX-02 | Phase 5 | Complete |
 | UX-03 | Phase 5 | Pending |
-| UX-04 | Phase 5 | Pending |
-| UX-05 | Phase 5 | Pending |
+| UX-04 | Phase 5 | Complete |
+| UX-05 | Phase 5 | Complete |
 
 **Coverage:**
 
