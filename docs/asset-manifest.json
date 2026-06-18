@@ -1,17 +1,17 @@
 {
   "files": {
-    "main.css": "/cassette-store/static/css/main.841afd0c.css",
-    "main.js": "/cassette-store/static/js/main.955eeb65.js",
+    "main.css": "/cassette-store/static/css/main.55368c99.css",
+    "main.js": "/cassette-store/static/js/main.e3b14e91.js",
     "static/js/453.0063fc75.chunk.js": "/cassette-store/static/js/453.0063fc75.chunk.js",
     "service-worker.js": "/cassette-store/service-worker.js",
     "static/media/radio-cassette.png": "/cassette-store/static/media/radio-cassette.22fdea49388090db9a4c.png",
     "index.html": "/cassette-store/index.html",
-    "main.841afd0c.css.map": "/cassette-store/static/css/main.841afd0c.css.map",
-    "main.955eeb65.js.map": "/cassette-store/static/js/main.955eeb65.js.map",
+    "main.55368c99.css.map": "/cassette-store/static/css/main.55368c99.css.map",
+    "main.e3b14e91.js.map": "/cassette-store/static/js/main.e3b14e91.js.map",
     "453.0063fc75.chunk.js.map": "/cassette-store/static/js/453.0063fc75.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.841afd0c.css",
-    "static/js/main.955eeb65.js"
+    "static/css/main.55368c99.css",
+    "static/js/main.e3b14e91.js"
   ]
 }
