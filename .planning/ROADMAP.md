@@ -153,13 +153,19 @@ Plans:
   4. Dashboard metrics guide operational decisions while preserving verified existing business behavior.
 
 **Plans**: 4 plans
-
 Plans:
+**Wave 1**
 
 - [ ] 05-01: Define and apply the internal-operations visual system across shared components.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 05-02: Refresh mobile layouts for dashboard, customer, order, and COD surfaces.
-- [ ] 05-03: Standardize workflow states for loading, empty, error, success, and confirmation.
 - [ ] 05-04: Rework dashboard presentation around operational decisions and verify behavior preservation.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 05-03: Standardize workflow states for loading, empty, error, success, and confirmation.
 
 ## Progress
 

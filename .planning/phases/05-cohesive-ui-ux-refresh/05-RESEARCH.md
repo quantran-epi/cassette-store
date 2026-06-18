@@ -406,26 +406,19 @@ const style = { borderRadius: token.borderRadius, boxShadow: tokens.shadow.card,
 | A4 | No `./CLAUDE.md` exists; `./AGENTS.md` (per config `claude_md_path`) is the project instruction file. | Project Constraints | Low — verified `CLAUDE.md` absent and `AGENTS.md` read. |
 | A5 | Exact Vietnamese wording can be matched from existing Vietnamese files; suggested translations in Code Examples are illustrative, not authoritative. | Code Examples | Low — operator-facing wording is the user's domain; planner/operator should confirm terms. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Token module location: `src/theme/` vs. expanding `useTheme.ts`?**
-   - What we know: Claude's discretion (CONTEXT.md). Both work.
-   - What's unclear: Team preference for a new top-level `theme/` dir vs. keeping it under `Hooks/`.
-   - Recommendation: New `src/theme/tokens.ts` + `buildAppTheme.ts` (plain TS, importable without React), keep `useTheme.ts` as the React consumer that re-exports `useToken` and the tokens. Defer final call to planner.
+   - RESOLVED: Use `src/theme/tokens.ts` plus `src/theme/buildAppTheme.ts` as the plain-TS source of truth. Keep `src/Hooks/useTheme.ts` as the React-facing token consumer/export so existing `useTheme()` callers keep working. This matches the approved `05-UI-SPEC.md` token source contract.
 
 2. **Truncate-with-reveal mechanism: Popover vs. expandable vs. detail-nav?**
-   - What we know: Must be consistent across screens (Claude's discretion).
-   - What's unclear: Which feels best for the operator on a phone.
-   - Recommendation: Tap-triggered `Popover` for inline fields (single-height rows preserved), `expandable` paragraph for long notes. Avoid hover tooltip (Pitfall 3).
+   - RESOLVED: Use tap-triggered `Popover` for inline row fields and `Typography.Paragraph ellipsis={{ expandable, symbol: "xem thêm" }}` for long notes. Do not use hover-only tooltips for mobile reveal. This is locked by `05-UI-SPEC.md` Interaction Contract.
 
 3. **Keep craco Less vars or make JS tokens authoritative?**
-   - What we know: Both theme entry points exist (Pitfall 4).
-   - What's unclear: Whether any live Less-styled element depends on `@primary-fade`/`@text-color`.
-   - Recommendation: Keep Less vars in sync with `tokens.ts` values; document JS tokens as authoritative. A grep for Less-var usage during planning resolves this.
+   - RESOLVED: JS tokens in `src/theme/tokens.ts` are authoritative. Keep existing CRACO Less values synchronized to the same color constants as part of the token plan so legacy Less overrides do not drift.
 
 4. **Which screen converts first?**
-   - What we know: Sequence is Claude's discretion; all surfaces must end coherent.
-   - Recommendation: Tokens first (foundation, plan 05-01), then the COD review widget (highest density + the English-label offender, plan 05-02/05-03), then order list, customer list, order create, then dashboard reorg (05-04).
+   - RESOLVED: Plan execution starts with the shared token/theme foundation (`05-01`), then mobile list/form surfaces (`05-02`), Vietnamese copy and workflow-state standardization (`05-03`), and dashboard decision grouping (`05-04`).
 
 ## Environment Availability
 
