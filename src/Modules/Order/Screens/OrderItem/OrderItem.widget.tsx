@@ -8,15 +8,13 @@ import {
 } from "@ant-design/icons";
 import { COLORS, ORDER_PAYMENT_METHOD, ORDER_PRIORITY_STATUS, ORDER_STATUS } from "@common/Constants/AppConstants";
 import {buildOrderActionModel, OrderActionKey} from "@common/Helpers/OrderActionHelper";
-import { Button } from "@components/Button";
 import { Space } from "@components/Layout/Space";
 import { Stack } from "@components/Layout/Stack";
 import { List } from "@components/List";
 import { useMessage } from "@components/Message";
 import { useModal } from "@components/Modal/ModalProvider";
 import { Tag } from "@components/Tag";
-import { Tooltip } from "@components/Tootip";
-import { Typography } from "@components/Typography";
+import { TruncatedText, Typography } from "@components/Typography";
 import { Order } from "@store/Models/Order";
 import {removeOrder} from "@store/Reducers/OrderReducer";
 import { RootState } from "@store/Store";
@@ -273,6 +271,18 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
         return orders.filter(e => e.status === ORDER_STATUS.SHIPPED && e.customerId === props.item.customerId).reduce((prev, cur) => prev + cur.paymentAmount, 0);
     }
 
+    const _getOrderTitleText = () => {
+        return `${props.item.name} (${orderCustomer.buyCount} đơn - ${_getBuyAmount().toLocaleString()}đ)`;
+    }
+
+    const _renderOrderTitle = () => {
+        return <TruncatedText
+            text={_getOrderTitleText()}
+            maxLength={38}
+            style={{fontWeight: "bold", color: _getCustomerColor(), textAlign: "left"}}
+        />
+    }
+
     return <React.Fragment>
         <List.Item
             actions={
@@ -284,22 +294,8 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                 title={<Stack gap={5}>
                     {doneOrders?.includes(props.item.trelloCardId) ?
                         <Badge count={"Tạo đơn"} size="small" offset={[0, 3]}>
-                            <Tooltip title={props.item.name + " (" + orderCustomer.buyCount + " đơn" + "-" + _getBuyAmount().toLocaleString() + "đ)"}>
-                                <Button onClick={() => null}
-                                    type="text"
-                                    style={{ paddingInline: 0, fontWeight: "bold", textAlign: "left" }}>
-                                    <Typography.Paragraph ellipsis style={{ width: 320, marginRight: 5, marginBottom: 0, textAlign: "left", color: _getCustomerColor() }}>{props.item.name}
-                                    </Typography.Paragraph>
-                                </Button>
-                            </Tooltip>
-                        </Badge> : <Tooltip title={props.item.name + " (" + orderCustomer.buyCount + " đơn" + "-" + _getBuyAmount().toLocaleString() + "đ)"}>
-                            <Button onClick={() => null}
-                                type="text"
-                                style={{ paddingInline: 0, fontWeight: "bold", textAlign: "left" }}>
-                                <Typography.Paragraph ellipsis style={{ width: 320, marginRight: 5, marginBottom: 0, textAlign: "left", color: _getCustomerColor() }}>{props.item.name}
-                                </Typography.Paragraph>
-                            </Button>
-                        </Tooltip>}
+                            {_renderOrderTitle()}
+                        </Badge> : _renderOrderTitle()}
                 </Stack>}
                 description={<Stack direction={"column"} align={"flex-start"} gap={4}>
                     <Space size={0}>
@@ -323,14 +319,12 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                         </Space>}
                         {Boolean(props.item.shippingCode) && <CopyToClipboard text={props.item.shippingCode}
                             onCopy={() => message.success("Đã sao chép mã vận đơnn")}>
-                            <Space>
-                                <BarcodeOutlined />
-                                <Typography.Paragraph ellipsis style={{
-                                    width: 300,
-                                    marginBottom: 0,
-                                    color: COLORS.ORDER_STATUS.CREATE_DELIVERY
-                                }}>{props.item.shippingCode}</Typography.Paragraph>
-                            </Space>
+                            <TruncatedText
+                                icon={<BarcodeOutlined />}
+                                text={props.item.shippingCode}
+                                maxLength={22}
+                                style={{color: COLORS.ORDER_STATUS.CREATE_DELIVERY}}
+                            />
                         </CopyToClipboard>}
                         {!props.item.shippingCode && props.item.status === ORDER_STATUS.PLACED && orderUtils.isPushedTrello(props.item.id) &&
                             <OrderInlineShippingCodeWidget
@@ -342,25 +336,11 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                         {orderCustomer && <React.Fragment>
                             <CopyToClipboard text={orderCustomer.mobile}
                                 onCopy={() => message.success("Đã sao chép số điện thoại")}>
-                                <Space>
-                                    <PhoneOutlined />
-                                    <Typography.Paragraph ellipsis style={{
-                                        width: 300,
-                                        marginBottom: 0
-                                    }}>{orderCustomer.mobile}</Typography.Paragraph>
-                                </Space>
+                                <TruncatedText icon={<PhoneOutlined />} text={orderCustomer.mobile} maxLength={24}/>
                             </CopyToClipboard>
                             <CopyToClipboard text={orderCustomer.address}
                                 onCopy={() => message.success("Đã sao chép địa chỉ")}>
-                                <Tooltip title={orderCustomer.address}>
-                                    <Space>
-                                        <EnvironmentOutlined />
-                                        <Typography.Paragraph ellipsis style={{
-                                            width: 300,
-                                            marginBottom: 0
-                                        }}>{orderCustomer.address}</Typography.Paragraph>
-                                    </Space>
-                                </Tooltip>
+                                <TruncatedText icon={<EnvironmentOutlined />} text={orderCustomer.address} maxLength={34}/>
                             </CopyToClipboard>
                         </React.Fragment>}
                         <Space>

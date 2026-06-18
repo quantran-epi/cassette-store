@@ -160,9 +160,9 @@ it("uses initial URL params for visible controls and filtered rows", () => {
 
     expect(screen.getByLabelText("Search orders")).toHaveValue("alice");
     expect(screen.getByRole("checkbox", {name: /Thành công/i})).toBeChecked();
-    expect(screen.getByText("COD: Unpaid")).toBeInTheDocument();
-    expect(screen.getByText("Shipping: Has code")).toBeInTheDocument();
-    expect(screen.getByText("Sort: COD amount")).toBeInTheDocument();
+    expect(screen.getByText("COD: Chưa trả COD")).toBeInTheDocument();
+    expect(screen.getByText("Vận đơn: Có mã")).toBeInTheDocument();
+    expect(screen.getByText("Sắp xếp: Tiền COD")).toBeInTheDocument();
     expect(screen.getByText("Alice unpaid COD")).toBeInTheDocument();
     expect(screen.queryByText("Alice paid COD")).not.toBeInTheDocument();
     expect(screen.queryByText("Bob transfer")).not.toBeInTheDocument();
@@ -183,7 +183,7 @@ it("clears all active filters back to the default query", async () => {
     mockMatchMedia();
     renderOrderList("/order/list?q=alice&cod=unpaid&ship=has-code&sort=cod");
 
-    await userEvent.click(screen.getByRole("button", {name: /Clear filters/i}));
+    await userEvent.click(screen.getByRole("button", {name: /Xóa bộ lọc/i}));
 
     await waitFor(() => expect(screen.getByTestId("location-search")).toHaveTextContent(""));
     expect(screen.getByText("Alice unpaid COD")).toBeInTheDocument();
@@ -195,24 +195,24 @@ it("distinguishes filtered-empty state from no orders at all", () => {
     mockMatchMedia();
     const {unmount} = renderOrderList("/order/list?q=no-match");
 
-    expect(screen.getByText("No orders match these filters")).toBeInTheDocument();
-    expect(screen.getByText("Clear filters or adjust search to return to the full order list.")).toBeInTheDocument();
+    expect(screen.getByText("Không có đơn hàng phù hợp")).toBeInTheDocument();
+    expect(screen.getByText("Xóa bộ lọc hoặc đổi tìm kiếm để xem lại danh sách đơn hàng.")).toBeInTheDocument();
 
     unmount();
     renderOrderList("/order/list", {orders: []});
 
     expect(screen.getByText("Chưa có đơn hàng nào")).toBeInTheDocument();
-    expect(screen.queryByText("No orders match these filters")).not.toBeInTheDocument();
+    expect(screen.queryByText("Không có đơn hàng phù hợp")).not.toBeInTheDocument();
 });
 
 it("sanitizes invalid query params back to default controls", () => {
     mockMatchMedia();
     renderOrderList("/order/list?cod=bad&ship=bad&sort=bad&page=-9");
 
-    expect(screen.getByText("All COD")).toBeInTheDocument();
-    expect(screen.getByText("All shipping")).toBeInTheDocument();
-    expect(screen.getByText("Newest")).toBeInTheDocument();
-    expect(screen.queryByRole("button", {name: /Clear filters/i})).not.toBeInTheDocument();
+    expect(screen.getByText("Tất cả COD")).toBeInTheDocument();
+    expect(screen.getByText("Tất cả vận đơn")).toBeInTheDocument();
+    expect(screen.getByText("Mới nhất")).toBeInTheDocument();
+    expect(screen.queryByRole("button", {name: /Xóa bộ lọc/i})).not.toBeInTheDocument();
 });
 
 it("writes page changes to the URL", async () => {

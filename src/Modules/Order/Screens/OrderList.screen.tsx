@@ -33,35 +33,28 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { OrderItemWidget } from "./OrderItem/OrderItem.widget";
 import {selectOrderListReadModel} from "@store/Selectors/OrderSelectors";
-
-const STATUS_OPTIONS = [
-    ORDER_STATUS.PLACED,
-    ORDER_STATUS.CREATE_DELIVERY,
-    ORDER_STATUS.SHIPPED,
-    ORDER_STATUS.RETURNED,
-    ORDER_STATUS.WAITING_FOR_RETURNED
-];
+import {appTokens} from "../../../theme/tokens";
 
 const COD_OPTIONS: {label: string; value: OrderListCodState}[] = [
-    {label: "All COD", value: "all"},
-    {label: "Paid", value: "paid"},
-    {label: "Unpaid", value: "unpaid"},
-    {label: "Non-COD", value: "non-cod"}
+    {label: "Tất cả COD", value: "all"},
+    {label: "Đã trả COD", value: "paid"},
+    {label: "Chưa trả COD", value: "unpaid"},
+    {label: "Không COD", value: "non-cod"}
 ];
 
 const SHIPPING_OPTIONS: {label: string; value: OrderListShippingState}[] = [
-    {label: "All shipping", value: "all"},
-    {label: "Has code", value: "has-code"},
-    {label: "Missing code", value: "missing-code"},
-    {label: "Done order", value: "done-order"}
+    {label: "Tất cả vận đơn", value: "all"},
+    {label: "Có mã", value: "has-code"},
+    {label: "Thiếu mã", value: "missing-code"},
+    {label: "Đơn đã đóng", value: "done-order"}
 ];
 
 const SORT_OPTIONS: {label: string; value: OrderListSort}[] = [
-    {label: "Newest", value: "newest"},
-    {label: "Oldest", value: "oldest"},
-    {label: "Priority", value: "priority"},
-    {label: "Amount", value: "amount"},
-    {label: "COD amount", value: "cod"}
+    {label: "Mới nhất", value: "newest"},
+    {label: "Cũ nhất", value: "oldest"},
+    {label: "Ưu tiên", value: "priority"},
+    {label: "Số tiền", value: "amount"},
+    {label: "Tiền COD", value: "cod"}
 ];
 
 const _findLabel = <T extends string>(options: {label: string; value: T}[], value: T): string => {
@@ -106,24 +99,24 @@ export const OrderListScreen = () => {
         return <Empty
             image={Empty.PRESENTED_IMAGE_SIMPLE}
             description={<Stack gap={2} direction="column">
-                <Typography.Text strong>No orders match these filters</Typography.Text>
-                <Typography.Text type="secondary">Clear filters or adjust search to return to the full order list.</Typography.Text>
+                <Typography.Text strong>Không có đơn hàng phù hợp</Typography.Text>
+                <Typography.Text type="secondary">Xóa bộ lọc hoặc đổi tìm kiếm để xem lại danh sách đơn hàng.</Typography.Text>
             </Stack>}/>
     }
 
     return <React.Fragment>
-        <Stack.Compact style={{width: "100%"}}>
+        <Stack.Compact style={{width: "100%", marginBottom: appTokens.space.sm}}>
             <Input
                 allowClear
                 aria-label="Search orders"
                 placeholder="Tìm kiếm"
                 value={query.text}
                 onChange={(e) => _updateQuery({text: e.target.value})}/>
-            <Button onClick={_onAddOrder} icon={<PlusOutlined />} />
+            <Button aria-label="Tạo đơn" onClick={_onAddOrder} icon={<PlusOutlined />}>Tạo đơn</Button>
         </Stack.Compact>
         <AntCheckbox.Group
             value={query.statuses}
-            style={{ marginTop: 7 }}
+            style={{ marginTop: appTokens.space.xs }}
             onChange={_onChangeSearchStatuses}>
             <Row>
                 <Col span={14}>
@@ -145,7 +138,7 @@ export const OrderListScreen = () => {
                 </Col>
             </Row>
         </AntCheckbox.Group>
-        <Stack style={{marginTop: 8}} gap={8} direction="column" align="stretch">
+        <Stack style={{marginTop: appTokens.space.sm}} gap={appTokens.space.sm} direction="column" align="stretch">
             <Space wrap>
                 <Select
                     aria-label="COD state"
@@ -179,21 +172,21 @@ export const OrderListScreen = () => {
                     onChange={(value) => _updateQuery({sort: value})}/>
             </Space>
             {hasActiveFilters && <Space wrap>
-                {query.text && <Tag>Search: {query.text}</Tag>}
-                {query.statuses.map(status => <Tag key={status}>Status: {status}</Tag>)}
+                {query.text && <Tag>Tìm: {query.text}</Tag>}
+                {query.statuses.map(status => <Tag key={status}>Trạng thái: {status}</Tag>)}
                 {query.codState !== "all" && <Tag>COD: {_findLabel(COD_OPTIONS, query.codState)}</Tag>}
-                {query.shippingState !== "all" && <Tag>Shipping: {_findLabel(SHIPPING_OPTIONS, query.shippingState)}</Tag>}
-                {query.dateFrom && <Tag>From: {query.dateFrom}</Tag>}
-                {query.dateTo && <Tag>To: {query.dateTo}</Tag>}
-                {query.sort !== "newest" && <Tag>Sort: {_findLabel(SORT_OPTIONS, query.sort)}</Tag>}
-                <Button size="small" onClick={_onClearFilters}>Clear filters</Button>
+                {query.shippingState !== "all" && <Tag>Vận đơn: {_findLabel(SHIPPING_OPTIONS, query.shippingState)}</Tag>}
+                {query.dateFrom && <Tag>Từ: {query.dateFrom}</Tag>}
+                {query.dateTo && <Tag>Đến: {query.dateTo}</Tag>}
+                {query.sort !== "newest" && <Tag>Sắp xếp: {_findLabel(SORT_OPTIONS, query.sort)}</Tag>}
+                <Button size="small" onClick={_onClearFilters}>Xóa bộ lọc</Button>
             </Space>}
         </Stack>
         <Divider orientation="left" style={{ marginBottom: 0 }}>Danh sách đơn hàng ({readModel.allFilteredRows.length} đơn)</Divider>
-        <Stack style={{ marginTop: 5 }} gap={7} direction="column" align="flex-start">
+        <Stack style={{ marginTop: appTokens.space.xs }} gap={appTokens.space.sm} direction="column" align="flex-start">
             <Stack gap={0}>
                 <Tooltip title={"Số đơn trong bộ lọc"}>
-                    <Tag>Orders: {readModel.summary.orderCount}</Tag>
+                    <Tag>Đơn: {readModel.summary.orderCount}</Tag>
                 </Tooltip>
                 <Tooltip title={"Dự kiến số tiền thu về"}>
                     <Tag color={COLORS.ORDER_STATUS.SHIPPED}>Thu: {readModel.summary.cashAmount.toLocaleString()}</Tag>
