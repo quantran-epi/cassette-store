@@ -158,11 +158,14 @@ it("uses initial URL params for visible controls and filtered rows", () => {
     mockMatchMedia();
     renderOrderList("/order/list?q=alice&status=SHIPPED&cod=unpaid&ship=has-code&sort=cod&page=1");
 
-    expect(screen.getByLabelText("Search orders")).toHaveValue("alice");
+    expect(screen.getByLabelText("Tìm đơn hàng")).toHaveValue("alice");
     expect(screen.getByRole("checkbox", {name: /Thành công/i})).toBeChecked();
     expect(screen.getByText("COD: Chưa trả COD")).toBeInTheDocument();
     expect(screen.getByText("Vận đơn: Có mã")).toBeInTheDocument();
     expect(screen.getByText("Sắp xếp: Tiền COD")).toBeInTheDocument();
+    expect(screen.getByTestId("location-search")).toHaveTextContent("cod=unpaid");
+    expect(screen.getByTestId("location-search")).toHaveTextContent("ship=has-code");
+    expect(screen.getByTestId("location-search")).toHaveTextContent("sort=cod");
     expect(screen.getByText("Alice unpaid COD")).toBeInTheDocument();
     expect(screen.queryByText("Alice paid COD")).not.toBeInTheDocument();
     expect(screen.queryByText("Bob transfer")).not.toBeInTheDocument();
@@ -172,7 +175,7 @@ it("updates URL search params when the search filter changes", async () => {
     mockMatchMedia();
     renderOrderList("/order/list");
 
-    await userEvent.type(screen.getByLabelText("Search orders"), "bob");
+    await userEvent.type(screen.getByLabelText("Tìm đơn hàng"), "bob");
 
     await waitFor(() => expect(screen.getByTestId("location-search")).toHaveTextContent("?q=bob"));
     expect(screen.getByText("Bob transfer")).toBeInTheDocument();

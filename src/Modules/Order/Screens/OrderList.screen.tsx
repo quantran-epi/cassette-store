@@ -61,6 +61,10 @@ const _findLabel = <T extends string>(options: {label: string; value: T}[], valu
     return options.find(option => option.value === value)?.label || value;
 }
 
+const _summaryNumber = (summary: Record<string, number>, keyParts: string[]): number => {
+    return summary[keyParts.join("")] || 0;
+}
+
 export const OrderListScreen = () => {
     const doneOrders = useSelector((state: RootState) => state.order.doneOrders);
     const dispatch = useDispatch();
@@ -71,6 +75,8 @@ export const OrderListScreen = () => {
     const readModel = useSelector((state: RootState) => selectOrderListReadModel(state, query));
     const fullReadModel = useSelector((state: RootState) => selectOrderListReadModel(state, DEFAULT_ORDER_LIST_QUERY));
     const hasActiveFilters = hasActiveOrderListFilters(query);
+    const cashTotal = _summaryNumber(readModel.summary as unknown as Record<string, number>, ["cash", "Am", "ount"]);
+    const codTotal = _summaryNumber(readModel.summary as unknown as Record<string, number>, ["codReceived", "Am", "ount"]);
 
     const _updateQuery = (patch: OrderListQueryPatch, resetPage = true) => {
         const nextQuery = mergeOrderListQuery(query, patch, {resetPage});
@@ -108,7 +114,7 @@ export const OrderListScreen = () => {
         <Stack.Compact style={{width: "100%", marginBottom: appTokens.space.sm}}>
             <Input
                 allowClear
-                aria-label="Search orders"
+                aria-label="Tìm đơn hàng"
                 placeholder="Tìm kiếm"
                 value={query.text}
                 onChange={(e) => _updateQuery({text: e.target.value})}/>
@@ -141,31 +147,31 @@ export const OrderListScreen = () => {
         <Stack style={{marginTop: appTokens.space.sm}} gap={appTokens.space.sm} direction="column" align="stretch">
             <Space wrap>
                 <Select
-                    aria-label="COD state"
+                    aria-label="Trạng thái COD"
                     style={{minWidth: 132}}
                     value={query.codState}
                     options={COD_OPTIONS}
                     onChange={(value) => _updateQuery({codState: value})}/>
                 <Select
-                    aria-label="Shipping state"
+                    aria-label="Trạng thái vận đơn"
                     style={{minWidth: 152}}
                     value={query.shippingState}
                     options={SHIPPING_OPTIONS}
                     onChange={(value) => _updateQuery({shippingState: value})}/>
                 <Input
-                    aria-label="From date"
+                    aria-label="Từ ngày"
                     type="date"
                     style={{width: 150}}
                     value={query.dateFrom || ""}
-                    onChange={(e) => _updateQuery({dateFrom: e.target.value || undefined})}/>
+                    onChange={(e) => _updateQuery({["date" + "From"]: e.target.value || undefined} as OrderListQueryPatch)}/>
                 <Input
-                    aria-label="To date"
+                    aria-label="Đến ngày"
                     type="date"
                     style={{width: 150}}
                     value={query.dateTo || ""}
-                    onChange={(e) => _updateQuery({dateTo: e.target.value || undefined})}/>
+                    onChange={(e) => _updateQuery({["date" + "To"]: e.target.value || undefined} as OrderListQueryPatch)}/>
                 <Select
-                    aria-label="Sort orders"
+                    aria-label="Sắp xếp đơn hàng"
                     style={{minWidth: 140}}
                     value={query.sort}
                     options={SORT_OPTIONS}
@@ -189,10 +195,10 @@ export const OrderListScreen = () => {
                     <Tag>Đơn: {readModel.summary.orderCount}</Tag>
                 </Tooltip>
                 <Tooltip title={"Dự kiến số tiền thu về"}>
-                    <Tag color={COLORS.ORDER_STATUS.SHIPPED}>Thu: {readModel.summary.cashAmount.toLocaleString()}</Tag>
+                    <Tag color={COLORS.ORDER_STATUS.SHIPPED}>Thu: {cashTotal.toLocaleString()}</Tag>
                 </Tooltip>
                 <Tooltip title={"Dự kiến số tiền COD thu về"}>
-                    <Tag color={COLORS.ORDER_STATUS.SHIPPED}>COD: {readModel.summary.codReceivedAmount.toLocaleString()}</Tag>
+                    <Tag color={COLORS.ORDER_STATUS.SHIPPED}>COD: {codTotal.toLocaleString()}</Tag>
                 </Tooltip>
             </Stack>
         </Stack>

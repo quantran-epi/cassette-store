@@ -50,8 +50,8 @@ export const buildOperationalStatusReadModel = (input: OperationStatusInput): Op
     if (syncFailures.length > 0) {
         lines.push({
             kind: "sync",
-            title: "Trello sync needs attention",
-            text: `${syncFailures.length} failed Trello sync ${syncFailures.length === 1 ? "item" : "items"}`,
+            title: "Đồng bộ Trello cần kiểm tra",
+            text: `${syncFailures.length} lỗi đồng bộ Trello`,
             count: syncFailures.length,
             severity: "error"
         });
@@ -60,8 +60,8 @@ export const buildOperationalStatusReadModel = (input: OperationStatusInput): Op
     if (input.codImportIssueCount > 0) {
         lines.push({
             kind: "cod",
-            title: "COD import needs review",
-            text: input.lastCodImportIssueText || `${input.codImportIssueCount} COD rows need review`,
+            title: "File COD cần kiểm tra",
+            text: input.lastCodImportIssueText || `${input.codImportIssueCount} dòng COD cần kiểm tra`,
             count: input.codImportIssueCount,
             severity: "warning"
         });
@@ -70,7 +70,7 @@ export const buildOperationalStatusReadModel = (input: OperationStatusInput): Op
     if (input.backupStatus?.text) {
         lines.push({
             kind: "backup",
-            title: ["loading", "error"].includes(input.backupStatus.type) ? "Backup status needs attention" : "Backup",
+            title: ["loading", "error"].includes(input.backupStatus.type) ? "Sao lưu cần kiểm tra" : "Sao lưu",
             text: input.backupStatus.text,
             severity: _statusSeverity(input.backupStatus)
         });
@@ -79,7 +79,7 @@ export const buildOperationalStatusReadModel = (input: OperationStatusInput): Op
     if (input.doneRefreshStatus?.text) {
         lines.push({
             kind: "done",
-            title: "Done-order refresh",
+            title: "Làm mới đơn đóng hàng",
             text: input.doneRefreshStatus.text,
             severity: _statusSeverity(input.doneRefreshStatus)
         });

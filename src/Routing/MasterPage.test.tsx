@@ -355,17 +355,17 @@ it("renders operational tray safe actions without destructive local-resolution a
     store.dispatch(setAppContextState({
         currentFeatureName: "Orders",
         codImportIssueCount: 2,
-        lastCodImportIssueText: "Some rows need review"
+        lastCodImportIssueText: "Có dòng COD cần kiểm tra"
     } as any));
     mockRefreshDoneOrders.mockResolvedValueOnce(0);
     renderMasterPage();
 
-    expect(await screen.findByText("Trello sync needs attention")).toBeInTheDocument();
-    expect(screen.getByText("COD import needs review")).toBeInTheDocument();
-    expect(screen.getByRole("button", {name: /View failed sync orders/i})).toBeInTheDocument();
-    expect(screen.getByRole("button", {name: /Open COD review/i})).toBeInTheDocument();
-    expect(screen.getByRole("button", {name: /Backup now/i})).toBeInTheDocument();
-    expect(screen.getByRole("button", {name: /Refresh done orders/i})).toBeInTheDocument();
+    expect(await screen.findByText("Đồng bộ Trello cần kiểm tra")).toBeInTheDocument();
+    expect(screen.getByText("File COD cần kiểm tra")).toBeInTheDocument();
+    expect(screen.getByRole("button", {name: /Xem đơn lỗi đồng bộ/i})).toBeInTheDocument();
+    expect(screen.getByRole("button", {name: /Mở rà soát COD/i})).toBeInTheDocument();
+    expect(screen.getByRole("button", {name: /Sao lưu ngay/i})).toBeInTheDocument();
+    expect(screen.getByRole("button", {name: /Làm mới đơn đóng hàng/i})).toBeInTheDocument();
     expect(screen.queryByRole("button", {name: /Đã xử lý/i})).not.toBeInTheDocument();
     expect(screen.queryByText(/Apply confirmed COD rows/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/clear-sync-failure/i)).not.toBeInTheDocument();

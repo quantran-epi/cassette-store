@@ -232,7 +232,7 @@ const SidebarDrawer = () => {
                             {
                                 key: "home", label: <Flex align="center" gap={5}>
                                     <BarChartOutlined style={{fontSize: "1.2em"}}/>
-                                    {"Home"}
+                                    {"Tổng quan"}
                                 </Flex>, onClick: () => onNavigate(RootRoutes.AuthorizedRoutes.Root())
                             },
                             {
@@ -327,7 +327,7 @@ const BottomTabNavigator = () => {
         <Stack justify="space-around" style={_containerStyles()}>
             <Button type="text" style={_buttonStyles()} icon={<BarChartOutlined style={{fontSize: "1.2em"}}/>}
                     onClick={() => onNavigate(RootRoutes.AuthorizedRoutes.Root())}>
-                <Typography.Text style={_textStyles(RootRoutes.AuthorizedRoutes.Root())}>Home</Typography.Text>
+                <Typography.Text style={_textStyles(RootRoutes.AuthorizedRoutes.Root())}>Tổng quan</Typography.Text>
             </Button>
             <Button type="text" style={_buttonStyles()}
                     icon={<TruckOutlined style={{fontSize: "1.2em"}}/>}

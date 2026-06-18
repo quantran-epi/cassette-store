@@ -35,7 +35,7 @@ export const OrderCodPaymentListScreen = () => {
     return <React.Fragment>
         <Stack.Compact>
             <Input allowClear placeholder="Tìm kiếm" onChange={debounce((e) => setSearchText(e.target.value), 350)} />
-            <Button onClick={_onAddPayment} icon={<PlusOutlined />}>Manual cycle</Button>
+            <Button onClick={_onAddPayment} icon={<PlusOutlined />}>Tạo kỳ COD thủ công</Button>
         </Stack.Compact>
         <OrderCodPaymentImportWidget orders={orders || []} onApply={orderUtils.applyCodPaymentImportReview} />
         <List

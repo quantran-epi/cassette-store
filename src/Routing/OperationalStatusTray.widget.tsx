@@ -79,12 +79,12 @@ export const OperationalStatusTrayWidget: FunctionComponent<OperationalStatusTra
                     </Tag>
                     <Typography.Text type="secondary" style={{fontSize: 12}}>{line.text}</Typography.Text>
                 </Space>
-                {line.kind === "sync" && <Button size="small" icon={<SyncOutlined/>} onClick={props.onViewFailedSyncOrders}>View failed sync orders</Button>}
-                {line.kind === "cod" && <Button size="small" icon={<CreditCardOutlined/>} onClick={props.onOpenCodReview}>Open COD review</Button>}
+                {line.kind === "sync" && <Button size="small" icon={<SyncOutlined/>} onClick={props.onViewFailedSyncOrders}>Xem đơn lỗi đồng bộ</Button>}
+                {line.kind === "cod" && <Button size="small" icon={<CreditCardOutlined/>} onClick={props.onOpenCodReview}>Mở rà soát COD</Button>}
             </Stack>)}
             <Space size="small" wrap>
-                <Button size="small" icon={<CloudUploadOutlined/>} onClick={props.onBackupNow}>Backup now</Button>
-                <Button size="small" icon={<DropboxOutlined/>} onClick={props.onRefreshDoneOrders}>Refresh done orders</Button>
+                <Button size="small" icon={<CloudUploadOutlined/>} onClick={props.onBackupNow}>Sao lưu ngay</Button>
+                <Button size="small" icon={<DropboxOutlined/>} onClick={props.onRefreshDoneOrders}>Làm mới đơn đóng hàng</Button>
             </Space>
         </Stack>
     </Box>
