@@ -4,7 +4,7 @@ milestone: v1.0
 milestone_name: milestone
 status: complete
 stopped_at: Phase 05 verified
-last_updated: "2026-06-18T05:45:32.000Z"
+last_updated: "2026-06-18T09:18:17.000Z"
 last_activity: 2026-06-18
 progress:
   total_phases: 5
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-06-16)
 Phase: 05 (cohesive-ui-ux-refresh) — COMPLETE
 Plan: 4 of 4
 Status: Phase verified — ready for milestone completion
-Last activity: 2026-06-18 - Completed quick task 260618-hnz: Deploy redesigned order list item
+Last activity: 2026-06-18 - Completed quick task 260618-men: Redesign order row to conventional spec and deploy
 
 Progress: [██████████] 100%
 
@@ -101,6 +101,7 @@ None yet.
 | 260618-g8a | Deploy order list item UI refactor | 2026-06-18 | c62287e | [260618-g8a-deploy-order-list-item-ui-refactor](./quick/260618-g8a-deploy-order-list-item-ui-refactor/) |
 | 260618-hce | Redesign order list item layout with tooltip truncation | 2026-06-18 | c766d08 | [260618-hce-redesign-order-list-item-layout-with-too](./quick/260618-hce-redesign-order-list-item-layout-with-too/) |
 | 260618-hnz | Deploy redesigned order list item | 2026-06-18 | ebed34a | [260618-hnz-deploy-redesigned-order-list-item](./quick/260618-hnz-deploy-redesigned-order-list-item/) |
+| 260618-men | Redesign order row to conventional spec and deploy | 2026-06-18 | e085640 | [260618-men-redesign-order-row-to-conventional-spec-](./quick/260618-men-redesign-order-row-to-conventional-spec-/) |
 
 ## Deferred Items
 
