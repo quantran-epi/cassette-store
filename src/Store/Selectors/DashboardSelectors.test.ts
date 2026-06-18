@@ -114,4 +114,83 @@ describe("DashboardSelectors", () => {
         expect(model.customers.topByAmount.map(item => item.customer.id)).toEqual(["customer-2", "customer-1", "customer-3"]);
         expect(model.customers.topByBuyCount.map(item => item.customer.id)).toEqual(["customer-2", "customer-1", "customer-3"]);
     });
+
+    it("groups dashboard metrics by operator decisions from selector values", () => {
+        const customers: Customer[] = [
+            buildCustomer({id: "customer-1", name: "Alice", buyCount: 2}),
+            buildCustomer({id: "customer-2", name: "Bob", buyCount: 4, isVIP: true}),
+            buildCustomer({id: "customer-3", name: "Carol", buyCount: 0, isInBlacklist: true})
+        ];
+        const orders: Order[] = [
+            buildOrder({
+                id: "paid-cod",
+                customerId: "customer-1",
+                paymentAmount: 120000,
+                codAmount: 120000,
+                shippingCost: 20000,
+                isPayCOD: true
+            }),
+            buildOrder({
+                id: "unpaid-cod",
+                customerId: "customer-2",
+                paymentAmount: 220000,
+                codAmount: 220000,
+                shippingCost: 30000,
+                isPayCOD: false
+            }),
+            buildOrder({
+                id: "bank-transfer",
+                customerId: "customer-2",
+                paymentMethod: ORDER_PAYMENT_METHOD.BANK_TRANSFER_IN_ADVANCE,
+                paymentAmount: 180000,
+                codAmount: 0,
+                shippingCost: 25000,
+                isPayCOD: false
+            }),
+            buildOrder({
+                id: "returned-bom",
+                customerId: "customer-3",
+                status: ORDER_STATUS.RETURNED,
+                returnReason: ORDER_RETURN_REASON.REFUSE_TO_RECEIVE,
+                paymentAmount: 90000,
+                codAmount: 90000,
+                shippingCost: 18000,
+                placedItems: [{id: "item-4", count: 1, type: "SONY-50K", unitPrice: 50000, note: ""}]
+            })
+        ];
+
+        const model = buildDashboardReadModel(orders, customers);
+
+        expect(Object.keys(model.decisionGroups)).toEqual([
+            "codToReconcile",
+            "shippingAttention",
+            "cashHealth",
+            "customerFollowUp",
+            "returnAttention"
+        ]);
+        expect(model.decisionGroups.codToReconcile.title).toBe("COD cần đối soát");
+        expect(model.decisionGroups.codToReconcile.metrics).toEqual(expect.arrayContaining([
+            expect.objectContaining({key: "codPaidAmount", value: 100000, suffix: "đ"}),
+            expect.objectContaining({key: "codUnpaidShippedAmount", value: 190000, suffix: "đ"}),
+            expect.objectContaining({key: "codNotShippedAmount", value: 72000, suffix: "đ"})
+        ]));
+        expect(model.decisionGroups.shippingAttention.metrics).toEqual(expect.arrayContaining([
+            expect.objectContaining({key: "codOrderCount", value: 3}),
+            expect.objectContaining({key: "orderCount", value: 4})
+        ]));
+        expect(model.decisionGroups.cashHealth.metrics).toEqual(expect.arrayContaining([
+            expect.objectContaining({key: "bankTransferAmount", value: 180000, suffix: "đ"}),
+            expect.objectContaining({key: "actualInterest", value: 127000, suffix: "đ"})
+        ]));
+        expect(model.decisionGroups.customerFollowUp.metrics).toEqual(expect.arrayContaining([
+            expect.objectContaining({key: "repeatSecondPurchaseCount", value: 1}),
+            expect.objectContaining({key: "vipCount", value: 1}),
+            expect.objectContaining({key: "blacklistCount", value: 1})
+        ]));
+        expect(model.decisionGroups.returnAttention.metrics).toEqual(expect.arrayContaining([
+            expect.objectContaining({key: "refuseToReceiveOrderCount", value: 1}),
+            expect.objectContaining({key: "refuseToReceiveCassetteCount", value: 1}),
+            expect.objectContaining({key: "refuseToReceiveShippingCost", value: 18000, suffix: "đ"})
+        ]));
+    });
 });
