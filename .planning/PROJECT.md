@@ -26,14 +26,13 @@ An internal operator can manage cassette orders, shipping, COD, and customer fol
 - Validated in Phase 2: Order domain helpers, Trello operation results, local-first workflow results, durable sync failures, and order-level retry/manual recovery controls are implemented and verified.
 - Validated in Phase 3: Order routes use order-specific route symbols/layouts, `/order/create` supports direct customer lookup/add with a compact core-first form, and eligible order rows support explicit-paste shipping-code entry with row-scoped Trello sync feedback.
 - Validated in Phase 4: COD Excel import/review/apply, URL-backed order list filters, state-aware row action surfaces, and a safe operational status tray are implemented and verified.
+- Validated in Phase 5: Tokenized UI foundations, mobile-focused operator layouts, dashboard decision groups, and Vietnamese COD/order/operational workflow states are implemented and verified while preserving existing business behavior.
 
 ### Active
 
 <!-- Current milestone scope. These are hypotheses until shipped and verified. -->
 
-- [ ] Improve the daily operator workflow for order creation, shipping updates, COD payment cycles, backup/restore, quick actions, search, and filters.
-- [ ] Refresh the UI/UX for a more beautiful, mobile-friendly, efficient internal operations surface while preserving existing business behavior.
-- [ ] Preserve useful current workflows during the refactor so the app remains usable between phases.
+- No active v1 milestone requirements remain. Phase 5 verification passed; the milestone is ready for completion review.
 
 ### Out of Scope
 
@@ -56,6 +55,7 @@ An internal operator can manage cassette orders, shipping, COD, and customer fol
 - Phase 2 made core order workflows local-first around Trello side effects: failures are persisted as order sync failures, affected order items show retry/recovery controls, and attachment failures that need browser files require manual reselect.
 - Phase 3 streamlined fast order and shipping workflows: order creation now starts directly at `/order/create`, less-common create details stay available in a collapsed section, and shipping-code updates can be saved from eligible order rows while preserving local-first Trello failure recovery.
 - Phase 4 added daily utilities around COD settlement import, URL-backed order search/filter/sort, contextual row actions, and a compact operational tray for sync/COD/backup/done-refresh attention states.
+- Phase 5 completed the cohesive UI/UX refresh: shared theme tokens, mobile-friendly list/form surfaces, dashboard decision groups, Vietnamese workflow states, and regression coverage for the COD/order/operational copy sweep.
 - Daily operator utility is the product direction: fewer clicks, clearer actions, better search/filtering, safer batch/COD/shipping workflows, and less manual recovery when sync fails.
 - UI/UX improvement matters, but it should follow the operational nature of the app: dense, clear, fast, mobile-friendly, and built for repeated use rather than a marketing-style redesign.
 
@@ -99,4 +99,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-17 after Phase 4 verification*
+*Last updated: 2026-06-18 after Phase 5 verification*
