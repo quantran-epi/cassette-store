@@ -8,6 +8,7 @@ import {
 } from "@ant-design/icons";
 import { COLORS, ORDER_PAYMENT_METHOD, ORDER_PRIORITY_STATUS, ORDER_STATUS } from "@common/Constants/AppConstants";
 import {buildOrderActionModel, OrderActionKey} from "@common/Helpers/OrderActionHelper";
+import {ActionButton, ActionButtonTone} from "@components/Button";
 import { List } from "@components/List";
 import { useMessage } from "@components/Message";
 import { useModal } from "@components/Modal/ModalProvider";
@@ -289,10 +290,10 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
         return orders.filter(e => e.status === ORDER_STATUS.SHIPPED && e.customerId === props.item.customerId).reduce((prev, cur) => prev + cur.paymentAmount, 0);
     }
 
-    const _getOrderTitleText = () => {
-        if (!orderCustomer) return props.item.name;
+    const _getCustomerSummaryText = () => {
+        if (!orderCustomer) return "Chưa tìm thấy hồ sơ khách hàng";
 
-        return `${props.item.name} (${orderCustomer.buyCount} đơn - ${_getBuyAmount().toLocaleString()}đ)`;
+        return `${orderCustomer.buyCount} đơn đã mua · ${_getBuyAmount().toLocaleString()}đ đã giao thành công`;
     }
 
     const _renderTooltipText = (text: string | number, className?: string, style?: React.CSSProperties) => {
@@ -309,17 +310,35 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
 
     const _renderOrderTitle = () => {
         return _renderTooltipText(
-            _getOrderTitleText(),
+            props.item.name,
             "order-list-item__order-title",
             {color: _getCustomerColor()}
         )
     }
 
-    const _renderInfoPill = (label: string, icon: React.ReactNode, content: React.ReactNode, className?: string) => {
-        return <div className={["order-list-item__info", className].filter(Boolean).join(" ")}>
-            <span className="order-list-item__info-icon">{icon}</span>
-            <span className="order-list-item__info-label">{label}</span>
-            <span className="order-list-item__info-value">{content}</span>
+    const _renderCopyAction = (label: string, value: string | number, icon: React.ReactNode, tone: ActionButtonTone = "default") => {
+        const normalizedValue = String(value || "");
+
+        if (!normalizedValue) return null;
+
+        return <CopyToClipboard text={normalizedValue}
+            onCopy={() => message.success(`Đã sao chép ${label.toLowerCase()}`)}>
+            <span className="order-list-item__copy-target">
+                <ActionButton tone={tone} icon={icon} height={42} fontSize={12} className="order-list-item__copy-action">
+                    <span className="order-list-item__copy-text">
+                        <span className="order-list-item__copy-label">{label}</span>
+                        {_renderTooltipText(normalizedValue, "order-list-item__copy-value")}
+                    </span>
+                </ActionButton>
+            </span>
+        </CopyToClipboard>
+    }
+
+    const _renderInfoCard = (label: string, value: React.ReactNode, icon: React.ReactNode, className?: string) => {
+        return <div className={["order-list-item__info-card", className].filter(Boolean).join(" ")}>
+            <span className="order-list-item__info-card-icon">{icon}</span>
+            <span className="order-list-item__info-card-label">{label}</span>
+            <span className="order-list-item__info-card-value">{value}</span>
         </div>
     }
 
@@ -332,34 +351,35 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
         <List.Item className={["order-list-item", _getStatusClassName()].join(" ")}>
             <div className="order-list-item__status-rail" aria-hidden="true"/>
             <div className="order-list-item__body">
-                <div className="order-list-item__main">
-                    <div className="order-list-item__summary">
-                        <div className="order-list-item__title-row">
-                            {isDoneOrder && <Tag color={COLORS.ORDER_STATUS.CREATE_DELIVERY}>Tạo đơn</Tag>}
+                <div className="order-list-item__topline">
+                    <div className="order-list-item__identity">
+                        <div className="order-list-item__title-line">
                             {_renderOrderTitle()}
-                        </div>
-                        <div className="order-list-item__status-row">
-                            <div className="order-list-item__tags">
-                                {_renderOrderStatus()}
-                                {_renderIsPayCOD()}
-                                {props.item.returnReason && _renderReturnReason()}
-                                {props.item.priorityStatus !== ORDER_PRIORITY_STATUS.NONE && _renderPriority()}
-                            </div>
                             <span className="order-list-item__date">
                                 <CalendarOutlined/>
                                 {moment(new Date(props.item.createdDate)).format("DD-MM-yyyy")}
                             </span>
                         </div>
+                        <Typography.Text className="order-list-item__customer-summary">
+                            {_getCustomerSummaryText()}
+                        </Typography.Text>
+                        <div className="order-list-item__tags">
+                            {_renderOrderStatus()}
+                            {_renderIsPayCOD()}
+                            {props.item.returnReason && _renderReturnReason()}
+                            {props.item.priorityStatus !== ORDER_PRIORITY_STATUS.NONE && _renderPriority()}
+                            {isDoneOrder && <Tag color={COLORS.ORDER_STATUS.CREATE_DELIVERY}>Đã đóng Trello</Tag>}
+                        </div>
                     </div>
 
                     <div className="order-list-item__payment">
-                        <span className="order-list-item__payment-label">Thu</span>
+                        <span className="order-list-item__payment-label">Cần thu</span>
                         <Typography.Text className="order-list-item__payment-value">
                             {props.item.paymentAmount.toLocaleString()}đ
                         </Typography.Text>
                         <div className="order-list-item__payment-tags">
                             {_renderCODAmount()}
-                            {props.item.isFreeShip && <Tag color={COLORS.FREE_SHIP}>Freeship</Tag>}
+                            {props.item.isFreeShip && <Tag color={COLORS.FREE_SHIP}>Miễn phí giao hàng</Tag>}
                         </div>
                     </div>
 
@@ -368,53 +388,18 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                     </div>
                 </div>
 
-                <div className="order-list-item__sync">
-                    <OrderSyncStatusWidget failures={orderSyncFailures}/>
+                <div className="order-list-item__quick-strip">
+                    {Boolean(props.item.shippingCode)
+                        ? _renderCopyAction("Mã vận đơn", props.item.shippingCode, <BarcodeOutlined/>, "primary")
+                        : _renderInfoCard("Mã vận đơn", "Chưa có mã", <BarcodeOutlined/>, "order-list-item__info-card--muted")}
+                    {orderCustomer && _renderCopyAction("Số điện thoại", orderCustomer.mobile, <PhoneOutlined/>)}
+                    {orderCustomer && _renderCopyAction("Địa chỉ giao hàng", orderCustomer.address, <EnvironmentOutlined/>)}
+                    {_renderInfoCard("Thanh toán", props.item.paymentMethod, <DollarOutlined/>)}
+                    {props.item.isFreeShip && _renderInfoCard("Giao hàng", "Shop trả phí vận chuyển", <TruckOutlined/>, "order-list-item__info-card--blue")}
                 </div>
 
-                <div className="order-list-item__info-grid">
-                    {Boolean(props.item.shippingCode) && _renderInfoPill(
-                        "Vận đơn",
-                        <BarcodeOutlined/>,
-                        <CopyToClipboard text={props.item.shippingCode}
-                            onCopy={() => message.success("Đã sao chép mã vận đơnn")}>
-                            <span className="order-list-item__copy-target">
-                                {_renderTooltipText(props.item.shippingCode, "order-list-item__tracking-code")}
-                            </span>
-                        </CopyToClipboard>,
-                        "order-list-item__info--tracking"
-                    )}
-                    {orderCustomer && _renderInfoPill(
-                        "Điện thoại",
-                        <PhoneOutlined/>,
-                        <CopyToClipboard text={orderCustomer.mobile}
-                            onCopy={() => message.success("Đã sao chép số điện thoại")}>
-                            <span className="order-list-item__copy-target">
-                                {_renderTooltipText(orderCustomer.mobile)}
-                            </span>
-                        </CopyToClipboard>
-                    )}
-                    {orderCustomer && _renderInfoPill(
-                        "Địa chỉ",
-                        <EnvironmentOutlined/>,
-                        <CopyToClipboard text={orderCustomer.address}
-                            onCopy={() => message.success("Đã sao chép địa chỉ")}>
-                            <span className="order-list-item__copy-target">
-                                {_renderTooltipText(orderCustomer.address)}
-                            </span>
-                        </CopyToClipboard>,
-                        "order-list-item__info--address"
-                    )}
-                    {props.item.isFreeShip && _renderInfoPill(
-                        "Vận chuyển",
-                        <TruckOutlined/>,
-                        <Typography.Text style={{ color: COLORS.FREE_SHIP }}>Miễn phí vận chuyển</Typography.Text>
-                    )}
-                    {_renderInfoPill(
-                        "Thanh toán",
-                        <DollarOutlined/>,
-                        <Typography.Text>{props.item.paymentMethod}</Typography.Text>
-                    )}
+                <div className="order-list-item__sync">
+                    <OrderSyncStatusWidget failures={orderSyncFailures}/>
                 </div>
 
                 {shouldShowInlineShippingCode && <div className="order-list-item__inline-shipping">

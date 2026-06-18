@@ -1,6 +1,6 @@
 import React, {FunctionComponent, useState} from "react";
 import {CheckOutlined, SyncOutlined} from "@ant-design/icons";
-import {Button} from "@components/Button";
+import {ActionButton} from "@components/Button";
 import {Space} from "@components/Layout/Space";
 import {Stack} from "@components/Layout/Stack";
 import {useMessage} from "@components/Message";
@@ -62,22 +62,21 @@ export const OrderSyncStatusWidget: FunctionComponent<OrderSyncStatusWidgetProps
                 <Typography.Text type="secondary">{_getOperationLabel(failure)}: {failure.message}</Typography.Text>
             </Space>
             <Space size="small" wrap>
-                <Button
-                    size="small"
+                <ActionButton
+                    tone="warning"
                     icon={<SyncOutlined/>}
                     loading={retryingId === failure.id}
                     disabled={!failure.retryable}
                     onClick={() => _onRetry(failure)}>
                     Thử lại
-                </Button>
-                <Button
-                    size="small"
-                    type="text"
+                </ActionButton>
+                <ActionButton
+                    tone="default"
                     icon={<CheckOutlined/>}
                     loading={clearingId === failure.id}
                     onClick={() => _onClear(failure)}>
                     Đã xử lý
-                </Button>
+                </ActionButton>
             </Space>
         </Stack>)}
     </Stack>

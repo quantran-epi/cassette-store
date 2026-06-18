@@ -17,7 +17,7 @@ import {
     UserOutlined
 } from "@ant-design/icons";
 import {OrderActionDefinition, OrderActionKey, OrderActionModel} from "@common/Helpers/OrderActionHelper";
-import {Button} from "@components/Button";
+import {ActionButton, ActionButtonTone} from "@components/Button";
 import {Dropdown} from "@components/Dropdown";
 import {Space} from "@components/Layout/Space";
 import {Tooltip} from "@components/Tootip";
@@ -91,6 +91,24 @@ const _toMenuItem = (action: OrderActionDefinition): NonNullable<MenuProps["item
     disabled: action.disabled
 });
 
+const _getTone = (action: OrderActionDefinition): ActionButtonTone => {
+    if (action.danger) return "danger";
+
+    switch (action.key) {
+        case "mark-as-done":
+        case "mark-as-payed-cod":
+            return "success";
+        case "input-shipping-code":
+        case "create-delivery-bill-helpers":
+            return "primary";
+        case "waiting-return-order":
+        case "returned-order":
+            return "warning";
+        default:
+            return "default";
+    }
+}
+
 const _buildMenuItems = (model: OrderActionModel): MenuProps["items"] => {
     return Object.entries(model.groups).map(([group, actions]) => ({
         type: "group" as const,
@@ -105,23 +123,21 @@ const _buildMenuItems = (model: OrderActionModel): MenuProps["items"] => {
 export const OrderActionSurfaceWidget: FunctionComponent<OrderActionSurfaceWidgetProps> = ({model, onAction}) => {
     const menuItems = _buildMenuItems(model);
 
-    return <Space size="small" wrap>
+    return <div className="order-action-surface">
         {model.primaryAction && <Tooltip title={model.primaryAction.disabledReason || model.primaryAction.label}>
-            <Button
-                type="primary"
-                size="small"
+            <ActionButton
+                tone={_getTone(model.primaryAction)}
                 icon={_getIcon(model.primaryAction.key)}
-                danger={model.primaryAction.danger}
                 disabled={model.primaryAction.disabled}
                 onClick={() => onAction(model.primaryAction.key)}>
                 {model.primaryAction.label}
-            </Button>
+            </ActionButton>
         </Tooltip>}
         <Dropdown menu={{
             items: menuItems,
             onClick: e => onAction(e.key as OrderActionKey)
         }} placement="bottomRight">
-            <Button size="small" icon={<MoreOutlined/>}>Tác vụ khác</Button>
+            <ActionButton shape="circle" icon={<MoreOutlined/>} aria-label="Tác vụ khác"/>
         </Dropdown>
-    </Space>
+    </div>
 }

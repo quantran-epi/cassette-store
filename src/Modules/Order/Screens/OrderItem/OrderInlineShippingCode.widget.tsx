@@ -1,6 +1,6 @@
 import React, {FunctionComponent, useEffect, useState} from "react";
 import {BarcodeOutlined, CopyOutlined, SaveOutlined} from "@ant-design/icons";
-import {Button} from "@components/Button";
+import {ActionButton} from "@components/Button";
 import {Input} from "@components/Form/Input";
 import {Space} from "@components/Layout/Space";
 import {OrderWorkflowResult} from "@hooks";
@@ -42,21 +42,20 @@ export const OrderInlineShippingCodeWidget: FunctionComponent<OrderInlineShippin
             onChange={e => setCode(e.target.value)}
             style={{width: 180}}
         />
-        <Button
-            size="small"
+        <ActionButton
+            tone="default"
             icon={<CopyOutlined/>}
             disabled={props.disabled || props.loading}
             onClick={_onPaste}>
             Dán mã
-        </Button>
-        <Button
-            size="small"
-            type="primary"
+        </ActionButton>
+        <ActionButton
+            tone="primary"
             icon={<SaveOutlined/>}
             loading={props.loading}
             disabled={props.disabled || !code.trim()}
             onClick={_onSave}>
             Lưu mã
-        </Button>
+        </ActionButton>
     </Space>
 }
