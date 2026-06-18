@@ -154,15 +154,19 @@ const renderOrderList = (initialEntry: string, options: {orders?: Order[]} = {})
     </Provider>);
 }
 
-it("uses initial URL params for visible controls and filtered rows", () => {
+it("uses initial URL params for visible controls and filtered rows", async () => {
     mockMatchMedia();
     renderOrderList("/order/list?q=alice&status=SHIPPED&cod=unpaid&ship=has-code&sort=cod&page=1");
 
     expect(screen.getByLabelText("Tìm đơn hàng")).toHaveValue("alice");
-    expect(screen.getByRole("checkbox", {name: /Thành công/i})).toBeChecked();
+    expect(screen.getByRole("button", {name: /Mở bộ lọc/i})).toHaveTextContent("Bộ lọc (5)");
     expect(screen.getByText("COD: Chưa trả COD")).toBeInTheDocument();
-    expect(screen.getByText("Vận đơn: Có mã")).toBeInTheDocument();
-    expect(screen.getByText("Sắp xếp: Tiền COD")).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", {name: /Mở bộ lọc/i}));
+
+    expect(await screen.findByRole("checkbox", {name: /Thành công/i})).toBeChecked();
+    expect(screen.getByText("Có mã")).toBeInTheDocument();
+    expect(screen.getByText("Tiền COD")).toBeInTheDocument();
     expect(screen.getByTestId("location-search")).toHaveTextContent("cod=unpaid");
     expect(screen.getByTestId("location-search")).toHaveTextContent("ship=has-code");
     expect(screen.getByTestId("location-search")).toHaveTextContent("sort=cod");
@@ -208,14 +212,16 @@ it("distinguishes filtered-empty state from no orders at all", () => {
     expect(screen.queryByText("Không có đơn hàng phù hợp")).not.toBeInTheDocument();
 });
 
-it("sanitizes invalid query params back to default controls", () => {
+it("sanitizes invalid query params back to default controls", async () => {
     mockMatchMedia();
     renderOrderList("/order/list?cod=bad&ship=bad&sort=bad&page=-9");
 
-    expect(screen.getByText("Tất cả COD")).toBeInTheDocument();
+    expect(screen.getByRole("button", {name: /Mở bộ lọc/i})).toHaveTextContent("Bộ lọc");
+    await userEvent.click(screen.getByRole("button", {name: /Mở bộ lọc/i}));
+
+    expect(await screen.findByText("Tất cả COD")).toBeInTheDocument();
     expect(screen.getByText("Tất cả vận đơn")).toBeInTheDocument();
     expect(screen.getByText("Mới nhất")).toBeInTheDocument();
-    expect(screen.queryByRole("button", {name: /Xóa bộ lọc/i})).not.toBeInTheDocument();
 });
 
 it("writes page changes to the URL", async () => {

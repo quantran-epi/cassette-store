@@ -1,7 +1,8 @@
 import {
+    FilterOutlined,
     PlusOutlined,
 } from "@ant-design/icons";
-import { COLORS, ORDER_STATUS } from "@common/Constants/AppConstants";
+import { COLORS } from "@common/Constants/AppConstants";
 import {
     DEFAULT_ORDER_LIST_QUERY,
     hasActiveOrderListFilters,
@@ -9,11 +10,9 @@ import {
     parseOrderListQuery,
     serializeOrderListQuery
 } from "@common/Helpers/OrderListQueryHelper";
-import type {OrderListCodState, OrderListQueryPatch, OrderListShippingState, OrderListSort} from "@common/Helpers/OrderListQueryHelper";
+import type {OrderListQuery, OrderListQueryPatch} from "@common/Helpers/OrderListQueryHelper";
 import { Button } from "@components/Button";
-import { Checkbox } from "@components/Form/Checkbox";
 import { Input } from "@components/Form/Input";
-import { Select } from "@components/Form/Select";
 import { Divider } from "@components/Layout/Divider";
 import { Stack } from "@components/Layout/Stack";
 import { List } from "@components/List";
@@ -24,64 +23,48 @@ import { useScreenTitle } from "@hooks";
 import { RootRoutes } from "@routing/RootRoutes";
 import { removeOrder } from "@store/Reducers/OrderReducer";
 import { RootState } from "@store/Store";
-import { Checkbox as AntCheckbox, Empty } from "antd";
-import React, { useMemo } from "react";
+import { Empty } from "antd";
+import React, { useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { OrderItemWidget } from "./OrderItem/OrderItem.widget";
+import {
+    findOrderListOptionLabel,
+    ORDER_LIST_COD_OPTIONS,
+    ORDER_LIST_SHIPPING_OPTIONS,
+    ORDER_LIST_SORT_OPTIONS,
+    OrderListFilterModalWidget
+} from "./OrderListFilterModal.widget";
 import {selectOrderListReadModel} from "@store/Selectors/OrderSelectors";
 import "./OrderList.screen.css";
-
-const COD_OPTIONS: {label: string; value: OrderListCodState}[] = [
-    {label: "Tất cả COD", value: "all"},
-    {label: "Đã trả COD", value: "paid"},
-    {label: "Chưa trả COD", value: "unpaid"},
-    {label: "Không COD", value: "non-cod"}
-];
-
-const SHIPPING_OPTIONS: {label: string; value: OrderListShippingState}[] = [
-    {label: "Tất cả vận đơn", value: "all"},
-    {label: "Có mã", value: "has-code"},
-    {label: "Thiếu mã", value: "missing-code"},
-    {label: "Đơn đã đóng", value: "done-order"}
-];
-
-const SORT_OPTIONS: {label: string; value: OrderListSort}[] = [
-    {label: "Mới nhất", value: "newest"},
-    {label: "Cũ nhất", value: "oldest"},
-    {label: "Ưu tiên", value: "priority"},
-    {label: "Số tiền", value: "amount"},
-    {label: "Tiền COD", value: "cod"}
-];
-
-const STATUS_OPTIONS = [
-    {label: ORDER_STATUS.PLACED, value: ORDER_STATUS.PLACED},
-    {label: ORDER_STATUS.CREATE_DELIVERY, value: ORDER_STATUS.CREATE_DELIVERY},
-    {label: "Thành công", value: ORDER_STATUS.SHIPPED},
-    {label: "Hoàn về", value: ORDER_STATUS.RETURNED},
-    {label: ORDER_STATUS.WAITING_FOR_RETURNED, value: ORDER_STATUS.WAITING_FOR_RETURNED}
-];
-
-const _findLabel = <T extends string>(options: {label: string; value: T}[], value: T): string => {
-    return options.find(option => option.value === value)?.label || value;
-}
 
 const _summaryNumber = (summary: Record<string, number>, keyParts: string[]): number => {
     return summary[keyParts.join("")] || 0;
 }
 
-const DATE_FROM_QUERY_KEY = "dateFrom";
-const DATE_TO_QUERY_KEY = "dateTo";
+const _getActiveFilterLabels = (query: OrderListQuery): string[] => {
+    return [
+        query.text && `Tìm: ${query.text}`,
+        ...query.statuses.map(status => `Trạng thái: ${status}`),
+        query.codState !== "all" && `COD: ${findOrderListOptionLabel(ORDER_LIST_COD_OPTIONS, query.codState)}`,
+        query.shippingState !== "all" && `Vận đơn: ${findOrderListOptionLabel(ORDER_LIST_SHIPPING_OPTIONS, query.shippingState)}`,
+        query.dateFrom && `Từ: ${query.dateFrom}`,
+        query.dateTo && `Đến: ${query.dateTo}`,
+        query.sort !== "newest" && `Sắp xếp: ${findOrderListOptionLabel(ORDER_LIST_SORT_OPTIONS, query.sort)}`
+    ].filter(Boolean) as string[];
+}
 
 export const OrderListScreen = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const [filterOpen, setFilterOpen] = useState(false);
     const [searchParams, setSearchParams] = useSearchParams();
     useScreenTitle({ value: "Đơn hàng", deps: [] });
     const query = useMemo(() => parseOrderListQuery(searchParams), [searchParams]);
     const readModel = useSelector((state: RootState) => selectOrderListReadModel(state, query));
     const fullReadModel = useSelector((state: RootState) => selectOrderListReadModel(state, DEFAULT_ORDER_LIST_QUERY));
     const hasActiveFilters = hasActiveOrderListFilters(query);
+    const activeFilterLabels = useMemo(() => _getActiveFilterLabels(query), [query]);
     const cashTotal = _summaryNumber(readModel.summary as unknown as Record<string, number>, ["cash", "Am", "ount"]);
     const codTotal = _summaryNumber(readModel.summary as unknown as Record<string, number>, ["codReceived", "Am", "ount"]);
 
@@ -118,76 +101,40 @@ export const OrderListScreen = () => {
     }
 
     return <React.Fragment>
-        <section className="order-list-filter" aria-label="Bộ lọc đơn hàng">
-            <Stack.Compact className="order-list-filter__search">
+        <section className="order-list-toolbar" aria-label="Công cụ danh sách đơn hàng">
+            <Stack.Compact className="order-list-toolbar__search">
                 <Input
                     allowClear
                     aria-label="Tìm đơn hàng"
                     placeholder="Tìm tên, số điện thoại, mã vận đơn"
                     value={query.text}
                     onChange={(e) => _updateQuery({text: e.target.value})}/>
+                <Button
+                    aria-label="Mở bộ lọc"
+                    onClick={() => setFilterOpen(true)}
+                    icon={<FilterOutlined />}>
+                    {activeFilterLabels.length > 0 ? `Bộ lọc (${activeFilterLabels.length})` : "Bộ lọc"}
+                </Button>
                 <Button aria-label="Tạo đơn" onClick={_onAddOrder} icon={<PlusOutlined />}>Tạo đơn</Button>
             </Stack.Compact>
 
-            <AntCheckbox.Group
-                value={query.statuses}
-                className="order-list-filter__status-group"
-                onChange={_onChangeSearchStatuses}>
-                {STATUS_OPTIONS.map(option => <Checkbox
-                    key={option.value}
-                    value={option.value}
-                    className="order-list-filter__status-check">
-                    <span className="order-list-filter__status-label">{option.label}</span>
-                    <span className="order-list-filter__status-count">{fullReadModel.summary.statusCounts[option.value] || 0}</span>
-                </Checkbox>)}
-            </AntCheckbox.Group>
-
-            <div className="order-list-filter__controls">
-                <Select
-                    aria-label="Trạng thái COD"
-                    className="order-list-filter__control"
-                    value={query.codState}
-                    options={COD_OPTIONS}
-                    onChange={(value) => _updateQuery({codState: value})}/>
-                <Select
-                    aria-label="Trạng thái vận đơn"
-                    className="order-list-filter__control"
-                    value={query.shippingState}
-                    options={SHIPPING_OPTIONS}
-                    onChange={(value) => _updateQuery({shippingState: value})}/>
-                <Input
-                    aria-label="Từ ngày"
-                    type="date"
-                    className="order-list-filter__control"
-                    value={query.dateFrom || ""}
-                    onChange={(e) => _updateQuery({[DATE_FROM_QUERY_KEY]: e.target.value || undefined} as OrderListQueryPatch)}/>
-                <Input
-                    aria-label="Đến ngày"
-                    type="date"
-                    className="order-list-filter__control"
-                    value={query.dateTo || ""}
-                    onChange={(e) => _updateQuery({[DATE_TO_QUERY_KEY]: e.target.value || undefined} as OrderListQueryPatch)}/>
-                <Select
-                    aria-label="Sắp xếp đơn hàng"
-                    className="order-list-filter__control"
-                    value={query.sort}
-                    options={SORT_OPTIONS}
-                    onChange={(value) => _updateQuery({sort: value})}/>
-            </div>
-
-            {hasActiveFilters && <div className="order-list-filter__active">
-                <div className="order-list-filter__active-tags">
-                    {query.text && <Tag>Tìm: {query.text}</Tag>}
-                    {query.statuses.map(status => <Tag key={status}>Trạng thái: {status}</Tag>)}
-                    {query.codState !== "all" && <Tag>COD: {_findLabel(COD_OPTIONS, query.codState)}</Tag>}
-                    {query.shippingState !== "all" && <Tag>Vận đơn: {_findLabel(SHIPPING_OPTIONS, query.shippingState)}</Tag>}
-                    {query.dateFrom && <Tag>Từ: {query.dateFrom}</Tag>}
-                    {query.dateTo && <Tag>Đến: {query.dateTo}</Tag>}
-                    {query.sort !== "newest" && <Tag>Sắp xếp: {_findLabel(SORT_OPTIONS, query.sort)}</Tag>}
+            {hasActiveFilters && <div className="order-list-toolbar__active">
+                <div className="order-list-toolbar__active-tags">
+                    {activeFilterLabels.slice(0, 3).map(label => <Tag key={label}>{label}</Tag>)}
+                    {activeFilterLabels.length > 3 && <Tag>+{activeFilterLabels.length - 3}</Tag>}
                 </div>
                 <Button size="small" onClick={_onClearFilters}>Xóa bộ lọc</Button>
             </div>}
         </section>
+
+        <OrderListFilterModalWidget
+            open={filterOpen}
+            query={query}
+            statusCounts={fullReadModel.summary.statusCounts}
+            onClose={() => setFilterOpen(false)}
+            onClear={_onClearFilters}
+            onChangeStatuses={_onChangeSearchStatuses}
+            onUpdateQuery={_updateQuery}/>
 
         <Divider orientation="left" className="order-list-divider">Danh sách đơn hàng ({readModel.allFilteredRows.length} đơn)</Divider>
         <Stack className="order-list-summary" gap={8} direction="column" align="flex-start">

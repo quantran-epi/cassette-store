@@ -1,8 +1,5 @@
 import {
-    BarcodeOutlined,
     CalendarOutlined,
-    EnvironmentOutlined,
-    PhoneOutlined
 } from "@ant-design/icons";
 import { COLORS, ORDER_PAYMENT_METHOD, ORDER_PRIORITY_STATUS, ORDER_STATUS } from "@common/Constants/AppConstants";
 import {buildOrderActionModel, OrderActionKey} from "@common/Helpers/OrderActionHelper";
@@ -303,35 +300,31 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
         )
     }
 
-    const _renderCopyAction = (label: string, value: string | number, icon: React.ReactNode, tone: ActionButtonTone = "default") => {
+    const _renderCopyMeta = (label: string, value: string | number, tone: ActionButtonTone = "default") => {
         const normalizedValue = String(value || "");
 
         if (!normalizedValue) return null;
 
         return <CopyToClipboard text={normalizedValue}
             onCopy={() => message.success(`Đã sao chép ${label.toLowerCase()}`)}>
-            <span className="order-list-item__copy-target">
+            <span className="order-list-item__meta-copy-target">
                 <ActionButton
                     tone={tone}
-                    icon={icon}
-                    height={30}
-                    fontSize={12}
-                    className="order-list-item__copy-action"
+                    height={24}
+                    fontSize={11}
+                    className="order-list-item__meta-action"
                     aria-label={`Sao chép ${label.toLowerCase()}`}>
-                    <span className="order-list-item__copy-text">
-                        <span className="order-list-item__copy-label">{label}:</span>
-                        {_renderTooltipText(normalizedValue, "order-list-item__copy-value")}
-                    </span>
+                    <span className="order-list-item__meta-label">{label}:</span>
+                    {_renderTooltipText(normalizedValue, "order-list-item__copy-value")}
                 </ActionButton>
             </span>
         </CopyToClipboard>
     }
 
-    const _renderInlineInfo = (label: string, value: React.ReactNode, icon: React.ReactNode) => {
-        return <span className="order-list-item__inline-info">
-            <span className="order-list-item__inline-info-icon">{icon}</span>
-            <span className="order-list-item__inline-info-label">{label}:</span>
-            <span className="order-list-item__inline-info-value">{value}</span>
+    const _renderMetaText = (label: string, value: React.ReactNode) => {
+        return <span className="order-list-item__meta-text">
+            <span className="order-list-item__meta-label">{label}:</span>
+            <span className="order-list-item__meta-value">{value}</span>
         </span>
     }
 
@@ -378,12 +371,12 @@ export const OrderItemWidget: React.FunctionComponent<OrderItemProps> = (props) 
                     </div>
                 </div>
 
-                <div className="order-list-item__quick-strip">
+                <div className="order-list-item__meta-line">
                     {Boolean(props.item.shippingCode)
-                        ? _renderCopyAction("Mã vận đơn", props.item.shippingCode, <BarcodeOutlined/>, "primary")
-                        : _renderInlineInfo("Mã vận đơn", "Chưa có", <BarcodeOutlined/>)}
-                    {orderCustomer && _renderCopyAction("Số điện thoại", orderCustomer.mobile, <PhoneOutlined/>)}
-                    {orderCustomer && _renderCopyAction("Địa chỉ giao hàng", orderCustomer.address, <EnvironmentOutlined/>)}
+                        ? _renderCopyMeta("Mã vận đơn", props.item.shippingCode, "primary")
+                        : _renderMetaText("Mã vận đơn", "Chưa có")}
+                    {orderCustomer && _renderCopyMeta("Số điện thoại", orderCustomer.mobile)}
+                    {orderCustomer && _renderCopyMeta("Địa chỉ", orderCustomer.address)}
                 </div>
 
                 <div className="order-list-item__sync">
