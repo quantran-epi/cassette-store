@@ -199,7 +199,10 @@ it("uploads versioned backup envelopes to the existing Trello backup card", asyn
     userEvent.click(await screen.findByLabelText("Sao lưu dữ liệu"));
 
     await waitFor(() => expect(mockCreateAttachment).toHaveBeenCalledTimes(1));
-    expect(await screen.findByText("Đang backup dữ liệu")).toBeInTheDocument();
+    expect(mockMessage.loading).toHaveBeenCalledWith({
+        key: "backupMessageKey",
+        content: "Đang đồng bộ dữ liệu lên trello"
+    });
     const [attachment, cardId] = mockCreateAttachment.mock.calls[0];
     const uploadedText = await readBlobText(attachment.file);
     const uploadedBackup = JSON.parse(uploadedText);
@@ -217,7 +220,10 @@ it("uploads versioned backup envelopes to the existing Trello backup card", asyn
         debitFeeOrders: ["fee-before-backup"]
     }]);
     upload.resolve({id: "attachment-id"});
-    await waitFor(() => expect(screen.getByText(/Backup thành công/i)).toBeInTheDocument());
+    await waitFor(() => expect(mockMessage.success).toHaveBeenCalledWith(expect.objectContaining({
+        key: "backupMessageKey",
+        content: expect.stringMatching(/Backup thành công/i)
+    })));
     expect(localStorage.getItem("lastSuccessfulBackupTime")).toBeTruthy();
 });
 
@@ -232,7 +238,10 @@ it("shows backup failure status without updating last backup time", async () => 
     userEvent.click(screen.getByLabelText("Mở tác vụ nhanh"));
     userEvent.click(await screen.findByLabelText("Sao lưu dữ liệu"));
 
-    await waitFor(() => expect(screen.getByText("Backup lỗi: Trello offline")).toBeInTheDocument());
+    await waitFor(() => expect(mockMessage.error).toHaveBeenCalledWith({
+        key: "backupMessageKey",
+        content: "Backup lỗi: Trello offline"
+    }));
     expect(localStorage.getItem("lastCheckTime")).toBe(originalLastCheck);
     expect(localStorage.getItem("lastSuccessfulBackupTime")).toBe(originalSuccessfulBackup);
 });
@@ -324,27 +333,39 @@ it("shows done refresh loading and count status", async () => {
     mockRefreshDoneOrders.mockReturnValueOnce(refresh.promise);
     renderMasterPage();
 
-    expect(await screen.findByText("Đang kiểm tra đơn đóng hàng")).toBeInTheDocument();
+    expect(mockMessage.loading).toHaveBeenCalledWith({
+        key: "refreshDoneOrderMessageKey",
+        content: "Đang kiểm tra đơn đóng hàng"
+    });
     refresh.resolve(2);
 
-    await waitFor(() => expect(screen.getByText("Có 2 đơn đã đóng hàng")).toBeInTheDocument());
+    await waitFor(() => expect(mockMessage.warning).toHaveBeenCalledWith({
+        key: "refreshDoneOrderMessageKey",
+        content: "Có 2 đơn đã đóng hàng"
+    }));
 });
 
 it("shows done refresh empty success status", async () => {
     mockRefreshDoneOrders.mockResolvedValueOnce(0);
     renderMasterPage();
 
-    await waitFor(() => expect(screen.getByText("Không có đơn đã đóng hàng")).toBeInTheDocument());
+    await waitFor(() => expect(mockMessage.info).toHaveBeenCalledWith({
+        key: "refreshDoneOrderMessageKey",
+        content: "Không có đơn đã đóng hàng"
+    }));
 });
 
 it("shows done refresh failure status", async () => {
     mockRefreshDoneOrders.mockRejectedValueOnce(new Error("Trello down"));
     renderMasterPage();
 
-    await waitFor(() => expect(screen.getByText("Lỗi cập nhật đơn đóng hàng")).toBeInTheDocument());
+    await waitFor(() => expect(mockMessage.error).toHaveBeenCalledWith({
+        key: "refreshDoneOrderMessageKey",
+        content: "Lỗi cập nhật các đơn đóng hàng"
+    }));
 });
 
-it("renders operational tray safe actions without destructive local-resolution actions", async () => {
+it("renders safe quick actions without a persistent operational overlay", async () => {
     store.dispatch(setOrderState({
         orders: [],
         lastSequence: 0,
@@ -360,12 +381,15 @@ it("renders operational tray safe actions without destructive local-resolution a
     mockRefreshDoneOrders.mockResolvedValueOnce(0);
     renderMasterPage();
 
-    expect(await screen.findByText("Đồng bộ Trello cần kiểm tra")).toBeInTheDocument();
-    expect(screen.getByText("File COD cần kiểm tra")).toBeInTheDocument();
-    expect(screen.getByRole("button", {name: /Xem đơn lỗi đồng bộ/i})).toBeInTheDocument();
-    expect(screen.getByRole("button", {name: /Mở rà soát COD/i})).toBeInTheDocument();
-    expect(screen.getByRole("button", {name: /Sao lưu ngay/i})).toBeInTheDocument();
-    expect(screen.getByRole("button", {name: /Làm mới đơn đóng hàng/i})).toBeInTheDocument();
+    expect(screen.queryByText("Đồng bộ Trello cần kiểm tra")).not.toBeInTheDocument();
+    expect(screen.queryByText("File COD cần kiểm tra")).not.toBeInTheDocument();
+
+    userEvent.click(screen.getByLabelText("Mở tác vụ nhanh"));
+
+    expect(await screen.findByLabelText("Xem đơn lỗi đồng bộ")).toBeInTheDocument();
+    expect(screen.getByLabelText("Danh sách COD")).toBeInTheDocument();
+    expect(screen.getByLabelText("Sao lưu dữ liệu")).toBeInTheDocument();
+    expect(screen.getByLabelText("Làm mới đơn đóng hàng")).toBeInTheDocument();
     expect(screen.queryByRole("button", {name: /Đã xử lý/i})).not.toBeInTheDocument();
     expect(screen.queryByText(/Apply confirmed COD rows/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/clear-sync-failure/i)).not.toBeInTheDocument();

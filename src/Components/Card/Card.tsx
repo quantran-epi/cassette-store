@@ -1,9 +1,8 @@
 import React, { FunctionComponent } from 'react';
 import { Card as AntCard, CardProps as AntCardProps } from 'antd';
+import { AppShadow } from '@common/Constants/AppShadow';
 import { Space } from '@components/Layout/Space';
 import { Typography } from '@components/Typography';
-import {appTokens} from '../../theme/tokens';
-import {useTheme} from '../../Hooks/useTheme';
 
 interface ICardProps extends AntCardProps {
     description?: React.ReactNode;
@@ -17,21 +16,19 @@ export const Card: FunctionComponent<ICardProps> = ({
     noShadow = false,
     ...props
 }) => {
-    const { token } = useTheme();
-
     const _style = (): React.CSSProperties => {
         return {
-            borderRadius: token.borderRadius,
-            boxShadow: noShadow ? "none" : appTokens.shadow.card,
+            borderRadius: 10,
+            boxShadow: noShadow ? "none" : AppShadow.card,
             ...style
         }
     }
 
     const _renderTitle = () => {
         if (!title) return;
-        return <Space direction='vertical' style={description ? { marginTop: appTokens.space.sm, marginBottom: appTokens.space.sm } : {}}>
+        return <Space direction='vertical' style={description ? { marginTop: 10, marginBottom: 10 } : {}}>
             {typeof title === "string" ? <Typography.Title level={5} style={{ marginTop: 0, marginBottom: 0 }}>{title}</Typography.Title> : title}
-            {typeof description === "string" ? <Typography.Text type="secondary" style={{ marginTop: appTokens.space.sm, marginBottom: 0 }}>{description}</Typography.Text> : description}
+            {typeof description === "string" ? <Typography.Text type="secondary" style={{ marginTop: 10, marginBottom: 0 }}>{description}</Typography.Text> : description}
         </Space >
     }
 

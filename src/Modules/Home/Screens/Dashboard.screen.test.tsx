@@ -1,5 +1,6 @@
 import React from "react";
-import {render, screen, within} from "@testing-library/react";
+import {render, screen} from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import {ORDER_PAYMENT_METHOD, ORDER_PRIORITY_STATUS, ORDER_RETURN_REASON, ORDER_SHIPPING_PARTNER, ORDER_STATUS} from "@common/Constants/AppConstants";
 import type {Customer} from "@store/Models/Customer";
 import type {Order} from "@store/Models/Order";
@@ -125,35 +126,28 @@ beforeEach(() => {
     };
 });
 
-it("renders selector-backed decision groups with Vietnamese operator labels", () => {
+it("renders selector-backed Ant Design dashboard tabs with Vietnamese operator labels", () => {
     render(<DashboardScreen/>);
 
-    const codGroup = screen.getByTestId("dashboard-group-codToReconcile");
-    expect(within(codGroup).getByText("COD cần đối soát")).toBeInTheDocument();
-    expect(within(codGroup).getByText("190,000 đ")).toBeInTheDocument();
-    expect(within(codGroup).getByText("72,000 đ")).toBeInTheDocument();
+    expect(screen.getByRole("tab", {name: "Tổng"})).toBeInTheDocument();
+    expect(screen.getByRole("tab", {name: "COD"})).toBeInTheDocument();
+    expect(screen.getByRole("tab", {name: "Khách hàng"})).toBeInTheDocument();
+    expect(screen.getByText("Tổng tiền")).toBeInTheDocument();
+    expect(screen.getByText("Tổng tiền chuyển khoản")).toBeInTheDocument();
+    expect(screen.getByText("Tổng tiền COD")).toBeInTheDocument();
 
-    const shippingGroup = screen.getByTestId("dashboard-group-shippingAttention");
-    expect(within(shippingGroup).getByText("Cần xử lý giao hàng")).toBeInTheDocument();
-    expect(within(shippingGroup).getByText("Đơn COD")).toBeInTheDocument();
-    expect(within(shippingGroup).getByText("3")).toBeInTheDocument();
-    expect(within(shippingGroup).getByText("Tổng đơn")).toBeInTheDocument();
-    expect(within(shippingGroup).getByText("4")).toBeInTheDocument();
+    userEvent.click(screen.getByRole("tab", {name: "COD"}));
 
-    const cashGroup = screen.getByTestId("dashboard-group-cashHealth");
-    expect(within(cashGroup).getByText("Dòng tiền")).toBeInTheDocument();
-    expect(within(cashGroup).getByText("180,000 đ")).toBeInTheDocument();
-    expect(within(cashGroup).getByText("127,000 đ")).toBeInTheDocument();
+    expect(screen.getByText("Số đơn COD")).toBeInTheDocument();
+    expect(screen.getByText("Tổng tiền COD nhận về (trừ ship)")).toBeInTheDocument();
+    expect(screen.getByText("COD chưa trả (đã giao thành công)")).toBeInTheDocument();
 
-    const customerGroup = screen.getByTestId("dashboard-group-customerFollowUp");
-    expect(within(customerGroup).getByText("Khách hàng cần theo dõi")).toBeInTheDocument();
-    expect(within(customerGroup).getByText("VIP")).toBeInTheDocument();
-    expect(within(customerGroup).getByText("Bom")).toBeInTheDocument();
+    userEvent.click(screen.getByRole("tab", {name: "Khách hàng"}));
 
-    const returnGroup = screen.getByTestId("dashboard-group-returnAttention");
-    expect(within(returnGroup).getByText("Đơn hoàn/bom")).toBeInTheDocument();
-    expect(within(returnGroup).getByText("18,000 đ")).toBeInTheDocument();
+    expect(screen.getByText("Khách mua lại")).toBeInTheDocument();
+    expect(screen.getByText("VIP")).toBeInTheDocument();
+    expect(screen.getAllByText("Bom").length).toBeGreaterThan(1);
 
-    expect(screen.getByText("Bob-TP. Hồ Chí Minh")).toBeInTheDocument();
+    expect(screen.getAllByText(/Bob-TP\. Hồ Chí Minh/).length).toBeGreaterThan(1);
     expect(screen.getByText("400,000 đ")).toBeInTheDocument();
 });

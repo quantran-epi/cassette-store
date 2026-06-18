@@ -2,7 +2,7 @@ import {
     BarChartOutlined,
     CloudDownloadOutlined, CloudUploadOutlined, DollarOutlined, DropboxOutlined,
     MenuOutlined,
-    TruckOutlined,CalculatorOutlined,
+    TruckOutlined,CalculatorOutlined, SyncOutlined,
     UserOutlined,CreditCardOutlined
 } from "@ant-design/icons";
 import {Button} from "@components/Button";
@@ -22,7 +22,7 @@ import {useOrder, useTheme, useToggle, useTrello} from "@hooks";
 import {setCustomerState} from "@store/Reducers/CustomerReducer";
 import {RootState, store} from "@store/Store";
 import {Drawer, Flex, FloatButton, Layout} from "antd";
-import React, {useEffect, useMemo, useState} from "react";
+import React, {useEffect, useState} from "react";
 import {useDispatch, useSelector} from "react-redux";
 import {Outlet, useLocation, useNavigate} from "react-router-dom";
 import {RootRoutes} from "./RootRoutes";
@@ -36,9 +36,7 @@ import {AreaHelpers} from "@common/Helpers/AreaHelper";
 import {OrderHelper} from "@common/Helpers/OrderHelper";
 import {createBackupEnvelope, parseBackupText} from "@common/Helpers/BackupHelper";
 import {setAppContextState} from "@store/Reducers/AppContextReducer";
-import {buildOperationalStatusReadModel, selectOperationalStatusBase} from "@store/Selectors/OperationalStatusSelectors";
 import {DEFAULT_ORDER_LIST_QUERY, serializeOrderListQuery} from "@common/Helpers/OrderListQueryHelper";
-import {OperationalStatusTrayWidget} from "./OperationalStatusTray.widget";
 
 const layoutStyles: React.CSSProperties = {
     height: "100%"
@@ -55,16 +53,6 @@ type OperationStatus = {
 
 const _formatStatusTime = (time: number | string | Date = Date.now()): string => {
     return moment(time).format("HH:mm DD/MM");
-}
-
-const _getInitialBackupStatus = (): OperationStatus => {
-    const lastSuccessfulBackup = localStorage.getItem(LAST_SUCCESSFUL_BACKUP_TIME_KEY);
-    if (!lastSuccessfulBackup) return {type: "idle", text: ""};
-
-    return {
-        type: "success",
-        text: `Backup gần nhất ${_formatStatusTime(parseInt(lastSuccessfulBackup, 10))}`
-    }
 }
 
 const _statusColor = (status: OperationStatus["type"]): string => {
@@ -377,14 +365,7 @@ const AppNoti = () => {
     const refreshDoneOrderMessageKey = "refreshDoneOrderMessageKey";
     const backupMessageKey = "backupMessageKey";
     const navigate = useNavigate();
-    const operationalStatusBase = useSelector(selectOperationalStatusBase);
-    const [backupStatus, setBackupStatus] = useState<OperationStatus>(_getInitialBackupStatus);
-    const [doneRefreshStatus, setDoneRefreshStatus] = useState<OperationStatus>({type: "idle", text: ""});
-    const operationalStatusReadModel = useMemo(() => buildOperationalStatusReadModel({
-        ...operationalStatusBase,
-        backupStatus,
-        doneRefreshStatus
-    }), [operationalStatusBase, backupStatus, doneRefreshStatus]);
+    const syncFailures = useSelector((state: RootState) => state.order.syncFailures || []);
 
     useEffect(() => {
         backup();
@@ -392,7 +373,6 @@ const AppNoti = () => {
     }, [])
 
     const _refreshDoneOrder = () => {
-        setDoneRefreshStatus({type: "loading", text: "Đang kiểm tra đơn đóng hàng"});
         message.loading({
             key: refreshDoneOrderMessageKey,
             content: "Đang kiểm tra đơn đóng hàng"
@@ -400,7 +380,6 @@ const AppNoti = () => {
         orderUtils.refreshDoneOrders().then(doneOrderCount => {
             if (doneOrderCount > 0) {
                 const statusText = "Có " + doneOrderCount + " đơn đã đóng hàng";
-                setDoneRefreshStatus({type: "success", text: statusText});
                 message.warning({
                     key: refreshDoneOrderMessageKey,
                     content: statusText
@@ -408,7 +387,6 @@ const AppNoti = () => {
             }
             else {
                 const statusText = "Không có đơn đã đóng hàng";
-                setDoneRefreshStatus({type: "empty", text: statusText});
                 message.info({
                     key: refreshDoneOrderMessageKey,
                     content: statusText
@@ -416,7 +394,6 @@ const AppNoti = () => {
             }
         })
             .catch(e => {
-                setDoneRefreshStatus({type: "error", text: "Lỗi cập nhật đơn đóng hàng"});
                 message.error({
                     key: refreshDoneOrderMessageKey,
                     content: "Lỗi cập nhật các đơn đóng hàng"
@@ -450,7 +427,6 @@ const AppNoti = () => {
 
     const backupNow = async () => {
         try {
-            setBackupStatus({type: "loading", text: "Đang backup dữ liệu"});
             message.loading({
                 key: backupMessageKey,
                 content: "Đang đồng bộ dữ liệu lên trello"
@@ -460,16 +436,14 @@ const AppNoti = () => {
             const successTime = Date.now();
             localStorage.setItem(LAST_CHECK_TIME_KEY, successTime.toString()); // Reset the time
             localStorage.setItem(LAST_SUCCESSFUL_BACKUP_TIME_KEY, successTime.toString());
-            setBackupStatus({type: "success", text: `Backup thành công ${_formatStatusTime(successTime)}`});
             message.success({
                 key: backupMessageKey,
-                content: "Đồng bộ lên trello thành công"
+                content: `Backup thành công ${_formatStatusTime(successTime)}`
             });
         } catch (e) {
-            setBackupStatus({type: "error", text: `Backup lỗi: ${_getErrorMessage(e)}`});
             message.error({
                 key: backupMessageKey,
-                content: "Đồng bộ lên trello thất bại"
+                content: `Backup lỗi: ${_getErrorMessage(e)}`
             });
         }
     }
@@ -487,13 +461,6 @@ const AppNoti = () => {
     }
 
     return <React.Fragment>
-        <OperationalStatusTrayWidget
-            readModel={operationalStatusReadModel}
-            onViewFailedSyncOrders={_onNavigateToFailedSyncOrders}
-            onOpenCodReview={_onNavigateToOrderPaymentList}
-            onBackupNow={backupNow}
-            onRefreshDoneOrders={_refreshDoneOrder}
-        />
         <FloatButton.Group
             aria-label="Mở tác vụ nhanh"
             trigger="click"
@@ -501,6 +468,7 @@ const AppNoti = () => {
             style={{insetInlineEnd: 24, marginBottom: 40}}
             icon={<MenuOutlined/>}
         >
+            {syncFailures.length > 0 && <FloatButton aria-label="Xem đơn lỗi đồng bộ" icon={<SyncOutlined/>} onClick={_onNavigateToFailedSyncOrders}/>}
             <FloatButton aria-label="Danh sách COD" icon={<CreditCardOutlined />} onClick={_onNavigateToOrderPaymentList}/>
             <FloatButton aria-label="Sao lưu dữ liệu" icon={<CloudUploadOutlined/>} onClick={backupNow}/>
             <FloatButton aria-label="Làm mới đơn đóng hàng" icon={<DropboxOutlined/>} onClick={_refreshDoneOrder}/>
